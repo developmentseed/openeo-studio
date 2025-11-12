@@ -1,0 +1,68 @@
+# Eopf-Code-Editor
+
+A web application built with Vite and React for Eopf-Code-Editor
+
+## Installation and Usage
+
+The steps below will walk you through setting up your own instance of the project.
+
+### Install Project Dependencies
+
+To set up the development environment for this website, you'll need to install the following on your system:
+
+- [Node](http://nodejs.org/) (see version in [.nvmrc](.nvmrc)) (To manage multiple node versions we recommend [nvm](https://github.com/creationix/nvm))
+- [pnpm](https://pnpm.io/) Install using corepack (`corepack enable pnpm`)
+
+### Install Application Dependencies
+
+If you use [`nvm`](https://github.com/creationix/nvm), activate the desired Node version:
+
+```sh
+nvm install
+```
+
+Install Node modules:
+
+```sh
+pnpm install
+```
+
+## Usage
+
+### Environment Configuration
+
+The application uses [dot.env](https://vite.dev/guide/env-and-mode#env-files) files with environment variables for configuration. A template file `.env.example` is provided as a template.
+
+To configure the application:
+1. Copy `.env.example` to `.env`
+2. Modify the `.env` file with your specific configuration values
+3. Never modify `.env.example` directly as it serves as documentation
+
+### Starting the app
+
+```sh
+pnpm dev
+```
+
+Compiles the sass files, javascript, and launches the server making the site available at `http://localhost:9000/`
+The system will watch files and execute tasks whenever one of them changes.
+The site will automatically refresh since it is bundled with livereload.
+
+## Deployment
+
+To prepare the app for deployment run:
+
+```sh
+pnpm build
+```
+
+or
+
+```sh
+pnpm stage
+```
+
+This will package the app and place all the contents in the `dist` directory.
+The app can then be run by any web server.
+
+**When building the site for deployment provide the base url trough the `VITE_BASE_URL` environment variable. Omit the leading slash. (E.g. <https://example.com>)**

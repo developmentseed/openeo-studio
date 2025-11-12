@@ -1,0 +1,78 @@
+{
+  "name": "eopf-code-editor",
+  "description": "Starter application by Development Seed",
+  "version": "8.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/developmentseed/project-seed.git"
+  },
+  "author": {
+    "name": "Development Seed",
+    "url": "https://developmentseed.org"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/developmentseed/project-seed/issues"
+  },
+  "homepage": "https://github.com/developmentseed/project-seed",
+  "scripts": {
+    "prepare": "husky",
+    "dev": "pnpm clean && NODE_ENV=development vite",
+    "build": "pnpm clean && NODE_ENV=production tsc -b && vite build",
+    "stage": "pnpm clean && NODE_ENV=staging tsc -b && vite build",
+    "clean": "rm -rf dist node_modules/.vite",
+    "lint": "pnpm lint:scripts",
+    "lint:scripts": "eslint app/",
+    "ts-check": "npx tsc --noEmit --skipLibCheck",
+    "test": "jest"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/babel__core": "^7",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "babel-jest": "^30.1.2",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.4.0",
+    "husky": "^9.1.7",
+    "jest": "^30.1.3",
+    "jest-environment-jsdom": "^30.1.2",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.44.0",
+    "vite": "^7.1.5"
+  },
+  "dependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "@chakra-ui/react": "^3.23.0",
+    "@emotion/react": "^11.14.0",
+    "polished": "^4.3.1"
+  },
+  "alias": {
+    "$components": "~/app/components",
+    "$styles": "~/app/styles",
+    "$utils": "~/app/utils",
+    "$hooks": "~/app/hooks",
+    "$pages": "~/app/pages",
+    "$test": "~/test"
+  },
+  "packageManager": "pnpm@10.16.1"
+}
