@@ -1,199 +1,118 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
-  Badge,
   Button,
-  Container,
-  Field,
   Flex,
   Heading,
-  Input,
+  Separator,
   Text,
   Textarea
 } from '@chakra-ui/react';
+import Map, { Layer, MapRef, Source } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { useAuth } from 'react-oidc-context';
 
-const handDrawn = '255px 15px 225px 15px/15px 225px 15px 255px';
+import { EXAMPLE_CODE, processScript, usePyodide } from '$utils/code-runner';
+import { UserInfo } from '$components/auth/user-info';
 
-const indentLines = (str: string, spaces: number): string => {
-  const indentation = ' '.repeat(spaces);
-  return str
-    .split('\n')
-    .map((line) => indentation + line)
-    .join('\n');
-};
-
-function generateCode(indicators, colormapping) {
-  const indicatorCode = indicators.map(
-    ({ id, variable, content }) =>
-      `def fn_indicator_${id}():
-${indentLines(content, 2)}
-${variable} = fn_indicator_${id}()
-`
-  );
-
-  return `${indicatorCode.join('\n')}
-
-def fn_colormapping():
-${indentLines(colormapping, 2)}
-return fn_colormapping()
-`;
-}
+const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
 export default function App() {
-  const [indicators, setIndicators] = useState([
-    { id: 1, variable: '', content: '' }
-  ]);
-  const [colormapping, setColormapping] = useState('');
+  const [content, setContent] = useState(EXAMPLE_CODE);
+  const mapRef = useRef<MapRef>(null);
+  const [tileUrl, setTileUrl] = useState();
 
-  const addIndicator = (): void => {
-    const nextId =
-      indicators.length > 0 ? Math.max(...indicators.map((b) => b.id)) + 1 : 1;
-    setIndicators([...indicators, { id: nextId, variable: '', content: '' }]);
-  };
+  const { pyodide, log } = usePyodide();
+  const { user } = useAuth();
 
-  const removeIndicator = (id: number): void => {
-    setIndicators(indicators.filter((b) => b.id !== id));
-  };
-
-  const updateIndicator = (
-    id: number,
-    field: 'variable' | 'content',
-    value: string
-  ): void => {
-    setIndicators(
-      indicators.map((b) => (b.id === id ? { ...b, [field]: value } : b))
-    );
-  };
+  const executeCode = useCallback(async () => {
+    if (!pyodide) return;
+    const url = await processScript(pyodide, user?.access_token ?? '', content);
+    setTileUrl(url);
+  }, [pyodide, user?.access_token, content]);
 
   return (
-    <Container maxW='6xl' py={12} display='flex' gap={8} flexDir='column'>
-      <Flex alignItems='center' justifyContent='space-between'>
-        <Heading size='2xl'>Band Math</Heading>
-        <Button mt={4} colorPalette='blue' size='sm' onClick={addIndicator}>
-          Add Indicator
-        </Button>
-      </Flex>
-      <Flex flexDir='column' gap={8} mt={8}>
-        {indicators.map((indicator) => (
-          <BandMathIndicator
-            key={indicator.id}
-            id={indicator.id}
-            variable={indicator.variable}
-            content={indicator.content}
-            onRemove={() => removeIndicator(indicator.id)}
-            onChange={updateIndicator}
-          />
-        ))}
-      </Flex>
-      <ColorMapping
-        variables={indicators.map((i) => i.variable)}
-        colormapping={colormapping}
-        onChange={setColormapping}
-      />
-
-      <Heading size='2xl'>Result</Heading>
-      <pre>{generateCode(indicators, colormapping)}</pre>
-    </Container>
-  );
-}
-
-interface BandMathIndicatorProps {
-  id: number;
-  variable: string;
-  content: string;
-  onRemove: () => void;
-  onChange: (id: number, field: 'variable' | 'content', value: string) => void;
-}
-
-function BandMathIndicator({
-  id,
-  variable,
-  content,
-  onRemove,
-  onChange
-}: BandMathIndicatorProps) {
-  const lastLine = content.trim().split('\n').pop() || '';
-  const error = lastLine.startsWith('return')
-    ? ''
-    : 'Error: Last line must start with "return"';
-
-  return (
-    <Flex flexDir='column'>
-      <Flex align='center' gap={4}>
-        <Heading size='md' flexGrow={1}>
-          Indicator #{id}
-        </Heading>
-        <Field.Root required maxW='15rem'>
-          <Field.Label>
-            Exported Variable <Field.RequiredIndicator />
-          </Field.Label>
-          <Input
-            size='sm'
-            borderRadius={handDrawn}
-            value={variable}
-            onChange={(e) => onChange(id, 'variable', e.target.value)}
-          />
-        </Field.Root>
-        <Button colorPalette='red' onClick={onRemove} size='sm' alignSelf='end' borderRadius={handDrawn}>
-          Remove
-        </Button>
-      </Flex>
-      <Field.Root invalid={!!error}>
-        <Textarea
-          minH='15rem'
-          resize='vertical'
-          value={content}
-          onChange={(e) => onChange(id, 'content', e.target.value)}
-          mt={2}
-          fontFamily='monospace'
-          borderRadius={handDrawn}
-        />
-        <Field.ErrorText>{error}</Field.ErrorText>
-      </Field.Root>
-    </Flex>
-  );
-}
-
-interface ColorMappingProps {
-  colormapping: string;
-  onChange: (value: string) => void;
-  variables: string[];
-}
-
-function ColorMapping({
-  colormapping,
-  onChange,
-  variables
-}: ColorMappingProps) {
-  const lastLine = colormapping.trim().split('\n').pop() || '';
-  const error = lastLine.startsWith('return')
-    ? ''
-    : 'Error: Last line must start with "return"';
-
-  return (
-    <Flex flexDir='column'>
-      <Heading size='2xl'>Color Mapping</Heading>
-      <Flex gap={4}>
-        Available variables:
-        <Flex gap={2}>
-          {variables.map((v) => (
-            <Badge key={v} colorPalette='orange' size='md'>
-              {v}
-            </Badge>
-          ))}
+    <Flex height='100vh'>
+      <Flex flexGrow={1} flexDirection='column' p={8} zIndex={100}>
+        <Flex alignItems='center' justifyContent='space-between'>
+          <Heading size='2xl'>EOPF Code Editor</Heading>
+          <Flex ml='auto' alignItems='center'>
+            <Button
+              colorPalette='blue'
+              size='sm'
+              disabled={!pyodide}
+              layerStyle='handDrawn'
+              onClick={executeCode}
+            >
+              Run
+            </Button>
+            <Separator orientation='vertical' mx={4} height='40px' />
+            <UserInfo />
+          </Flex>
+        </Flex>
+        <Flex flexDir='column' gap={8} mt={8}>
+          {pyodide ? (
+            <Textarea
+              minH='15rem'
+              resize='vertical'
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              mt={2}
+              fontFamily='monospace'
+              layerStyle='handDrawn'
+            />
+          ) : (
+            <Flex gap={2} flexDirection='column'>
+              {log.map((l, index) => (
+                <Text
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={index}
+                  fontFamily='monospace'
+                  color={
+                    l.type === 'info'
+                      ? 'base.500'
+                      : l.type === 'success'
+                        ? 'green.500'
+                        : 'red.500'
+                  }
+                  m={0}
+                >
+                  {l.message}
+                </Text>
+              ))}
+            </Flex>
+          )}
         </Flex>
       </Flex>
-      <Field.Root invalid={!!error}>
-        <Textarea
-          minH='15rem'
-          resize='vertical'
-          mt={2}
-          fontFamily='monospace'
-          borderRadius={handDrawn}
-          value={colormapping}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <Field.ErrorText>{error}</Field.ErrorText>
-      </Field.Root>
+      <Flex w='50%' h='100%'>
+        <Flex
+          m={4}
+          flexGrow={1}
+          layerStyle='handDrawn'
+          overflow='hidden'
+          border='2px solid {colors.base.300a}'
+        >
+          <Map
+            ref={mapRef}
+            initialViewState={{
+              longitude: 0,
+              latitude: 0,
+              zoom: 2
+            }}
+            style={{ flexGrow: 1 }}
+            mapStyle={MAP_STYLE}
+          >
+            {tileUrl && (
+              <Source
+                type='raster'
+                tiles={[decodeURIComponent(tileUrl)]}
+                tileSize={256}
+              >
+                <Layer type='raster' />
+              </Source>
+            )}
+          </Map>
+        </Flex>
+      </Flex>
     </Flex>
   );
 }

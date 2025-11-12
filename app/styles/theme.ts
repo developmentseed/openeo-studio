@@ -18,6 +18,14 @@ const config = defineConfig({
         info: createColorPalette('#1E7BC6'),
         surface: createColorPalette('#FFF')
       }
+    },
+    layerStyles: {
+      handDrawn: {
+        description: 'A hand-drawn style with irregular borders',
+        value: {
+          borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px'
+        }
+      }
     }
   }
 });
