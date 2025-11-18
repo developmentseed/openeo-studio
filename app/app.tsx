@@ -1,12 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import {
-  Button,
-  Flex,
-  Heading,
-  Separator,
-  Text,
-  Textarea
-} from '@chakra-ui/react';
+import { Button, Flex, Heading, Text, Textarea } from '@chakra-ui/react';
 import Map, { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAuth } from 'react-oidc-context';
@@ -32,36 +25,38 @@ export default function App() {
 
   return (
     <Flex height='100vh'>
-      <Flex flexGrow={1} flexDirection='column' p={8} zIndex={100}>
+      <Flex flexDirection='column' p={8} zIndex={100}>
         <Flex alignItems='center' justifyContent='space-between'>
           <Heading size='2xl'>EOPF Code Editor</Heading>
           <Flex ml='auto' alignItems='center'>
-            <Button
-              colorPalette='blue'
-              size='sm'
-              disabled={!pyodide}
-              layerStyle='handDrawn'
-              onClick={executeCode}
-            >
-              Run
-            </Button>
-            <Separator orientation='vertical' mx={4} height='40px' />
             <UserInfo />
           </Flex>
         </Flex>
-        <Flex flexDir='column' gap={8} mt={8}>
+        <Flex
+          flexDir='column'
+          gap={2}
+          mt={8}
+          flexGrow={1}
+          minHeight={0}
+          maxW='sm'
+        >
+          <Text textWrap='pretty'>
+            {/* TODO: get from stac */}
+            Scene:
+            sentinel-2-l2a/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420
+          </Text>
           {pyodide ? (
             <Textarea
-              minH='15rem'
               resize='vertical'
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              mt={2}
               fontFamily='monospace'
               layerStyle='handDrawn'
+              flexGrow={1}
+              minHeight={0}
             />
           ) : (
-            <Flex gap={2} flexDirection='column'>
+            <Flex gap={2} flexDirection='column' flexGrow={1} minHeight={0}>
               {log.map((l, index) => (
                 <Text
                   // eslint-disable-next-line react/no-array-index-key
@@ -81,9 +76,19 @@ export default function App() {
               ))}
             </Flex>
           )}
+
+          <Button
+            colorPalette='blue'
+            size='sm'
+            disabled={!pyodide}
+            layerStyle='handDrawn'
+            onClick={executeCode}
+          >
+            Run
+          </Button>
         </Flex>
       </Flex>
-      <Flex w='50%' h='100%'>
+      <Flex flexGrow={1} h='100%'>
         <Flex
           m={4}
           flexGrow={1}
