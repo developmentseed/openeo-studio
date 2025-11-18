@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
+import { StacApiProvider } from 'stac-react';
 
 import system from './styles/theme';
 
@@ -43,7 +44,9 @@ function Root() {
   return (
     <AuthProvider {...oidcConfig}>
       <ChakraProvider value={system}>
-        <App />
+        <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/stac'>
+          <App />
+        </StacApiProvider>
       </ChakraProvider>
     </AuthProvider>
   );

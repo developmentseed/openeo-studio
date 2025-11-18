@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button, Flex, Heading, Text, Textarea } from '@chakra-ui/react';
 import Map, { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAuth } from 'react-oidc-context';
+import { useItem } from 'stac-react';
 
 import { EXAMPLE_CODE, processScript, usePyodide } from '$utils/code-runner';
 import { UserInfo } from '$components/auth/user-info';
@@ -13,9 +14,32 @@ export default function App() {
   const [content, setContent] = useState(EXAMPLE_CODE);
   const mapRef = useRef<MapRef>(null);
   const [tileUrl, setTileUrl] = useState();
+  const { item, state } = useItem(
+    'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420'
+  );
 
   const { pyodide, log } = usePyodide();
   const { user } = useAuth();
+
+  // Update map view when item loads and has a bbox
+  useEffect(() => {
+    if (item && item.bbox && mapRef.current) {
+      mapRef.current.fitBounds(item.bbox, {
+        padding: 50,
+        duration: 1000
+      });
+    }
+  }, [item]);
+
+  // Create GeoJSON for geometry visualization using the scene footprint
+  const geometryGeoJSON =
+    item && item.geometry
+      ? {
+          type: 'Feature' as const,
+          geometry: item.geometry,
+          properties: {}
+        }
+      : null;
 
   const executeCode = useCallback(async () => {
     if (!pyodide) return;
@@ -40,11 +64,28 @@ export default function App() {
           minHeight={0}
           maxW='sm'
         >
-          <Text textWrap='pretty'>
-            {/* TODO: get from stac */}
-            Scene:
-            sentinel-2-l2a/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420
-          </Text>
+          <>
+            {item ? (
+              <>
+                <Heading fontSize='sm'>Scene: {item.id}</Heading>
+                {item.bbox && (
+                  <Text textWrap='pretty' fontSize='sm' color='base.600' mt={1}>
+                    Bbox: [
+                    {item.bbox
+                      .map((coord: number) => coord.toFixed(4))
+                      .join(', ')}
+                    ]
+                  </Text>
+                )}
+              </>
+            ) : (
+              <Text textWrap='pretty'>
+                {state === 'loading'
+                  ? 'Loading STAC item...'
+                  : `Error: ${JSON.stringify(state)}`}
+              </Text>
+            )}
+          </>
           {pyodide ? (
             <Textarea
               resize='vertical'
@@ -113,6 +154,19 @@ export default function App() {
                 tileSize={256}
               >
                 <Layer type='raster' />
+              </Source>
+            )}
+            {geometryGeoJSON && (
+              <Source id='geometry' type='geojson' data={geometryGeoJSON}>
+                <Layer
+                  id='geometry-outline'
+                  type='line'
+                  paint={{
+                    'line-color': '#FF0000',
+                    'line-width': 2,
+                    'line-opacity': 0.8
+                  }}
+                />
               </Source>
             )}
           </Map>
