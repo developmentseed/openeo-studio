@@ -23,7 +23,7 @@ map_viz = map_viz.save_result("PNG")
 map_viz.to_json()
 `;
 
-function getPyhtonCode(content: string) {
+function getPythonCode(content: string) {
   return `
 from openeo.internal.graph_building import  PGNode
 from openeo.rest.datacube import DataCube
@@ -140,7 +140,7 @@ export async function processScript(
   script: string
 ) {
   try {
-    const result = await pyodide?.runPythonAsync(getPyhtonCode(script));
+    const result = await pyodide?.runPythonAsync(getPythonCode(script));
     const graph = JSON.parse(result);
     // eslint-disable-next-line no-console
     console.log(
