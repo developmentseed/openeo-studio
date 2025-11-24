@@ -31,16 +31,6 @@ export default function App() {
     }
   }, [item]);
 
-  // Create GeoJSON for geometry visualization using the scene footprint
-  const geometryGeoJSON =
-    item && item.geometry
-      ? {
-          type: 'Feature' as const,
-          geometry: item.geometry,
-          properties: {}
-        }
-      : null;
-
   const executeCode = useCallback(async () => {
     if (!pyodide) return;
     const url = await processScript(pyodide, user?.access_token ?? '', content);
@@ -156,8 +146,8 @@ export default function App() {
                 <Layer type='raster' />
               </Source>
             )}
-            {geometryGeoJSON && (
-              <Source id='geometry' type='geojson' data={geometryGeoJSON}>
+            {item && (
+              <Source id='geometry' type='geojson' data={item}>
                 <Layer
                   id='geometry-outline'
                   type='line'
