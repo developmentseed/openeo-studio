@@ -1,5 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Button, Flex, Heading, Text, Textarea } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Heading,
+  Text,
+  Textarea,
+  Collapsible,
+  Table
+} from '@chakra-ui/react';
 import Map, { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAuth } from 'react-oidc-context';
@@ -14,6 +22,7 @@ export default function App() {
   const [content, setContent] = useState(EXAMPLE_CODE);
   const mapRef = useRef<MapRef>(null);
   const [tileUrl, setTileUrl] = useState();
+  const [showProperties, setShowProperties] = useState(false);
   const { item, state } = useItem(
     'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420'
   );
@@ -67,6 +76,68 @@ export default function App() {
                     ]
                   </Text>
                 )}
+
+                {item.properties?.datetime && (
+                  <Text textWrap='pretty' fontSize='sm' color='base.600' mt={1}>
+                    Datetime:{' '}
+                    {new Date(item.properties.datetime).toLocaleString()}
+                  </Text>
+                )}
+
+                <Collapsible.Root
+                  mt={2}
+                  layerStyle='handDrawn'
+                  open={showProperties}
+                  onOpenChange={(e) => setShowProperties(e.open)}
+                >
+                  <Collapsible.Trigger asChild>
+                    <Button
+                      variant='outline'
+                      size='xs'
+                      width='full'
+                      justifyContent='space-between'
+                    >
+                      {showProperties ? '▼' : '▶'} All properties (
+                      {Object.keys(item.properties || {}).length})
+                    </Button>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <Flex maxH='200px' overflowY='auto'>
+                      <Table.Root
+                        size='sm'
+                        variant='outline'
+                        backgroundColor='bg.subtle'
+                      >
+                        <Table.Body>
+                          {item.properties &&
+                            Object.entries(item.properties).map(
+                              ([key, value]) => (
+                                <Table.Row key={key}>
+                                  <Table.Cell
+                                    fontWeight='medium'
+                                    fontSize='xs'
+                                    maxW='150px'
+                                    minW='100px'
+                                    wordBreak='break-word'
+                                  >
+                                    {key}
+                                  </Table.Cell>
+                                  <Table.Cell
+                                    fontSize='xs'
+                                    wordBreak='break-all'
+                                  >
+                                    {typeof value === 'object'
+                                      ? JSON.stringify(value)
+                                      : String(value)}
+                                  </Table.Cell>
+                                </Table.Row>
+                              )
+                            )}
+                        </Table.Body>
+                      </Table.Root>
+                    </Flex>
+                  </Collapsible.Content>
+                </Collapsible.Root>
               </>
             ) : (
               <Text textWrap='pretty'>
