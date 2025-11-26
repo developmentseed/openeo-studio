@@ -13,6 +13,7 @@ import { useAuth } from 'react-oidc-context';
 
 import { EXAMPLE_CODE, processScript, usePyodide } from '$utils/code-runner';
 import { UserInfo } from '$components/auth/user-info';
+import { CodeEditor } from '$components/code-editor';
 
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
@@ -51,15 +52,18 @@ export default function App() {
         </Flex>
         <Flex flexDir='column' gap={8} mt={8}>
           {pyodide ? (
-            <Textarea
-              minH='15rem'
-              resize='vertical'
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              mt={2}
-              fontFamily='monospace'
-              layerStyle='handDrawn'
-            />
+            <CodeEditor.Root>
+              <CodeEditor.View />
+            </CodeEditor.Root>
+            // <Textarea
+            //   minH='15rem'
+            //   resize='vertical'
+            //   value={content}
+            //   onChange={(e) => setContent(e.target.value)}
+            //   mt={2}
+            //   fontFamily='monospace'
+            //   layerStyle='handDrawn'
+            // />
           ) : (
             <Flex gap={2} flexDirection='column'>
               {log.map((l, index) => (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { loadPyodide, PyodideAPI, version as pyodideVersion } from 'pyodide';
+import ruffInit from '@astral-sh/ruff-wasm-web';
 
 export const EXAMPLE_CODE = `
 def viz(data):
@@ -114,6 +115,18 @@ export function usePyodide() {
           ...v,
           { message: 'openeo package installed', type: 'success' }
         ]);
+
+        // Initialize ruff linter
+        setLog((v) => [
+          ...v,
+          { message: 'Loading Ruff linter...', type: 'info' }
+        ]);
+        await ruffInit();
+        setLog((v) => [
+          ...v,
+          { message: 'Ruff linter loaded', type: 'success' }
+        ]);
+
         setPyodide(pyodide);
       } catch (error) {
         setLog((v) => [
