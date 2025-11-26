@@ -14,7 +14,6 @@ const alias = Object.entries(pkg.alias).reduce((acc, [key, value]) => {
   };
 }, {});
 
-
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -25,6 +24,10 @@ export default defineConfig({
     port: 9000
   },
   resolve: {
-    alias
+    alias,
+    dedupe: ['react', 'react-dom', '@tanstack/react-query']
+  },
+  optimizeDeps: {
+    exclude: ['@astral-sh/ruff-wasm-web']
   }
 });

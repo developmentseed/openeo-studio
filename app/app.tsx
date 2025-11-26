@@ -4,7 +4,6 @@ import {
   Flex,
   Heading,
   Text,
-  Textarea,
   Collapsible,
   Table
 } from '@chakra-ui/react';
@@ -15,15 +14,16 @@ import { useItem } from 'stac-react';
 
 import { EXAMPLE_CODE, processScript, usePyodide } from '$utils/code-runner';
 import { UserInfo } from '$components/auth/user-info';
+import { CodeEditor } from '$components/code-editor';
 
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
 export default function App() {
-  const [content, setContent] = useState(EXAMPLE_CODE);
+  const [content] = useState(EXAMPLE_CODE);
   const mapRef = useRef<MapRef>(null);
   const [tileUrl, setTileUrl] = useState();
   const [showProperties, setShowProperties] = useState(false);
-  const { item, state } = useItem(
+  const { item, isLoading, error } = useItem(
     'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420'
   );
 
@@ -141,22 +141,16 @@ export default function App() {
               </>
             ) : (
               <Text textWrap='pretty'>
-                {state === 'loading'
+                {isLoading
                   ? 'Loading STAC item...'
-                  : `Error: ${JSON.stringify(state)}`}
+                  : `Error: ${JSON.stringify(error)}`}
               </Text>
             )}
           </>
           {pyodide ? (
-            <Textarea
-              resize='vertical'
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              fontFamily='monospace'
-              layerStyle='handDrawn'
-              flexGrow={1}
-              minHeight={0}
-            />
+            <CodeEditor.Root>
+              <CodeEditor.View />
+            </CodeEditor.Root>
           ) : (
             <Flex gap={2} flexDirection='column' flexGrow={1} minHeight={0}>
               {log.map((l, index) => (
