@@ -28,7 +28,7 @@ export default function App() {
   );
 
   const { pyodide, log } = usePyodide();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   // Update map view when item loads and has a bbox
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function App() {
           <Button
             colorPalette='blue'
             size='sm'
-            disabled={!pyodide}
+            disabled={!isAuthenticated || !pyodide}
             layerStyle='handDrawn'
             onClick={executeCode}
           >

@@ -193,9 +193,20 @@ export async function processScript(
       }
     );
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to create service (${response.status}): ${errorText}`
+      );
+    }
+
     const location = response.headers.get('location');
 
-    const tileRespose = await fetch(location!, {
+    if (!location) {
+      throw new Error('No location header in response');
+    }
+
+    const tileRespose = await fetch(location, {
       headers: {
         Authorization: `Bearer oidc/oidc/${authToken}`
       }
