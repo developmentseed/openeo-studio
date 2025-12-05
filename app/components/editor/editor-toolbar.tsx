@@ -1,13 +1,16 @@
 import { Button } from '@chakra-ui/react';
-import { useCodeExecution } from '$hooks/use-code-execution';
 
 interface EditorToolbarProps {
-  setTileUrl: (url: string | undefined) => void;
+  executeCode: () => Promise<void>;
+  isExecuting: boolean;
+  isReady: boolean;
 }
 
-export function EditorToolbar({ setTileUrl }: EditorToolbarProps) {
-  const { executeCode, isExecuting, isReady } = useCodeExecution(setTileUrl);
-
+export function EditorToolbar({
+  executeCode,
+  isExecuting,
+  isReady
+}: EditorToolbarProps) {
   return (
     <Button
       colorPalette='blue'

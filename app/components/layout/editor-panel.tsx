@@ -1,10 +1,10 @@
 import { Flex } from '@chakra-ui/react';
-import { EditorToolbar } from '$components/editor/editor-toolbar';
 import { StacItemCard } from '$components/stac/stac-item-card';
-import { CodeEditor } from '$components/editor/code-editor';
+import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
 import { StatusBar } from '$components/editor/status-bar';
-import { useCodeExecution } from '$hooks/use-code-execution';
+import { usePyodide } from '$utils/code-runner';
+import { useAuth } from 'react-oidc-context';
 import type { StacItem } from 'stac-ts';
 
 interface EditorPanelProps {
@@ -20,7 +20,9 @@ export function EditorPanel({
   error,
   setTileUrl
 }: EditorPanelProps) {
-  const { isReady } = useCodeExecution(setTileUrl);
+  const { pyodide } = usePyodide();
+  const { isAuthenticated } = useAuth();
+  const isReady = isAuthenticated && !!pyodide;
 
   return (
     <Flex
@@ -34,14 +36,7 @@ export function EditorPanel({
     >
       <StacItemCard item={item} isLoading={isLoading} error={error} />
       <Flex flexDirection='column' gap={2} flexGrow={1} minHeight={0}>
-        {isReady ? (
-          <CodeEditor.Root>
-            <CodeEditor.View />
-          </CodeEditor.Root>
-        ) : (
-          <OutputPanel />
-        )}
-        <EditorToolbar setTileUrl={setTileUrl} />
+        {isReady ? <Editor setTileUrl={setTileUrl} /> : <OutputPanel />}
       </Flex>
       <StatusBar />
     </Flex>

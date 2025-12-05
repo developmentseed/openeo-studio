@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
 import { useAuth } from 'react-oidc-context';
 import { usePyodide, processScript } from '$utils/code-runner';
-import { useCodeEditor } from '$components/editor/code-editor';
+import type { EditorView } from '@codemirror/view';
 
 export function useCodeExecution(
-  setTileUrl: (url: string | undefined) => void
+  setTileUrl: (url: string | undefined) => void,
+  editor: EditorView | null
 ) {
   const { pyodide } = usePyodide();
   const { user, isAuthenticated } = useAuth();
-  const editor = useCodeEditor();
 
   const executeCode = useCallback(async () => {
     if (!pyodide || !editor) return;
