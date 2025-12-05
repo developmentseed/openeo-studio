@@ -74,6 +74,9 @@ importers:
       stac-react:
         specifier: link:../stac-react
         version: link:../stac-react
+      stac-ts:
+        specifier: ^1.0.4
+        version: 1.0.4
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.1
@@ -3252,6 +3255,9 @@ packages:
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
+
+  stac-ts@1.0.4:
+    resolution: {integrity: sha512-5n09H4bmBfrjIkjcDs60joV9zEX55GU29WTCNB++YzRawUZ1cCDG7a/M7bDDyR7VcQz9nguRUnRCz/JWdsFuBQ==}
 
   stack-utils@2.0.6:
     resolution: {integrity: sha512-XlkWvfIm6RmsWtNJx+uqtKLS8eqFbxUg0ZzLXqY0caEy9l7hruX8IpiDnjsLavoBgqCCR71TqWO8MaXYheJ3RQ==}
@@ -7639,6 +7645,8 @@ snapshots:
       extend-shallow: 3.0.2
 
   sprintf-js@1.0.3: {}
+
+  stac-ts@1.0.4: {}
 
   stack-utils@2.0.6:
     dependencies:

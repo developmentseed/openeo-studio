@@ -20,7 +20,8 @@
       "$utils/*": ["./app/utils/*"],
       "$styles/*": ["./app/styles/*"],
       "$hooks/*": ["./app/hooks/*"],
-      "$pages/*": ["./app/pages/*"]
+      "$pages/*": ["./app/pages/*"],
+      "$types/*": ["./app/types/*"]
     },
 
     /* Linting */
