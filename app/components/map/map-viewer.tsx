@@ -14,22 +14,25 @@ interface MapViewerProps {
 export function MapViewer({ item, tileUrl }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
 
-  // Update map view when item loads and has a bbox
+  const applyFitBounds = () => {
+    const map = mapRef.current;
+    if (!map || !item?.bbox) return;
+
+    map.fitBounds(item.bbox as unknown as [number, number, number, number], {
+      padding: 50,
+      duration: 1000
+    });
+  };
+
+  // Apply fitBounds when item changes (or is done loading)
   useEffect(() => {
-    if (item && item.bbox && mapRef.current) {
-      mapRef.current.fitBounds(
-        item.bbox as unknown as [number, number, number, number],
-        {
-          padding: 50,
-          duration: 1000
-        }
-      );
-    }
-  }, [item]);
+    applyFitBounds();
+  }, [item?.id, item?.bbox]);
 
   return (
     <Map
       ref={mapRef}
+      onLoad={applyFitBounds}
       initialViewState={{
         longitude: 0,
         latitude: 0,
