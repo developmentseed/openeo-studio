@@ -1,6 +1,6 @@
 {
-  "name": "eopf-code-editor",
-  "description": "Starter application by Development Seed",
+  "name": "openeo-studio",
+  "description": "Interactive code editor for openEO satellite imagery processing",
   "version": "0.1.0",
   "repository": {
     "type": "git",
@@ -87,6 +87,7 @@
     "$utils": "~/app/utils",
     "$hooks": "~/app/hooks",
     "$pages": "~/app/pages",
+    "$config": "~/app/config",
     "$test": "~/test"
   },
   "packageManager": "pnpm@10.21.0"
