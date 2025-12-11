@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Flex, IconButton } from '@chakra-ui/react';
+import { Flex, IconButton, Button, Dialog } from '@chakra-ui/react';
 import { useItem } from 'stac-react';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
+import { StacItemCard } from '$components/stac/stac-item-card';
 import { SampleScene } from '../config/sample-scenes';
 
 interface EditorPageProps {
@@ -12,6 +13,7 @@ interface EditorPageProps {
 
 export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [tileUrl, setTileUrl] = useState<string | undefined>();
+  const [isInspectOpen, setIsInspectOpen] = useState(false);
   const { item, isLoading, error } = useItem(scene.stacUrl);
 
   return (
@@ -34,7 +36,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
         >
           ←
         </IconButton>
-        <Flex flexDirection='column'>
+        <Flex flexDirection='column' flex={1}>
           <Flex fontSize='md' fontWeight='semibold'>
             {scene.name}
           </Flex>
@@ -42,19 +44,44 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
             {scene.description}
           </Flex>
         </Flex>
+        <Button
+          size='sm'
+          variant='outline'
+          layerStyle='handDrawn'
+          onClick={() => setIsInspectOpen(true)}
+        >
+          Inspect
+        </Button>
       </Flex>
 
       {/* Editor and Map panels */}
       <Flex flexGrow={1} minHeight={0}>
         <EditorPanel
-          item={item}
-          isLoading={isLoading}
-          error={error}
           setTileUrl={setTileUrl}
           initialCode={scene.suggestedAlgorithm}
         />
         <MapPanel item={item} tileUrl={tileUrl} />
       </Flex>
+
+      {/* STAC Item Inspection Modal */}
+      <Dialog.Root
+        open={isInspectOpen}
+        onOpenChange={(e) => setIsInspectOpen(e.open)}
+        size='lg'
+      >
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Scene Information</Dialog.Title>
+              <Dialog.CloseTrigger />
+            </Dialog.Header>
+            <Dialog.Body>
+              <StacItemCard item={item} isLoading={isLoading} error={error} />
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
     </Flex>
   );
 }

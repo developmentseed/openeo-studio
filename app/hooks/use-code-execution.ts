@@ -21,6 +21,6 @@ export function useCodeExecution(
   return {
     executeCode,
     isExecuting: false, // TODO: Add execution state tracking
-    isReady: isAuthenticated && !!pyodide
+    isReady: isAuthenticated && !!pyodide && !!editor
   };
 }

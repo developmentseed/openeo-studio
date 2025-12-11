@@ -15,7 +15,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     name: 'Sentinel-2 L2A - Adriatic Sea',
     description: 'Sentinel-2 Level 2A imagery over the Adriatic Sea',
     stacUrl:
-      'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2A_MSIL2A_20251207T100431_N0511_R122_T33TUK_20251207T121910',
+      'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2B_MSIL2A_20251123T101239_N0511_R022_T32TQR_20251123T105704',
     suggestedAlgorithm: trueColorAlgorithm
   }
 ];

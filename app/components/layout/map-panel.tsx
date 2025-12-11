@@ -11,8 +11,7 @@ export function MapPanel({ item, tileUrl }: MapPanelProps) {
   return (
     <Flex flexGrow={1} h='100%'>
       <Flex
-        m={4}
-        mt={0}
+        m={2}
         flexGrow={1}
         layerStyle='handDrawn'
         overflow='hidden'

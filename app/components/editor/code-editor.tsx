@@ -34,10 +34,17 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
       extensions: [
         basicSetup,
         EditorView.theme({
+          '&': {
+            height: '100%'
+          },
           '&, .cm-scroller': {
             fontFamily: '"Fira Code"'
+          },
+          '.cm-content, .cm-line': {
+            width: '100%'
           }
         }),
+        EditorView.lineWrapping,
         vsCodeDark,
         python(),
         closeBrackets(),
@@ -71,7 +78,16 @@ function View() {
     }
   }, [editor]);
 
-  return <div ref={editorRef} />;
+  return (
+    <div
+      ref={editorRef}
+      style={{
+        height: '100%',
+        width: '100%',
+        overflow: 'auto'
+      }}
+    />
+  );
 }
 
 export const CodeEditor = {
