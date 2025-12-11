@@ -1,6 +1,7 @@
-import { Flex, Button } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { CodeEditor, useCodeEditor } from './code-editor';
 import { useCodeExecution } from '$hooks/use-code-execution';
+import { EditorToolbar } from './editor-toolbar';
 
 interface EditorProps {
   initialCode?: string;
@@ -28,19 +29,11 @@ function EditorUI({ setTileUrl }: Pick<EditorProps, 'setTileUrl'>) {
 
   return (
     <Flex flexDirection='column' gap={2} height='100%'>
-      {/* Toolbar */}
-      <Flex justifyContent='flex-end'>
-        <Button
-          colorPalette='blue'
-          size='sm'
-          disabled={!isReady || isExecuting}
-          layerStyle='handDrawn'
-          onClick={executeCode}
-        >
-          {isExecuting ? 'Running...' : 'Apply'}
-        </Button>
-      </Flex>
-      {/* Editor */}
+      <EditorToolbar
+        isReady={isReady}
+        isExecuting={isExecuting}
+        executeCode={executeCode}
+      />
       <Flex flex={1} minHeight={0}>
         <CodeEditor.View />
       </Flex>

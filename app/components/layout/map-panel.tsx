@@ -9,7 +9,7 @@ interface MapPanelProps {
 
 export function MapPanel({ item, tileUrl }: MapPanelProps) {
   return (
-    <Flex flexGrow={1} h='100%'>
+    <Flex flexGrow={1} h='100%' minWidth='50%'>
       <Flex
         m={2}
         flexGrow={1}
