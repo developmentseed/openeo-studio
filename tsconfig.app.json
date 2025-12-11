@@ -17,6 +17,7 @@
     "paths": {
       /* Specify a set of entries that re-map imports to additional lookup locations. */
       "$components/*": ["./app/components/*"],
+      "$contexts/*": ["./app/contexts/*"],
       "$utils/*": ["./app/utils/*"],
       "$styles/*": ["./app/styles/*"],
       "$hooks/*": ["./app/hooks/*"],

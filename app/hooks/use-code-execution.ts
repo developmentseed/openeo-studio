@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { useAuth } from 'react-oidc-context';
-import { usePyodide, processScript } from '$utils/code-runner';
-import type { ExecutionConfig } from '$utils/template-renderer';
 import type { EditorView } from '@codemirror/view';
+
+import { usePyodide } from '$contexts/pyodide-context';
+import { processScript } from '$utils/code-runner';
+import type { ExecutionConfig } from '$utils/template-renderer';
 
 export function useCodeExecution(
   setTileUrl: (url: string | undefined) => void,

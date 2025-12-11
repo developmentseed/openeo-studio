@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { loadPyodide, PyodideAPI, version as pyodideVersion } from 'pyodide';
-import ruffInit from '@astral-sh/ruff-wasm-web';
+import { PyodideAPI } from 'pyodide';
 import loaderScript from '../algorithms/base/loader.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 import {
@@ -9,6 +7,21 @@ import {
 } from './template-renderer';
 
 export const EXAMPLE_CODE = trueColorAlgorithm;
+
+// OpenEO API constants
+const OPENEO_API_URL = 'https://api.explorer.eopf.copernicus.eu/openeo';
+const AUTH_PREFIX = 'Bearer oidc/oidc/';
+const DEFAULT_SERVICE_CONFIG = {
+  title: 'Quick view',
+  description: null,
+  type: 'XYZ',
+  enabled: true,
+  configuration: {
+    scope: 'public'
+  },
+  plan: null,
+  budget: null
+};
 
 /**
  * Combines the base loader script with an algorithm script to create
@@ -26,143 +39,97 @@ ${algorithmScript}
 `;
 }
 
-export function usePyodide() {
-  const [pyodide, setPyodide] = useState<PyodideAPI | undefined>();
-  const [log, setLog] = useState<
-    { message: string; type: 'info' | 'success' | 'error' }[]
-  >([]);
+/**
+ * Creates an OpenEO service with the provided process graph.
+ *
+ * @param graph - The OpenEO process graph JSON
+ * @param authToken - Authentication token
+ * @returns The service location URL from the response header
+ */
+async function createOpenEOService(
+  graph: unknown,
+  authToken: string
+): Promise<string> {
+  const response = await fetch(`${OPENEO_API_URL}/services`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${AUTH_PREFIX}${authToken}`
+    },
+    body: JSON.stringify({
+      ...DEFAULT_SERVICE_CONFIG,
+      process: graph
+    })
+  });
 
-  useEffect(() => {
-    async function load() {
-      try {
-        setLog((v) => [
-          ...v,
-          { message: 'Loading Pyodide runtime...', type: 'info' }
-        ]);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to create service (${response.status}): ${errorText}`
+    );
+  }
 
-        const pyodide = await loadPyodide({
-          indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`
-        });
-        setLog((v) => [
-          ...v,
-          { message: 'Pyodide loaded successfully', type: 'success' }
-        ]);
-        setLog((v) => [
-          ...v,
-          { message: 'Installing openeo package...', type: 'info' }
-        ]);
+  const location = response.headers.get('location');
+  if (!location) {
+    throw new Error('No location header in response');
+  }
 
-        // Install openeo package
-        await pyodide.loadPackage('micropip');
-        const micropip = pyodide.pyimport('micropip');
-        await micropip.install('openeo');
-        setLog((v) => [
-          ...v,
-          { message: 'openeo package installed', type: 'success' }
-        ]);
-
-        // Initialize ruff linter
-        setLog((v) => [
-          ...v,
-          { message: 'Loading Ruff linter...', type: 'info' }
-        ]);
-        await ruffInit();
-        setLog((v) => [
-          ...v,
-          { message: 'Ruff linter loaded', type: 'success' }
-        ]);
-
-        setPyodide(pyodide);
-      } catch (error) {
-        setLog((v) => [
-          ...v,
-          {
-            message: `Failed to load Pyodide: ${(error as Error).message}`,
-            type: 'error'
-          }
-        ]);
-        // eslint-disable-next-line no-console
-        console.error(error);
-      }
-    }
-
-    load();
-  }, []);
-
-  return { pyodide, log };
+  return location;
 }
 
+/**
+ * Fetches the tile URL from an OpenEO service location.
+ *
+ * @param serviceLocation - The service location URL
+ * @param authToken - Authentication token
+ * @returns The tile URL for map rendering
+ */
+async function getTileUrl(
+  serviceLocation: string,
+  authToken: string
+): Promise<string> {
+  const response = await fetch(serviceLocation, {
+    headers: {
+      Authorization: `${AUTH_PREFIX}${authToken}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch service details (${response.status})`);
+  }
+
+  const tileJson = await response.json();
+  return tileJson.url;
+}
+
+/**
+ * Executes a Python script with Pyodide and creates an OpenEO service.
+ *
+ * @param pyodide - The Pyodide instance
+ * @param authToken - Authentication token
+ * @param script - The Python script to execute
+ * @param config - Execution configuration
+ * @returns The tile URL for map rendering, or undefined on error
+ */
 export async function processScript(
   pyodide: PyodideAPI,
   authToken: string,
   script: string,
   config: ExecutionConfig
-) {
+): Promise<string | undefined> {
   try {
-    const result = await pyodide?.runPythonAsync(getPythonCode(script, config));
+    // Execute Python code and get process graph
+    const result = await pyodide.runPythonAsync(getPythonCode(script, config));
     const graph = JSON.parse(result);
-    // eslint-disable-next-line no-console
-    console.log(
-      'request data',
-      JSON.stringify({
-        title: 'Quick view',
-        description: null,
-        type: 'XYZ',
-        enabled: true,
-        configuration: {},
-        plan: null,
-        budget: null,
-        process: graph
-      })
-    );
 
-    const response = await fetch(
-      'https://api.explorer.eopf.copernicus.eu/openeo/services',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer oidc/oidc/${authToken}`
-        },
-        body: JSON.stringify({
-          title: 'Quick view',
-          description: null,
-          type: 'XYZ',
-          enabled: true,
-          configuration: {
-            scope: 'public'
-          },
-          plan: null,
-          budget: null,
-          process: graph
-        })
-      }
-    );
+    // Create OpenEO service and get tile URL
+    const serviceLocation = await createOpenEOService(graph, authToken);
+    const tileUrl = await getTileUrl(serviceLocation, authToken);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Failed to create service (${response.status}): ${errorText}`
-      );
-    }
-
-    const location = response.headers.get('location');
-
-    if (!location) {
-      throw new Error('No location header in response');
-    }
-
-    const tileRespose = await fetch(location, {
-      headers: {
-        Authorization: `Bearer oidc/oidc/${authToken}`
-      }
-    });
-
-    const tileJson = await tileRespose.json();
-
-    return tileJson.url;
+    return tileUrl;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error executing Python code:', error);
+    return undefined;
   }
 }

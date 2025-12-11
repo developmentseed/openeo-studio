@@ -1,8 +1,9 @@
 import { Flex } from '@chakra-ui/react';
+import { useAuth } from 'react-oidc-context';
+
 import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
-import { usePyodide } from '$utils/code-runner';
-import { useAuth } from 'react-oidc-context';
+import { usePyodide } from '$contexts/pyodide-context';
 import type { ExecutionConfig } from '$utils/template-renderer';
 
 interface EditorPanelProps {

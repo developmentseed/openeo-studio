@@ -1,5 +1,6 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { usePyodide } from '$utils/code-runner';
+
+import { usePyodide } from '$contexts/pyodide-context';
 
 export function OutputPanel() {
   const { log, pyodide } = usePyodide();

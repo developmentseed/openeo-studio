@@ -4,6 +4,8 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 import { StacApiProvider } from 'stac-react';
 
+import { PyodideProvider } from '$contexts/pyodide-context';
+
 import system from './styles/theme';
 
 import App from './app';
@@ -45,7 +47,9 @@ function Root() {
     <AuthProvider {...oidcConfig}>
       <ChakraProvider value={system}>
         <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/stac'>
-          <App />
+          <PyodideProvider>
+            <App />
+          </PyodideProvider>
         </StacApiProvider>
       </ChakraProvider>
     </AuthProvider>

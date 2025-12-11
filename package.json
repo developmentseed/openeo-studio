@@ -84,6 +84,7 @@
   },
   "alias": {
     "$components": "~/app/components",
+    "$contexts": "~/app/contexts",
     "$styles": "~/app/styles",
     "$utils": "~/app/utils",
     "$hooks": "~/app/hooks",
