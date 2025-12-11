@@ -12,8 +12,9 @@ export interface SampleScene {
 export const SAMPLE_SCENES: SampleScene[] = [
   {
     id: 'sentinel-2-adriatic',
-    name: 'Sentinel-2 L2A - Adriatic Sea',
-    description: 'Sentinel-2 Level 2A imagery over the Adriatic Sea',
+    name: 'Sunny November day with Sentinel-2 L2A',
+    description:
+      'Sentinel-2 coverage with nice cloud-free scenes over Italy, for example Venice.',
     stacUrl:
       'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2B_MSIL2A_20251123T101239_N0511_R022_T32TQR_20251123T105704',
     suggestedAlgorithm: trueColorAlgorithm

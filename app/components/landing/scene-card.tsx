@@ -1,4 +1,13 @@
-import { Box, Card, Flex, Heading, Text, Image } from '@chakra-ui/react';
+import {
+  Box,
+  Card,
+  Flex,
+  Heading,
+  Text,
+  Image,
+  Spinner
+} from '@chakra-ui/react';
+import { useItem } from 'stac-react';
 import { SampleScene } from '../../config/sample-scenes';
 
 interface SceneCardProps {
@@ -7,6 +16,11 @@ interface SceneCardProps {
 }
 
 export function SceneCard({ scene, onSelect }: SceneCardProps) {
+  const { item, isLoading } = useItem(scene.stacUrl);
+
+  // Extract thumbnail from STAC item assets
+  const thumbnail = scene.thumbnail || item?.assets?.thumbnail?.href;
+
   return (
     <Card.Root
       onClick={() => onSelect(scene.id)}
@@ -18,15 +32,30 @@ export function SceneCard({ scene, onSelect }: SceneCardProps) {
       }}
     >
       <Card.Body gap={4}>
-        {/* Thumbnail placeholder */}
-        {scene.thumbnail ? (
+        {/* Thumbnail */}
+        {isLoading ? (
+          <Box
+            height='200px'
+            width='100%'
+            bg='gray.100'
+            borderRadius='md'
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
+          >
+            <Spinner size='lg' />
+          </Box>
+        ) : thumbnail ? (
           <Image
-            src={scene.thumbnail}
+            src={thumbnail}
             alt={scene.name}
             height='200px'
             width='100%'
             objectFit='cover'
             borderRadius='md'
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
           />
         ) : (
           <Box
@@ -38,7 +67,7 @@ export function SceneCard({ scene, onSelect }: SceneCardProps) {
             alignItems='center'
             justifyContent='center'
           >
-            <Text color='gray.500'>Scene Preview</Text>
+            <Text color='gray.500'>No Preview</Text>
           </Box>
         )}
 
