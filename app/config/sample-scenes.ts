@@ -1,4 +1,4 @@
-import trueColorAlgorithm from '../algorithms/true-color.py?raw';
+import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 
 export interface SampleScene {
   id: string;
