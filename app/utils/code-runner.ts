@@ -3,15 +3,24 @@ import { loadPyodide, PyodideAPI, version as pyodideVersion } from 'pyodide';
 import ruffInit from '@astral-sh/ruff-wasm-web';
 import loaderScript from '../algorithms/base/loader.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
+import {
+  renderPythonTemplate,
+  type ExecutionConfig
+} from './template-renderer';
 
 export const EXAMPLE_CODE = trueColorAlgorithm;
 
 /**
  * Combines the base loader script with an algorithm script to create
  * a complete Python program for execution.
+ *
+ * @param algorithmScript - The algorithm code to combine with the loader
+ * @param config - Execution configuration with runtime parameters
  */
-function getPythonCode(algorithmScript: string) {
-  return `${loaderScript}
+function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
+  const processedLoader = renderPythonTemplate(loaderScript, config);
+
+  return `${processedLoader}
 
 ${algorithmScript}
 `;
@@ -86,10 +95,11 @@ export function usePyodide() {
 export async function processScript(
   pyodide: PyodideAPI,
   authToken: string,
-  script: string
+  script: string,
+  config: ExecutionConfig
 ) {
   try {
-    const result = await pyodide?.runPythonAsync(getPythonCode(script));
+    const result = await pyodide?.runPythonAsync(getPythonCode(script, config));
     const graph = JSON.parse(result);
     // eslint-disable-next-line no-console
     console.log(

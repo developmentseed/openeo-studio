@@ -1,6 +1,9 @@
 """
 Base data loader script for Sentinel-2 L2A imagery.
 This script is combined with algorithm scripts to create complete processing workflows.
+
+Handlebars template variables:
+- sceneUrl: S3 URL to the Zarr store
 """
 
 from openeo.internal.graph_building import PGNode
@@ -9,15 +12,16 @@ from openeo.rest.result import SaveResult
 from openeo.processes import array_create, if_, absolute, and_
 
 # Load collection with spatial extent and band selection
+# URL is dynamically injected from the selected scene
 graph = PGNode(
     "load_collection",
-    url="s3://esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420.zarr",
+    url="{{sceneUrl}}",
     spatial_extent={
         "east": {"from_parameter": "spatial_extent_east"},
         "north": {"from_parameter": "spatial_extent_north"},
         "south": {"from_parameter": "spatial_extent_south"},
         "west": {"from_parameter": "spatial_extent_west"},
-        "crs":3857,
+        "crs": 3857,
     },
     options={
         "variables": [

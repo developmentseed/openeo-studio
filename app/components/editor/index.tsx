@@ -2,16 +2,18 @@ import { Flex } from '@chakra-ui/react';
 import { CodeEditor, useCodeEditor } from './code-editor';
 import { useCodeExecution } from '$hooks/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
+import type { ExecutionConfig } from '$utils/template-renderer';
 
 interface EditorProps {
+  config: ExecutionConfig;
   initialCode?: string;
   setTileUrl: (url: string | undefined) => void;
 }
 
-export function Editor({ initialCode, setTileUrl }: EditorProps) {
+export function Editor({ config, initialCode, setTileUrl }: EditorProps) {
   return (
     <CodeEditor.Root initialCode={initialCode}>
-      <EditorUI setTileUrl={setTileUrl} />
+      <EditorUI config={config} setTileUrl={setTileUrl} />
     </CodeEditor.Root>
   );
 }
@@ -20,11 +22,15 @@ export function Editor({ initialCode, setTileUrl }: EditorProps) {
  * Internal: UI components that need access to the CodeMirror editor instance.
  * Must be rendered inside CodeEditor.Root to access the editor context.
  */
-function EditorUI({ setTileUrl }: Pick<EditorProps, 'setTileUrl'>) {
+function EditorUI({
+  config,
+  setTileUrl
+}: Pick<EditorProps, 'setTileUrl' | 'config'>) {
   const editor = useCodeEditor();
   const { executeCode, isExecuting, isReady } = useCodeExecution(
     setTileUrl,
-    editor
+    editor,
+    config
   );
 
   return (

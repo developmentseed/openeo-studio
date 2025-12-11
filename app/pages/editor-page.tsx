@@ -57,8 +57,9 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       {/* Editor and Map panels */}
       <Flex flexGrow={1} minHeight={0}>
         <EditorPanel
-          setTileUrl={setTileUrl}
+          config={{ sceneUrl: scene.s3Url }}
           initialCode={scene.suggestedAlgorithm}
+          setTileUrl={setTileUrl}
         />
         <MapPanel item={item} tileUrl={tileUrl} />
       </Flex>

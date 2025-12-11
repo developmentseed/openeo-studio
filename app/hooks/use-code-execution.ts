@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 import { useAuth } from 'react-oidc-context';
 import { usePyodide, processScript } from '$utils/code-runner';
+import type { ExecutionConfig } from '$utils/template-renderer';
 import type { EditorView } from '@codemirror/view';
 
 export function useCodeExecution(
   setTileUrl: (url: string | undefined) => void,
-  editor: EditorView | null
+  editor: EditorView | null,
+  config: ExecutionConfig
 ) {
   const { pyodide } = usePyodide();
   const { user, isAuthenticated } = useAuth();
@@ -14,9 +16,14 @@ export function useCodeExecution(
     if (!pyodide || !editor) return;
 
     const content = editor.state.doc.toString();
-    const url = await processScript(pyodide, user?.access_token ?? '', content);
+    const url = await processScript(
+      pyodide,
+      user?.access_token ?? '',
+      content,
+      config
+    );
     setTileUrl(url);
-  }, [pyodide, user?.access_token, editor, setTileUrl]);
+  }, [pyodide, user?.access_token, editor, setTileUrl, config]);
 
   return {
     executeCode,
