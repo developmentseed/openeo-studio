@@ -12,13 +12,15 @@ interface EditorPanelProps {
   isLoading: boolean;
   error: unknown;
   setTileUrl: (url: string | undefined) => void;
+  initialCode?: string;
 }
 
 export function EditorPanel({
   item,
   isLoading,
   error,
-  setTileUrl
+  setTileUrl,
+  initialCode
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
   const { isAuthenticated } = useAuth();
@@ -36,7 +38,11 @@ export function EditorPanel({
     >
       <StacItemCard item={item} isLoading={isLoading} error={error} />
       <Flex flexDirection='column' gap={2} flexGrow={1} minHeight={0}>
-        {isReady ? <Editor setTileUrl={setTileUrl} /> : <OutputPanel />}
+        {isReady ? (
+          <Editor setTileUrl={setTileUrl} initialCode={initialCode} />
+        ) : (
+          <OutputPanel />
+        )}
       </Flex>
       <StatusBar />
     </Flex>

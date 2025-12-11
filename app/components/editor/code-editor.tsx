@@ -20,12 +20,17 @@ export function useCodeEditor() {
   return useContext(CodeEditorContext).editor;
 }
 
-function Root({ children }: { children: React.ReactNode }) {
+interface RootProps {
+  children: React.ReactNode;
+  initialCode?: string;
+}
+
+function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
 
   useEffect(() => {
     const view = new EditorView({
-      doc: EXAMPLE_CODE,
+      doc: initialCode,
       extensions: [
         basicSetup,
         EditorView.theme({

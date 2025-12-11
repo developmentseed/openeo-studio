@@ -1,28 +1,9 @@
 import { useState, useEffect } from 'react';
 import { loadPyodide, PyodideAPI, version as pyodideVersion } from 'pyodide';
 import ruffInit from '@astral-sh/ruff-wasm-web';
+import trueColorAlgorithm from '../algorithms/true-color.py?raw';
 
-export const EXAMPLE_CODE = `
-def viz(data):
-    B02, B03, B04 = (
-        data[0],
-        data[1],
-        data[2],
-    )
-    # True color for land
-    true_color_b = B04 * 3
-    true_color_r = B03 * 3
-    true_color_g = B02 * 5
-    return array_create([true_color_r, true_color_g, true_color_b])
-
-map_viz = datacube.apply_dimension(dimension="spectral", process=viz)
-map_viz = map_viz.linear_scale_range(
-    input_min=0, input_max=1, output_min=0, output_max=255
-)
-
-map_viz = map_viz.save_result("PNG")
-map_viz.to_json()
-`;
+export const EXAMPLE_CODE = trueColorAlgorithm;
 
 function getPythonCode(content: string) {
   return `
@@ -31,7 +12,7 @@ from openeo.rest.datacube import DataCube
 from openeo.rest.result import SaveResult
 from openeo.processes import array_create, if_, absolute, and_
 
-graph = PGNode("load_zarr",  url="s3://esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420.zarr",
+graph = PGNode("load_collection",  url="s3://esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2A_MSIL2A_20250922T112131_N0511_R037_T29SMD_20250922T160420.zarr",
     spatial_extent={
         "east": {
             "from_parameter": "spatial_extent_east"

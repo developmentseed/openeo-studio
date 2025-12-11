@@ -4,11 +4,12 @@ import { useCodeExecution } from '$hooks/use-code-execution';
 
 interface EditorProps {
   setTileUrl: (url: string | undefined) => void;
+  initialCode?: string;
 }
 
-export function Editor({ setTileUrl }: EditorProps) {
+export function Editor({ setTileUrl, initialCode }: EditorProps) {
   return (
-    <CodeEditor.Root>
+    <CodeEditor.Root initialCode={initialCode}>
       <EditorUI setTileUrl={setTileUrl} />
     </CodeEditor.Root>
   );
