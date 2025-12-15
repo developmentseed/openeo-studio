@@ -35,14 +35,14 @@ function EditorUI({
 
   return (
     <Flex flexDirection='column' gap={2} height='100%'>
+      <Flex flex={1} minHeight={0}>
+        <CodeEditor.View />
+      </Flex>
       <EditorToolbar
         isReady={isReady}
         isExecuting={isExecuting}
         executeCode={executeCode}
       />
-      <Flex flex={1} minHeight={0}>
-        <CodeEditor.View />
-      </Flex>
     </Flex>
   );
 }

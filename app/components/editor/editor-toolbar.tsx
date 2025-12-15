@@ -1,4 +1,4 @@
-import { Flex, IconButton } from '@chakra-ui/react';
+import { Flex, Button } from '@chakra-ui/react';
 
 interface EditorToolbarProps {
   executeCode: () => Promise<void>;
@@ -13,8 +13,7 @@ export function EditorToolbar({
 }: EditorToolbarProps) {
   return (
     <Flex justifyContent='flex-end'>
-      <IconButton
-        aria-label={isExecuting ? 'Running code...' : 'Run code'}
+      <Button
         size='sm'
         variant='outline'
         disabled={!isReady || isExecuting}
@@ -22,6 +21,7 @@ export function EditorToolbar({
         onClick={executeCode}
         loading={isExecuting}
       >
+        Apply
         <svg
           version='1.1'
           xmlns='http://www.w3.org/2000/svg'
@@ -30,9 +30,9 @@ export function EditorToolbar({
           viewBox='0 0 16 16'
         >
           <rect width='16' height='16' id='icon-bound' fill='none' />
-          <path d='M6,12l6-4L6,4V12z M8,0C3.581,0,0,3.581,0,8s3.581,8,8,8s8-3.581,8-8S12.419,0,8,0z M12.244,12.244 C11.109,13.375,9.603,14,8,14s-3.109-0.625-4.244-1.756C2.625,11.109,2,9.603,2,8s0.625-3.109,1.756-4.244C4.891,2.625,6.397,2,8,2 s3.109,0.625,4.244,1.756C13.375,4.891,14,6.397,14,8S13.375,11.109,12.244,12.244z' />
+          <path d='M2,9.014L3.414,7.6L6.004,10.189L12.593,3.6L14.007,5.014L6.003,13.017L2,9.014Z' />
         </svg>
-      </IconButton>
+      </Button>
     </Flex>
   );
 }

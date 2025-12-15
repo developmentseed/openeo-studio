@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
 import type { EditorView } from '@codemirror/view';
 
@@ -13,23 +13,29 @@ export function useCodeExecution(
 ) {
   const { pyodide } = usePyodide();
   const { user, isAuthenticated } = useAuth();
+  const [isExecuting, setIsExecuting] = useState(false);
 
   const executeCode = useCallback(async () => {
     if (!pyodide || !editor) return;
 
-    const content = editor.state.doc.toString();
-    const url = await processScript(
-      pyodide,
-      user?.access_token ?? '',
-      content,
-      config
-    );
-    setTileUrl(url);
+    setIsExecuting(true);
+    try {
+      const content = editor.state.doc.toString();
+      const url = await processScript(
+        pyodide,
+        user?.access_token ?? '',
+        content,
+        config
+      );
+      setTileUrl(url);
+    } finally {
+      setIsExecuting(false);
+    }
   }, [pyodide, user?.access_token, editor, setTileUrl, config]);
 
   return {
     executeCode,
-    isExecuting: false, // TODO: Add execution state tracking
+    isExecuting,
     isReady: isAuthenticated && !!pyodide && !!editor
   };
 }
