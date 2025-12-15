@@ -21,6 +21,7 @@ graph = PGNode(
         "north": {"from_parameter": "spatial_extent_north"},
         "south": {"from_parameter": "spatial_extent_south"},
         "west": {"from_parameter": "spatial_extent_west"},
+        "crs": "EPSG:3857",
     },
     temporal_extent=["2025-07-01", "2025-07-31"],
     bands=[
