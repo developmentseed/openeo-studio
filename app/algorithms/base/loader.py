@@ -15,22 +15,21 @@ from openeo.processes import array_create, if_, absolute, and_
 # URL is dynamically injected from the selected scene
 graph = PGNode(
     "load_collection",
-    url="{{sceneUrl}}",
+    id="{{sceneUrl}}",
     spatial_extent={
         "east": {"from_parameter": "spatial_extent_east"},
         "north": {"from_parameter": "spatial_extent_north"},
         "south": {"from_parameter": "spatial_extent_south"},
         "west": {"from_parameter": "spatial_extent_west"},
-        "crs": 3857,
     },
-    options={
-        "variables": [
+    temporal_extent=["2025-07-01", "2025-07-31"],
+    bands=[
             "reflectance|b02",
             "reflectance|b03",
             "reflectance|b04",
         ],
-        "width": 1024,
-        "height": 1024,
+    properties={
+        "eo:cloud_cover": {"lte": 20}
     },
 )
 
