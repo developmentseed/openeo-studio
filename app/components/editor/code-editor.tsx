@@ -4,7 +4,7 @@ import { EditorView } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
-import { vsCodeDark } from '@fsegurai/codemirror-theme-vscode-dark';
+import { githubLight } from '@uiw/codemirror-theme-github';
 
 import { EXAMPLE_CODE } from '$utils/code-runner';
 import { ruffLinter } from './ruff-linter';
@@ -45,7 +45,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
           }
         }),
         EditorView.lineWrapping,
-        vsCodeDark,
+        githubLight,
         python(),
         closeBrackets(),
         autocompletion(),
