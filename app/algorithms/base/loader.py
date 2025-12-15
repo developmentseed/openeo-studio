@@ -29,8 +29,16 @@ graph = PGNode(
             "reflectance|b04",
         ],
     properties={
-        "eo:cloud_cover": {"lte": 20}
-    },
+        "eo:cloud_cover": {
+            "process_graph": {
+                "cc": {
+                    "process_id": "lt",
+                    "arguments": {"x": {"from_parameter": "value"}, "y": 20},
+                    "result": True,
+                }
+            }
+        }
+    }
 )
 
 datacube = DataCube(graph=graph)
@@ -39,9 +47,9 @@ datacube = DataCube(graph=graph)
 B02 = datacube.band("reflectance|b02")  # Blue
 B03 = datacube.band("reflectance|b03")  # Green
 B04 = datacube.band("reflectance|b04")  # Red
-B05 = datacube.band("reflectance|b05")  # Red Edge 1
-B07 = datacube.band("reflectance|b07")  # Red Edge 3
-B08 = datacube.band("reflectance|b08")  # NIR
-B8A = datacube.band("reflectance|b8a")  # Narrow NIR
-B11 = datacube.band("reflectance|b11")  # SWIR 1
-B12 = datacube.band("reflectance|b12")  # SWIR 2
+# B05 = datacube.band("reflectance|b05")  # Red Edge 1
+# B07 = datacube.band("reflectance|b07")  # Red Edge 3
+# B08 = datacube.band("reflectance|b08")  # NIR
+# B8A = datacube.band("reflectance|b8a")  # Narrow NIR
+# B11 = datacube.band("reflectance|b11")  # SWIR 1
+# B12 = datacube.band("reflectance|b12")  # SWIR 2
