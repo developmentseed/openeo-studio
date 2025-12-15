@@ -25,15 +25,9 @@ graph = PGNode(
     },
     options={
         "variables": [
-            "/measurements/reflectance/r10m:b02",
-            "/measurements/reflectance/r10m:b03",
-            "/measurements/reflectance/r10m:b04",
-            "/measurements/reflectance/r20m:b05",
-            "/measurements/reflectance/r20m:b07",
-            "/measurements/reflectance/r10m:b08",
-            "/measurements/reflectance/r20m:b8a",
-            "/measurements/reflectance/r20m:b11",
-            "/measurements/reflectance/r20m:b12",
+            "reflectance|b02",
+            "reflectance|b03",
+            "reflectance|b04",
         ],
         "width": 1024,
         "height": 1024,
@@ -43,12 +37,12 @@ graph = PGNode(
 datacube = DataCube(graph=graph)
 
 # Extract bands for use in algorithms
-B02 = datacube.band("/measurements/reflectance/r10m:b02")  # Blue
-B03 = datacube.band("/measurements/reflectance/r10m:b03")  # Green
-B04 = datacube.band("/measurements/reflectance/r10m:b04")  # Red
-B05 = datacube.band("/measurements/reflectance/r20m:b05")  # Red Edge 1
-B07 = datacube.band("/measurements/reflectance/r20m:b07")  # Red Edge 3
-B08 = datacube.band("/measurements/reflectance/r10m:b08")  # NIR
-B8A = datacube.band("/measurements/reflectance/r20m:b8a")  # Narrow NIR
-B11 = datacube.band("/measurements/reflectance/r20m:b11")  # SWIR 1
-B12 = datacube.band("/measurements/reflectance/r20m:b12")  # SWIR 2
+B02 = datacube.band("reflectance|b02")  # Blue
+B03 = datacube.band("reflectance|b03")  # Green
+B04 = datacube.band("reflectance|b04")  # Red
+B05 = datacube.band("reflectance|b05")  # Red Edge 1
+B07 = datacube.band("reflectance|b07")  # Red Edge 3
+B08 = datacube.band("reflectance|b08")  # NIR
+B8A = datacube.band("reflectance|b8a")  # Narrow NIR
+B11 = datacube.band("reflectance|b11")  # SWIR 1
+B12 = datacube.band("reflectance|b12")  # SWIR 2
