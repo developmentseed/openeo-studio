@@ -2,6 +2,7 @@ import { Flex } from '@chakra-ui/react';
 import { CodeEditor, useCodeEditor } from './code-editor';
 import { useCodeExecution } from '$hooks/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
+import { BandInfo } from './band-info';
 import type { ExecutionConfig } from '$utils/template-renderer';
 
 interface EditorProps {
@@ -35,6 +36,9 @@ function EditorUI({
 
   return (
     <Flex flexDirection='column' gap={2} height='100%'>
+      {config.bands && config.bands.length > 0 && (
+        <BandInfo bands={config.bands} />
+      )}
       <Flex flex={1} minHeight={0}>
         <CodeEditor.View />
       </Flex>

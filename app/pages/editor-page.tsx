@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Flex, IconButton, Button, Dialog } from '@chakra-ui/react';
 import { useItem } from 'stac-react';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { StacItemCard } from '$components/stac/stac-item-card';
 import { SampleScene } from '../config/sample-scenes';
+import { extractBandsFromStac } from '$utils/stac-band-parser';
 
 interface EditorPageProps {
   scene: SampleScene;
@@ -15,6 +16,9 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [tileUrl, setTileUrl] = useState<string | undefined>();
   const [isInspectOpen, setIsInspectOpen] = useState(false);
   const { item, isLoading, error } = useItem(scene.stacUrl);
+
+  // Extract band metadata from STAC item
+  const bands = useMemo(() => extractBandsFromStac(item), [item]);
 
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
@@ -67,7 +71,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       {/* Editor and Map panels */}
       <Flex flexGrow={1} minHeight={0}>
         <EditorPanel
-          config={{ sceneUrl: scene.s3Url }}
+          config={{ sceneUrl: scene.s3Url, bands }}
           initialCode={scene.suggestedAlgorithm}
           setTileUrl={setTileUrl}
         />

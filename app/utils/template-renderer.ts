@@ -1,4 +1,5 @@
 import Handlebars from 'handlebars';
+import type { BandVariable } from './stac-band-parser';
 
 /**
  * Runtime execution configuration for Python script template variables.
@@ -7,8 +8,9 @@ import Handlebars from 'handlebars';
 export interface ExecutionConfig {
   /** S3 URL to the Zarr data store */
   sceneUrl: string;
+  /** Available band variables from STAC metadata */
+  bands?: BandVariable[];
   // Future additions:
-  // bands?: string[];
   // resolution?: number;
   // bbox?: [number, number, number, number];
 }
