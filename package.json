@@ -79,6 +79,7 @@
     "react-dom": "^19.2.0",
     "react-map-gl": "^8.1.0",
     "react-oidc-context": "^3.3.0",
+    "react-resizable-panels": "^3.0.6",
     "stac-react": "link:../stac-react",
     "stac-ts": "^1.0.4"
   },

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Flex, IconButton, Button, Dialog } from '@chakra-ui/react';
+import { Flex, IconButton, Box, Button, Dialog } from '@chakra-ui/react';
 import { useItem } from 'stac-react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { StacItemCard } from '$components/stac/stac-item-card';
@@ -69,14 +70,42 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       </Flex>
 
       {/* Editor and Map panels */}
-      <Flex flexGrow={1} minHeight={0}>
-        <EditorPanel
-          config={{ collectionId: scene.collectionId, bands }}
-          initialCode={scene.suggestedAlgorithm}
-          setTileUrl={setTileUrl}
-        />
-        <MapPanel item={item} tileUrl={tileUrl} />
-      </Flex>
+      <PanelGroup direction='horizontal' style={{ flexGrow: 1, minHeight: 0 }}>
+        <Panel defaultSize={50} minSize={20}>
+          <EditorPanel
+            config={{ collectionId: scene.collectionId, bands }}
+            initialCode={scene.suggestedAlgorithm}
+            setTileUrl={setTileUrl}
+          />
+        </Panel>
+
+        <PanelResizeHandle
+          style={{
+            width: '4px',
+            background: '#e2e8f0',
+            cursor: 'col-resize',
+            position: 'relative'
+          }}
+        >
+          <Box
+            position='absolute'
+            top='50%'
+            left='50%'
+            transform='translate(-50%, -50%)'
+            width='20px'
+            height='40px'
+            bg='gray.300'
+            borderRadius='md'
+            opacity={0.5}
+            transition='opacity 0.2s'
+            _hover={{ opacity: 1 }}
+          />
+        </PanelResizeHandle>
+
+        <Panel defaultSize={50} minSize={20}>
+          <MapPanel item={item} tileUrl={tileUrl} />
+        </Panel>
+      </PanelGroup>
 
       {/* STAC Item Inspection Modal */}
       <Dialog.Root
