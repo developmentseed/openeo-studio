@@ -78,8 +78,10 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-map-gl": "^8.1.0",
+    "react-markdown": "^10.1.0",
     "react-oidc-context": "^3.3.0",
     "react-resizable-panels": "^3.0.6",
+    "remark-gfm": "^4.0.1",
     "stac-react": "link:../stac-react",
     "stac-ts": "^1.0.4"
   },
