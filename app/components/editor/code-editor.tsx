@@ -9,24 +9,6 @@ import { githubLight } from '@uiw/codemirror-theme-github';
 import { EXAMPLE_CODE } from '$utils/code-runner';
 import { ruffLinter } from './ruff-linter';
 
-// Drop handler for dragging band variables into the editor
-const dropHandler = EditorView.domEventHandlers({
-  drop(event, view) {
-    event.preventDefault();
-    const text = event.dataTransfer?.getData('text/plain');
-    if (!text) return false;
-
-    // Get cursor position from drop coordinates
-    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
-    if (pos !== null) {
-      view.dispatch({
-        changes: { from: pos, insert: text }
-      });
-    }
-    return true;
-  }
-});
-
 // Create a CodeEditor context.
 const CodeEditorContext = createContext<{
   editor: EditorView | null;
@@ -68,8 +50,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
         closeBrackets(),
         autocompletion(),
         lintGutter(),
-        ruffLinter(),
-        dropHandler
+        ruffLinter()
       ]
     });
     setEditor(view);

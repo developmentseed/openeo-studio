@@ -4,6 +4,7 @@ This script is combined with algorithm scripts to create complete processing wor
 
 Handlebars template variables:
 - collectionId: Collection identifier for the data source
+- selectedBands: Array of band names (e.g., ['b02', 'b03', 'b04'])
 """
 
 from openeo.internal.graph_building import PGNode
@@ -12,7 +13,7 @@ from openeo.rest.result import SaveResult
 from openeo.processes import array_create, if_, absolute, and_
 
 # Load collection with spatial extent and band selection
-# Collection ID is dynamically injected from the selected scene
+# Collection ID and bands are dynamically injected
 graph = PGNode(
     "load_collection",
     id="{{collectionId}}",
@@ -25,10 +26,10 @@ graph = PGNode(
     },
     temporal_extent=["2025-07-01", "2025-07-31"],
     bands=[
-            "reflectance|b02",
-            "reflectance|b03",
-            "reflectance|b04",
-        ],
+    {{#each selectedBands}}
+            "reflectance|{{this}}",
+    {{/each}}
+    ],
     properties={
         "eo:cloud_cover": {
             "process_graph": {
@@ -44,13 +45,8 @@ graph = PGNode(
 
 datacube = DataCube(graph=graph)
 
-# Extract bands for use in algorithms
-B02 = datacube.band("reflectance|b02")  # Blue
-B03 = datacube.band("reflectance|b03")  # Green
-B04 = datacube.band("reflectance|b04")  # Red
-# B05 = datacube.band("reflectance|b05")  # Red Edge 1
-# B07 = datacube.band("reflectance|b07")  # Red Edge 3
-# B08 = datacube.band("reflectance|b08")  # NIR
-# B8A = datacube.band("reflectance|b8a")  # Narrow NIR
-# B11 = datacube.band("reflectance|b11")  # SWIR 1
-# B12 = datacube.band("reflectance|b12")  # SWIR 2
+reduced = datacube.process(
+    "apply_pixel_selection",
+    pixel_selection="first",
+    data=datacube,
+)

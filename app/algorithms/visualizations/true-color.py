@@ -3,11 +3,6 @@ True Color Visualization Algorithm for Sentinel-2 imagery.
 Combines RGB bands (B04, B03, B02) to create a natural color visualization.
 """
 
-reduced = datacube.process(
-    "apply_pixel_selection",
-    pixel_selection="first",
-    data=datacube,
-)
 
 def viz(data):
     """Apply true color transformation to spectral bands."""

@@ -2,19 +2,30 @@ import { Flex } from '@chakra-ui/react';
 import { CodeEditor, useCodeEditor } from './code-editor';
 import { useCodeExecution } from '$hooks/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
-import { BandInfo } from './band-info';
+import { AvailableVariables } from './available-variables';
+import { BandArrayBuilder } from './band-array-builder';
 import type { ExecutionConfig } from '$utils/template-renderer';
 
 interface EditorProps {
   config: ExecutionConfig;
   initialCode?: string;
   setTileUrl: (url: string | undefined) => void;
+  onSelectedBandsChange?: (bands: string[]) => void;
 }
 
-export function Editor({ config, initialCode, setTileUrl }: EditorProps) {
+export function Editor({
+  config,
+  initialCode,
+  setTileUrl,
+  onSelectedBandsChange
+}: EditorProps) {
   return (
     <CodeEditor.Root initialCode={initialCode}>
-      <EditorUI config={config} setTileUrl={setTileUrl} />
+      <EditorUI
+        config={config}
+        setTileUrl={setTileUrl}
+        onSelectedBandsChange={onSelectedBandsChange}
+      />
     </CodeEditor.Root>
   );
 }
@@ -25,8 +36,9 @@ export function Editor({ config, initialCode, setTileUrl }: EditorProps) {
  */
 function EditorUI({
   config,
-  setTileUrl
-}: Pick<EditorProps, 'setTileUrl' | 'config'>) {
+  setTileUrl,
+  onSelectedBandsChange
+}: Pick<EditorProps, 'setTileUrl' | 'config' | 'onSelectedBandsChange'>) {
   const editor = useCodeEditor();
   const { executeCode, isExecuting, isReady } = useCodeExecution(
     setTileUrl,
@@ -35,11 +47,18 @@ function EditorUI({
   );
 
   return (
-    <Flex flexDirection='column' gap={2} height='100%'>
-      {config.bands && config.bands.length > 0 && (
-        <BandInfo bands={config.bands} />
+    <Flex flexDirection='column' gap={2} height='100%' overflow='hidden'>
+      <AvailableVariables />
+
+      {config.bands && config.bands.length > 0 && onSelectedBandsChange && (
+        <BandArrayBuilder
+          availableBands={config.bands}
+          selectedBands={config.selectedBands || []}
+          onSelectionChange={onSelectedBandsChange}
+        />
       )}
-      <Flex flex={1} minHeight={0}>
+
+      <Flex flex={1} minHeight={0} overflow='hidden'>
         <CodeEditor.View />
       </Flex>
       <EditorToolbar

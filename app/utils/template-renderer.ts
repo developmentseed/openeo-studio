@@ -10,6 +10,8 @@ export interface ExecutionConfig {
   collectionId: string;
   /** Available band variables from STAC metadata */
   bands?: BandVariable[];
+  /** User-selected bands in order for data[] array */
+  selectedBands?: string[];
   // Future additions:
   // resolution?: number;
   // bbox?: [number, number, number, number];

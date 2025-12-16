@@ -21,6 +21,11 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   // Extract band metadata from STAC item
   const bands = useMemo(() => extractBandsFromStac(item), [item]);
 
+  // Manage selected bands for data[] array
+  const [selectedBands, setSelectedBands] = useState<string[]>(
+    scene.defaultBands
+  );
+
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
       {/* Sub-header with back button and scene info */}
@@ -39,7 +44,16 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
           size='sm'
           variant='ghost'
         >
-          ←
+          <svg
+            version='1.1'
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            viewBox='0 0 16 16'
+          >
+            <rect width='16' height='16' id='icon-bound' fill='none' />
+            <polygon points='8.414,13.586 3.828,9 16,9 16,7 3.828,7 8.414,2.414 7,1 0,8 7,15' />
+          </svg>
         </IconButton>
         <Flex flexDirection='column' flex={1}>
           <Flex fontSize='md' fontWeight='semibold'>
@@ -73,9 +87,10 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       <PanelGroup direction='horizontal' style={{ flexGrow: 1, minHeight: 0 }}>
         <Panel defaultSize={50} minSize={20}>
           <EditorPanel
-            config={{ collectionId: scene.collectionId, bands }}
+            config={{ collectionId: scene.collectionId, bands, selectedBands }}
             initialCode={scene.suggestedAlgorithm}
             setTileUrl={setTileUrl}
+            onSelectedBandsChange={setSelectedBands}
           />
         </Panel>
 

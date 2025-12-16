@@ -16,7 +16,7 @@ async function initRuff() {
     await ruffInit();
     ruffWorkspace = new Workspace(
       {
-        builtins: ['array_create', 'datacube'],
+        builtins: ['array_create', 'datacube', 'reduced'],
         'target-version': 'py310',
         'line-length': 88,
         'indent-width': 4,

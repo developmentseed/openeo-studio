@@ -10,30 +10,31 @@ interface EditorPanelProps {
   config: ExecutionConfig;
   initialCode?: string;
   setTileUrl: (url: string | undefined) => void;
+  onSelectedBandsChange?: (bands: string[]) => void;
 }
 
 export function EditorPanel({
   config,
   initialCode,
-  setTileUrl
+  setTileUrl,
+  onSelectedBandsChange
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
   const { isAuthenticated } = useAuth();
   const isReady = isAuthenticated && !!pyodide;
 
   return (
-    <Flex flexDirection='column' p={4} gap={2} minHeight={0} zIndex={100}>
-      <Flex flexDirection='column' gap={2} flexGrow={1} minHeight={0}>
-        {isReady ? (
-          <Editor
-            config={config}
-            initialCode={initialCode}
-            setTileUrl={setTileUrl}
-          />
-        ) : (
-          <OutputPanel />
-        )}
-      </Flex>
+    <Flex flexDirection='column' p={4} gap={2} height='100%' overflow='hidden'>
+      {isReady ? (
+        <Editor
+          config={config}
+          initialCode={initialCode}
+          setTileUrl={setTileUrl}
+          onSelectedBandsChange={onSelectedBandsChange}
+        />
+      ) : (
+        <OutputPanel />
+      )}
     </Flex>
   );
 }
