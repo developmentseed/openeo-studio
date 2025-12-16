@@ -6,7 +6,7 @@ export interface SampleScene {
   description: string;
   thumbnail?: string;
   stacUrl: string;
-  s3Url: string; // S3 URL to the Zarr data store
+  collectionId: string;
   suggestedAlgorithm: string;
 }
 
@@ -19,7 +19,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     //TODO: thumbnail
     stacUrl:
       'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2B_MSIL2A_20251123T101239_N0511_R022_T32TQR_20251123T105704',
-    s3Url: 'sentinel-2-l2a',
+    collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: trueColorAlgorithm
   }
 ];

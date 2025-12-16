@@ -6,8 +6,8 @@ import type { BandVariable } from './stac-band-parser';
  * Derived from Scene/STAC metadata.
  */
 export interface ExecutionConfig {
-  /** S3 URL to the Zarr data store */
-  sceneUrl: string;
+  /** Collection identifier for the data source */
+  collectionId: string;
   /** Available band variables from STAC metadata */
   bands?: BandVariable[];
   // Future additions:
@@ -26,7 +26,7 @@ export interface ExecutionConfig {
  * @example
  * ```typescript
  * const rendered = renderPythonTemplate(loaderScript, {
- *   sceneUrl: 's3://bucket/path/to/data.zarr'
+ *   collectionId: 'sentinel-2-l2a'
  * });
  * ```
  */

@@ -71,7 +71,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       {/* Editor and Map panels */}
       <Flex flexGrow={1} minHeight={0}>
         <EditorPanel
-          config={{ sceneUrl: scene.s3Url, bands }}
+          config={{ collectionId: scene.collectionId, bands }}
           initialCode={scene.suggestedAlgorithm}
           setTileUrl={setTileUrl}
         />
