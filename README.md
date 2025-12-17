@@ -1,10 +1,10 @@
-# Eopf-Code-Editor
+# OpenEO Studio
 
-A web application built with Vite and React for Eopf-Code-Editor
+Applying openEO processes for visual data exploration
 
 ## Installation and Usage
 
-The steps below will walk you through setting up your own instance of the project.
+The steps below will walk you through setting up the project locally.
 
 ### Install Project Dependencies
 
