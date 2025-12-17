@@ -28,4 +28,5 @@ map_viz = map_viz.linear_scale_range(
 
 # Save as PNG and return JSON representation
 map_viz = map_viz.save_result("PNG")
-map_viz.to_json()
+
+vmap.add(map_viz)

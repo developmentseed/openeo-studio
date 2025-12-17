@@ -50,3 +50,5 @@ reduced = datacube.process(
     pixel_selection="first",
     data=datacube,
 )
+
+vmap = []
