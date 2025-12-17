@@ -41,7 +41,7 @@ export function MapViewer({ item, tileUrl }: MapViewerProps) {
       style={{ flexGrow: 1 }}
       mapStyle={MAP_STYLE}
     >
-      <MapLayers item={item} tileUrl={tileUrl} />
+      <MapLayers tileUrl={tileUrl} />
     </Map>
   );
 }
