@@ -1,12 +1,8 @@
 import { useState } from 'react';
-import { Flex, Text, Button, Collapsible } from '@chakra-ui/react';
+import { Flex, Text, Button, Collapsible, chakra } from '@chakra-ui/react';
 import type { BandVariable } from '$utils/stac-band-parser';
-import {
-  CollapseIconButton,
-  MoveUpIconButton,
-  MoveDownIconButton,
-  RemoveIconButton
-} from './icon-buttons';
+import { CollapseIconButton, RemoveIconButton } from './icon-buttons';
+import React from 'react';
 
 interface BandArrayBuilderProps {
   /** All available bands from STAC */
@@ -27,6 +23,8 @@ export function BandArrayBuilder({
   onSelectionChange
 }: BandArrayBuilderProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
   const selectedBandSet = new Set(selectedBands);
   const availableToAdd = availableBands.filter(
     (band) => !selectedBandSet.has(band.name)
@@ -42,11 +40,23 @@ export function BandArrayBuilder({
     onSelectionChange(newSelection);
   };
 
-  const moveBand = (fromIndex: number, toIndex: number) => {
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
     const newSelection = [...selectedBands];
-    const [removed] = newSelection.splice(fromIndex, 1);
-    newSelection.splice(toIndex, 0, removed);
+    const [removed] = newSelection.splice(draggedIndex, 1);
+    newSelection.splice(index, 0, removed);
     onSelectionChange(newSelection);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   // Get full band info for selected bands
@@ -72,7 +82,7 @@ export function BandArrayBuilder({
         _hover={{ bg: 'gray.50' }}
       >
         <Text fontSize='sm' fontWeight='bold' color='gray.700'>
-          Build your data[] array
+          Build your data cube
         </Text>
         <CollapseIconButton isOpen={isOpen} />
       </Flex>
@@ -120,30 +130,36 @@ export function BandArrayBuilder({
               {/* Selected bands */}
               <Flex direction='column' gap={2} flex={1}>
                 <Text fontSize='xs' fontWeight='semibold' color='gray.600'>
-                  Your data[] array
+                  Selected band dimension
                 </Text>
                 <Flex
-                  direction='column'
-                  gap={1}
-                  maxHeight='200px'
-                  overflowY='auto'
+                  wrap='wrap'
+                  minHeight='200px'
+                  alignItems='center'
+                  alignContent='flex-start'
                 >
+                  <Text fontSize='32px' fontWeight='light' color='gray.500'>
+                    [
+                  </Text>
                   {selectedBandDetails.map((band, index) => (
-                    <SelectedBandItem
-                      key={band.name}
-                      band={band}
-                      index={index}
-                      onRemove={() => removeBand(index)}
-                      onMoveUp={
-                        index > 0 ? () => moveBand(index, index - 1) : undefined
-                      }
-                      onMoveDown={
-                        index < selectedBands.length - 1
-                          ? () => moveBand(index, index + 1)
-                          : undefined
-                      }
-                    />
+                    <React.Fragment key={band.name}>
+                      <SelectedBandChip
+                        key={band.name}
+                        band={band}
+                        onRemove={() => removeBand(index)}
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        isDragging={draggedIndex === index}
+                      />
+                      {index < selectedBandDetails.length - 1 && (
+                        <chakra.span mr={2}>,</chakra.span>
+                      )}
+                    </React.Fragment>
                   ))}
+                  <Text fontSize='32px' fontWeight='light' color='gray.500'>
+                    ]
+                  </Text>
                   {selectedBands.length === 0 && (
                     <Text fontSize='xs' color='gray.500' fontStyle='italic'>
                       Click bands to add
@@ -152,34 +168,6 @@ export function BandArrayBuilder({
                 </Flex>
               </Flex>
             </Flex>
-
-            {/* Index mapping */}
-            {selectedBandDetails.length > 0 && (
-              <Flex
-                direction='column'
-                gap={1}
-                mt={2}
-                p={2}
-                bg='gray.50'
-                borderRadius='md'
-              >
-                <Text fontSize='xs' fontWeight='semibold' color='gray.700'>
-                  In your viz function:
-                </Text>
-                {selectedBandDetails.map((band, index) => (
-                  <Text
-                    key={band.name}
-                    fontSize='xs'
-                    fontFamily='monospace'
-                    color='gray.600'
-                  >
-                    data[{index}] = {band.variable} ({band.label}
-                    {band.resolution && `, ${band.resolution}`}
-                    {band.wavelength && `, ${band.wavelength}`})
-                  </Text>
-                ))}
-              </Flex>
-            )}
           </Flex>
         </Collapsible.Content>
       </Collapsible.Root>
@@ -187,53 +175,45 @@ export function BandArrayBuilder({
   );
 }
 
-interface SelectedBandItemProps {
+interface SelectedBandChipProps {
   band: BandVariable;
-  index: number;
   onRemove: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
+  onDragStart: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
 }
 
-function SelectedBandItem({
+function SelectedBandChip({
   band,
-  index,
   onRemove,
-  onMoveUp,
-  onMoveDown
-}: SelectedBandItemProps) {
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  isDragging
+}: SelectedBandChipProps) {
   return (
     <Flex
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
       alignItems='center'
-      gap={2}
-      p={2}
-      bg='blue.50'
+      pl={1}
+      bg={isDragging ? 'blue.100' : 'blue.50'}
       borderRadius='md'
-      borderWidth='1px'
+      borderWidth='2px'
       borderColor='blue.300'
+      layerStyle='handDrawn'
+      cursor='grab'
+      opacity={isDragging ? 0.5 : 1}
+      transition='all 0.2s'
+      _hover={{ bg: 'blue.100', transform: 'translateY(-2px)' }}
+      _active={{ cursor: 'grabbing' }}
     >
-      <Text fontSize='xs' fontWeight='bold' color='gray.600' minWidth='20px'>
-        {index}:
-      </Text>
-      <Text
-        fontSize='xs'
-        fontFamily='monospace'
-        fontWeight='bold'
-        color='blue.600'
-        flex={1}
-      >
+      <Text fontSize='xs' fontWeight='bold'>
         {band.variable}
       </Text>
-      <Text fontSize='xs' color='gray.600'>
-        {band.label}
-      </Text>
-
-      {/* Move buttons */}
-      <Flex gap={1}>
-        {onMoveUp && <MoveUpIconButton onClick={onMoveUp} />}
-        {onMoveDown && <MoveDownIconButton onClick={onMoveDown} />}
-      </Flex>
-
       <RemoveIconButton onClick={onRemove} />
     </Flex>
   );

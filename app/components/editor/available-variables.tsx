@@ -28,7 +28,7 @@ export function AvailableVariables() {
         _hover={{ bg: 'gray.50' }}
       >
         <Text fontSize='sm' fontWeight='bold' color='gray.700'>
-          Available from loader.py
+          Use your data cube
         </Text>
         <CollapseIconButton isOpen={isOpen} />
       </Flex>
@@ -46,10 +46,10 @@ export function AvailableVariables() {
               <Code fontSize='xs' colorPalette='gray'>
                 DataCube
               </Code>
+              <Text fontSize='xs' color='gray.600' pl={4}>
+                Data object from openeo.rest.datacube
+              </Text>
             </Flex>
-            <Text fontSize='xs' color='gray.600' pl={4}>
-              Main data object from openeo.rest.datacube
-            </Text>
 
             <Flex alignItems='baseline' gap={2}>
               <Code fontSize='sm' fontFamily='monospace' colorPalette='blue'>
@@ -61,10 +61,10 @@ export function AvailableVariables() {
               <Code fontSize='xs' colorPalette='gray'>
                 DataCube
               </Code>
+              <Text fontSize='xs' color='gray.600' pl={4}>
+                Datacube with pixel selection applied (first pixel in time)
+              </Text>
             </Flex>
-            <Text fontSize='xs' color='gray.600' pl={4}>
-              Datacube with pixel selection applied (first pixel in time)
-            </Text>
           </Flex>
         </Collapsible.Content>
       </Collapsible.Root>

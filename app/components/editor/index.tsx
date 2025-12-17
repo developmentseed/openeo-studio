@@ -48,8 +48,6 @@ function EditorUI({
 
   return (
     <Flex flexDirection='column' gap={2} height='100%' overflow='hidden'>
-      <AvailableVariables />
-
       {config.bands && config.bands.length > 0 && onSelectedBandsChange && (
         <BandArrayBuilder
           availableBands={config.bands}
@@ -57,6 +55,8 @@ function EditorUI({
           onSelectionChange={onSelectedBandsChange}
         />
       )}
+
+      <AvailableVariables />
 
       <Flex flex={1} minHeight={0} overflow='hidden'>
         <CodeEditor.View />
