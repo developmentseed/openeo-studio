@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Flex, IconButton, Box, Button, Dialog } from '@chakra-ui/react';
-import { useItem } from 'stac-react';
+import { useItem } from '@developmentseed/stac-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';

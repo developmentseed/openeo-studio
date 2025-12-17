@@ -64,6 +64,7 @@
     "@codemirror/language": "^6.11.3",
     "@codemirror/lint": "^6.9.2",
     "@codemirror/view": "^6.38.8",
+    "@developmentseed/stac-react": "1.0.0-alpha.1",
     "@emotion/react": "^11.14.0",
     "@tanstack/react-query": "^5.90.10",
     "@testing-library/jest-dom": "^6.9.1",
@@ -82,7 +83,6 @@
     "react-oidc-context": "^3.3.0",
     "react-resizable-panels": "^3.0.6",
     "remark-gfm": "^4.0.1",
-    "stac-react": "link:../stac-react",
     "stac-ts": "^1.0.4"
   },
   "alias": {

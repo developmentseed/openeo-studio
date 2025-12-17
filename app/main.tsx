@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
-import { StacApiProvider } from 'stac-react';
+import { StacApiProvider } from '@developmentseed/stac-react';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
 

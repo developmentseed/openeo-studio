@@ -7,7 +7,7 @@ import {
   Image,
   Spinner
 } from '@chakra-ui/react';
-import { useItem } from 'stac-react';
+import { useItem } from '@developmentseed/stac-react';
 import { SampleScene } from '../../config/sample-scenes';
 
 interface SceneCardProps {

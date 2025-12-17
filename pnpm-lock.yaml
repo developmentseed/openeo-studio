@@ -29,6 +29,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.38.8
         version: 6.38.8
+      '@developmentseed/stac-react':
+        specifier: 1.0.0-alpha.1
+        version: 1.0.0-alpha.1(@tanstack/react-query@5.90.10(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.2.3)(react@19.2.0)
@@ -83,9 +86,6 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
-      stac-react:
-        specifier: link:../stac-react
-        version: link:../stac-react
       stac-ts:
         specifier: ^1.0.4
         version: 1.0.4
@@ -423,6 +423,13 @@ packages:
   '@csstools/css-tokenizer@3.0.4':
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
     engines: {node: '>=18'}
+
+  '@developmentseed/stac-react@1.0.0-alpha.1':
+    resolution: {integrity: sha512-sgn7uHEIJS48Tf7xwupmOoYAIsx1yiQQ/sXWGCHef2dVB8U7VJUxU4GFK6ttx0oGiG78itg+UWcRUXzqzKblzA==}
+    peerDependencies:
+      '@tanstack/react-query': '>=4.0.0'
+      react: ^19.2.0
+      react-dom: ^19.2.0
 
   '@emnapi/core@1.7.0':
     resolution: {integrity: sha512-pJdKGq/1iquWYtv1RRSljZklxHCOCAJFJrImO5ZLKPJVJlVUcs8yFwNQlqS0Lo8xT1VAXXTCZocF9n26FWEKsw==}
@@ -4367,6 +4374,12 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.4
 
   '@csstools/css-tokenizer@3.0.4': {}
+
+  '@developmentseed/stac-react@1.0.0-alpha.1(@tanstack/react-query@5.90.10(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      '@tanstack/react-query': 5.90.10(react@19.2.0)
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
 
   '@emnapi/core@1.7.0':
     dependencies:
