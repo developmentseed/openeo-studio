@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/developmentseed/project-seed.git"
+    "url": "https://github.com/developmentseed/openeo-studio.git"
   },
   "author": {
     "name": "Development Seed",
@@ -12,9 +12,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/developmentseed/project-seed/issues"
+    "url": "https://github.com/developmentseed/openeo-studio/issues"
   },
-  "homepage": "https://github.com/developmentseed/project-seed",
+  "homepage": "https://github.com/developmentseed/openeo-studio",
   "scripts": {
     "prepare": "husky",
     "dev": "pnpm clean && NODE_ENV=development vite",
