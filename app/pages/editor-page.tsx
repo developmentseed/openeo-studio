@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Flex, IconButton, Box, Button, Dialog } from '@chakra-ui/react';
 import { useItem } from '@developmentseed/stac-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { StacItem } from 'stac-ts';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { StacItemCard } from '$components/stac/stac-item-card';
@@ -16,7 +17,8 @@ interface EditorPageProps {
 export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [tileUrl, setTileUrl] = useState<string | undefined>();
   const [isInspectOpen, setIsInspectOpen] = useState(false);
-  const { item, isLoading, error } = useItem(scene.stacUrl);
+  const { item: itemRaw, isLoading, error } = useItem(scene.stacUrl);
+  const item = itemRaw as unknown as StacItem | null;
 
   // Extract band metadata from STAC item
   const bands = useMemo(() => extractBandsFromStac(item), [item]);
