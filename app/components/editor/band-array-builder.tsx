@@ -145,6 +145,7 @@ export function BandArrayBuilder({
                     <React.Fragment key={band.name}>
                       <SelectedBandChip
                         key={band.name}
+                        index={index}
                         band={band}
                         onRemove={() => removeBand(index)}
                         onDragStart={() => handleDragStart(index)}
@@ -177,6 +178,7 @@ export function BandArrayBuilder({
 
 interface SelectedBandChipProps {
   band: BandVariable;
+  index: number;
   onRemove: () => void;
   onDragStart: () => void;
   onDragOver: (e: React.DragEvent) => void;
@@ -186,6 +188,7 @@ interface SelectedBandChipProps {
 
 function SelectedBandChip({
   band,
+  index,
   onRemove,
   onDragStart,
   onDragOver,
@@ -211,6 +214,9 @@ function SelectedBandChip({
       _hover={{ bg: 'blue.100', transform: 'translateY(-2px)' }}
       _active={{ cursor: 'grabbing' }}
     >
+      <Text px={2} fontSize='xs' color='gray.700'>
+        {index}:{' '}
+      </Text>
       <Text fontSize='xs' fontWeight='bold'>
         {band.variable}
       </Text>
