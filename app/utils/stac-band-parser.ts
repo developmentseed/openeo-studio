@@ -4,6 +4,7 @@
  * Extract band metadata from STAC items for display in the editor.
  * Supports Sentinel-2 L2A reflectance band structure.
  */
+import type { StacItem } from 'stac-ts';
 
 export interface BandVariable {
   /** Variable name (e.g., "B02") */
@@ -30,14 +31,6 @@ interface StacBand {
   gsd?: number;
 }
 
-interface StacAsset {
-  bands?: StacBand[];
-}
-
-interface StacItem {
-  assets?: Record<string, StacAsset>;
-}
-
 /**
  * Extract band variables from a STAC item's reflectance asset.
  *
@@ -60,7 +53,7 @@ export function extractBandsFromStac(
     return [];
   }
 
-  const reflectanceBands = stacItem.assets.reflectance.bands;
+  const reflectanceBands = stacItem.assets.reflectance.bands as StacBand[];
 
   return reflectanceBands.map((band: StacBand) => {
     // Extract label from description: "Blue (band 2)" -> "Blue"

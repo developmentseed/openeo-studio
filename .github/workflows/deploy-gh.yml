@@ -1,0 +1,75 @@
+name: Deploy Github Pages
+
+on:
+  push:
+    branches:
+    - 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: 
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          cache: true
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Cache dist
+        uses: actions/cache@v5
+        id: cache-dist
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Build
+        env:
+          VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
+          VITE_APP_TITLE: ${{ vars.VITE_APP_TITLE }}
+          VITE_APP_DESCRIPTION: ${{ vars.VITE_APP_DESCRIPTION }}
+          VITE_MAPTILER_KEY: ${{ vars.VITE_MAPTILER_KEY }}
+          VITE_AUTH_AUTHORITY: ${{ vars.VITE_AUTH_AUTHORITY }}
+          VITE_AUTH_CLIENT_ID: ${{ vars.VITE_AUTH_CLIENT_ID }}
+          VITE_AUTH_REDIRECT_URI: ${{ vars.VITE_AUTH_REDIRECT_URI }}
+        run: pnpm build
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Restore dist cache
+        uses: actions/cache@v5
+        id: cache-dist
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          clean: true
+          single-commit: true
+          folder: dist
