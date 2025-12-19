@@ -30,8 +30,8 @@ importers:
         specifier: ^6.38.8
         version: 6.38.8
       '@developmentseed/stac-react':
-        specifier: 1.0.0-alpha.1
-        version: 1.0.0-alpha.1(@tanstack/react-query@5.90.10(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: 1.0.0-alpha.2
+        version: 1.0.0-alpha.2(@tanstack/react-query@5.90.10(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.2.3)(react@19.2.0)
@@ -424,8 +424,8 @@ packages:
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
     engines: {node: '>=18'}
 
-  '@developmentseed/stac-react@1.0.0-alpha.1':
-    resolution: {integrity: sha512-sgn7uHEIJS48Tf7xwupmOoYAIsx1yiQQ/sXWGCHef2dVB8U7VJUxU4GFK6ttx0oGiG78itg+UWcRUXzqzKblzA==}
+  '@developmentseed/stac-react@1.0.0-alpha.2':
+    resolution: {integrity: sha512-YeWxBclhZd4rLQAv6OpqA4LR1TI5cjTn8X+qGOJSmzn7NBxgJGArPi2erOzsGZddFRtogWNhrMCW+/JqQTUzxg==}
     peerDependencies:
       '@tanstack/react-query': '>=4.0.0'
       react: ^19.2.0
@@ -4375,7 +4375,7 @@ snapshots:
 
   '@csstools/css-tokenizer@3.0.4': {}
 
-  '@developmentseed/stac-react@1.0.0-alpha.1(@tanstack/react-query@5.90.10(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@developmentseed/stac-react@1.0.0-alpha.2(@tanstack/react-query@5.90.10(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       '@tanstack/react-query': 5.90.10(react@19.2.0)
       react: 19.2.0
