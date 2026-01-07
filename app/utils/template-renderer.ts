@@ -12,6 +12,8 @@ export interface ExecutionConfig {
   bands?: BandVariable[];
   /** User-selected bands in order for data[] array */
   selectedBands?: string[];
+  /** Temporal range for data loading */
+  temporalRange?: string[];
   // Future additions:
   // resolution?: number;
   // bbox?: [number, number, number, number];

@@ -94,7 +94,12 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       >
         <Splitter.Panel id='editor'>
           <EditorPanel
-            config={{ collectionId: scene.collectionId, bands, selectedBands }}
+            config={{
+              collectionId: scene.collectionId,
+              bands,
+              selectedBands,
+              temporalRange: scene.temporalRange
+            }}
             initialCode={scene.suggestedAlgorithm}
             setTileUrl={setTileUrl}
             onSelectedBandsChange={setSelectedBands}
