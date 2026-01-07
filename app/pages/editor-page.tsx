@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Flex, IconButton, Box, Button, Dialog } from '@chakra-ui/react';
+import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
 import { useItem } from '@developmentseed/stac-react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { StacItem } from 'stac-ts';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
@@ -86,43 +85,28 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       </Flex>
 
       {/* Editor and Map panels */}
-      <PanelGroup direction='horizontal' style={{ flexGrow: 1, minHeight: 0 }}>
-        <Panel defaultSize={50} minSize={20}>
+      <Splitter.Root
+        defaultSize={[50, 50]}
+        panels={[
+          { id: 'editor', minSize: 20 },
+          { id: 'map', minSize: 20 }
+        ]}
+      >
+        <Splitter.Panel id='editor'>
           <EditorPanel
             config={{ collectionId: scene.collectionId, bands, selectedBands }}
             initialCode={scene.suggestedAlgorithm}
             setTileUrl={setTileUrl}
             onSelectedBandsChange={setSelectedBands}
           />
-        </Panel>
+        </Splitter.Panel>
 
-        <PanelResizeHandle
-          style={{
-            width: '4px',
-            background: '#e2e8f0',
-            cursor: 'col-resize',
-            position: 'relative'
-          }}
-        >
-          <Box
-            position='absolute'
-            top='50%'
-            left='50%'
-            transform='translate(-50%, -50%)'
-            width='20px'
-            height='40px'
-            bg='gray.300'
-            borderRadius='md'
-            opacity={0.5}
-            transition='opacity 0.2s'
-            _hover={{ opacity: 1 }}
-          />
-        </PanelResizeHandle>
+        <Splitter.ResizeTrigger id='editor:map' />
 
-        <Panel defaultSize={50} minSize={20}>
+        <Splitter.Panel id='map'>
           <MapPanel item={item} tileUrl={tileUrl} />
-        </Panel>
-      </PanelGroup>
+        </Splitter.Panel>
+      </Splitter.Root>
 
       {/* STAC Item Inspection Modal */}
       <Dialog.Root
