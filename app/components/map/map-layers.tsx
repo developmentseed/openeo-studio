@@ -1,21 +1,35 @@
 import { Layer, Source } from 'react-map-gl/maplibre';
+import type { ServiceInfo } from '../../utils/template-renderer';
 
 interface MapLayersProps {
-  tileUrl: string | undefined;
+  services: ServiceInfo[];
 }
 
-export function MapLayers({ tileUrl }: MapLayersProps) {
+export function MapLayers({ services }: MapLayersProps) {
+  // Handle undefined services gracefully
+  if (!services || !Array.isArray(services)) {
+    return null;
+  }
+
   return (
     <>
-      {tileUrl && (
+      {services.map((service, index) => (
         <Source
+          key={service.id}
+          id={`service-${service.id}`}
           type='raster'
-          tiles={[decodeURIComponent(tileUrl)]}
+          tiles={[decodeURIComponent(service.tileUrl)]}
           tileSize={256}
         >
-          <Layer type='raster' />
+          <Layer
+            id={`layer-${service.id}`}
+            type='raster'
+            paint={{
+              'raster-opacity': 0.8 - index * 0.1 // Slight transparency for overlays
+            }}
+          />
         </Source>
-      )}
+      ))}
     </>
   );
 }

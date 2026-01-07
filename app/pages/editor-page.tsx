@@ -7,6 +7,7 @@ import { MapPanel } from '$components/layout/map-panel';
 import { StacItemCard } from '$components/stac/stac-item-card';
 import { SampleScene } from '../config/sample-scenes';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
+import type { ServiceInfo } from '../utils/template-renderer';
 
 interface EditorPageProps {
   scene: SampleScene;
@@ -14,7 +15,7 @@ interface EditorPageProps {
 }
 
 export function EditorPage({ scene, onBack }: EditorPageProps) {
-  const [tileUrl, setTileUrl] = useState<string | undefined>();
+  const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
   const { item: itemRaw, isLoading, error } = useItem(scene.stacUrl);
   const item = itemRaw as unknown as StacItem | null;
@@ -98,10 +99,11 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
               collectionId: scene.collectionId,
               bands,
               selectedBands,
-              temporalRange: scene.temporalRange
+              temporalRange: scene.temporalRange,
+              parameterDefaults: scene.parameterDefaults
             }}
             initialCode={scene.suggestedAlgorithm}
-            setTileUrl={setTileUrl}
+            setServices={setServices}
             onSelectedBandsChange={setSelectedBands}
           />
         </Splitter.Panel>
@@ -109,7 +111,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
         <Splitter.ResizeTrigger id='editor:map' />
 
         <Splitter.Panel id='map'>
-          <MapPanel item={item} tileUrl={tileUrl} />
+          <MapPanel item={item} services={services} />
         </Splitter.Panel>
       </Splitter.Root>
 

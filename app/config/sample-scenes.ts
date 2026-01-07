@@ -12,6 +12,12 @@ export interface SampleScene {
   suggestedAlgorithm: string;
   /** Default bands for this algorithm (e.g., ['b02', 'b03', 'b04']) */
   defaultBands: string[];
+  /** Default parameter values for algorithm execution */
+  parameterDefaults?: {
+    bbox?: [number, number, number, number];
+    cloudCover?: number;
+    [key: string]: unknown; // Additional algorithm-specific parameters
+  };
 }
 
 export const SAMPLE_SCENES: SampleScene[] = [
@@ -26,7 +32,11 @@ export const SAMPLE_SCENES: SampleScene[] = [
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: trueColorAlgorithm,
     defaultBands: ['b02', 'b03', 'b04'], // Blue, Green, Red for true color
-    temporalRange: ['2025-11-23', '2025-11-24']
+    temporalRange: ['2025-05-12', '2025-05-13'],
+    parameterDefaults: {
+      bbox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+      cloudCover: 20 // Max cloud cover percentage
+    }
   }
 ];
 
