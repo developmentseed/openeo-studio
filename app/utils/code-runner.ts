@@ -1,6 +1,7 @@
 import { PyodideAPI } from 'pyodide';
 import loaderScript from '../algorithms/base/loader.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
+
 import {
   type ExecutionConfig,
   type GraphResult,
