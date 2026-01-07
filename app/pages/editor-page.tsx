@@ -28,6 +28,17 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
     scene.defaultBands
   );
 
+  // Handle layer visibility toggle
+  const handleToggleLayer = (serviceId: string) => {
+    setServices((prevServices) =>
+      prevServices.map((service) =>
+        service.id === serviceId
+          ? { ...service, visible: !service.visible }
+          : service
+      )
+    );
+  };
+
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
       {/* Sub-header with back button and scene info */}
@@ -111,7 +122,11 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
         <Splitter.ResizeTrigger id='editor:map' />
 
         <Splitter.Panel id='map'>
-          <MapPanel item={item} services={services} />
+          <MapPanel
+            item={item}
+            services={services}
+            onToggleLayer={handleToggleLayer}
+          />
         </Splitter.Panel>
       </Splitter.Root>
 

@@ -6,9 +6,10 @@ import type { ServiceInfo } from '../../utils/template-renderer';
 interface MapPanelProps {
   item: StacItem | null;
   services: ServiceInfo[];
+  onToggleLayer: (serviceId: string) => void;
 }
 
-export function MapPanel({ item, services }: MapPanelProps) {
+export function MapPanel({ item, services, onToggleLayer }: MapPanelProps) {
   return (
     <Flex flexGrow={1} h='100%'>
       <Flex
@@ -18,7 +19,11 @@ export function MapPanel({ item, services }: MapPanelProps) {
         overflow='hidden'
         border='2px solid {colors.base.300a}'
       >
-        <MapViewer item={item} services={services} />
+        <MapViewer
+          item={item}
+          services={services}
+          onToggleLayer={onToggleLayer}
+        />
       </Flex>
     </Flex>
   );

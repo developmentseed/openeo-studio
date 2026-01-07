@@ -204,7 +204,8 @@ export async function processScript(
         id: crypto.randomUUID(),
         location: serviceLocation,
         tileUrl,
-        graphResult
+        graphResult,
+        visible: graphResult.visible
       };
 
       services.push(serviceInfo);

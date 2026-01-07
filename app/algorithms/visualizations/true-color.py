@@ -29,4 +29,4 @@ map_viz = map_viz.linear_scale_range(
 # Save as PNG and return JSON representation
 map_viz = map_viz.save_result("PNG")
 
-add_graph_to_map(map_viz)
+add_graph_to_map(map_viz, "True Color")

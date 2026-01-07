@@ -28,6 +28,8 @@ export interface ExecutionConfig {
 export interface GraphResult {
   process_graph: unknown;
   parameters: unknown[];
+  name: string;
+  visible: boolean;
 }
 
 /**
@@ -38,6 +40,7 @@ export interface ServiceInfo {
   location: string;
   tileUrl: string;
   graphResult: GraphResult;
+  visible: boolean;
 }
 
 /**

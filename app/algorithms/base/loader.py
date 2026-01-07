@@ -58,11 +58,25 @@ datacube = DataCube(graph=graph)
 # Collection for multiple graph outputs
 map_graphs = []
 
-def add_graph_to_map(graph: PGNode) -> SaveResult:
-    """Helper function to add the process graph to the map visualization."""
+def add_graph_to_map(graph: PGNode, name: str = None) -> SaveResult:
+    """Helper function to add the process graph to the map visualization.
+    
+    Args:
+        graph: The process graph node to add
+        name: Optional user-defined layer name. Defaults to variable name if not provided.
+    """
+    import inspect
+    
+    # Get variable name from caller if name not provided
+    if name is None:
+        frame = inspect.currentframe().f_back
+        name = [k for k, v in frame.f_locals.items() if v is graph][0] if frame else "layer"
+    
     map_graphs.append({
         "process_graph": graph.flat_graph(),
-        "parameters": [param.to_dict() for param in parameters]
+        "parameters": [param.to_dict() for param in parameters],
+        "name": name,
+        "visible": True
     })
     return SaveResult(graph)
 
