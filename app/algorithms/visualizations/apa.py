@@ -51,7 +51,7 @@ def apa_viridis_visualization(data):
     return result
 
 # Apply APA on the data cube on the bands dimension
-apa_image = s2cube.apply_dimension(dimension="bands", process=apa_viridis_visualization)
+apa_image = reduced.apply_dimension(dimension="bands", process=apa_viridis_visualization)
 # Linear scale to 0-255 for RGB visualization
 apa_image = apa_image.linear_scale_range(
     input_min=0, input_max=0.8, output_min=0, output_max=255
