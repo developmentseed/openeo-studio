@@ -40,6 +40,28 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
     scene.defaultBands
   );
 
+  // Manage collection and temporal configuration
+  const [currentCollectionId, setCurrentCollectionId] = useState(
+    scene.collectionId
+  );
+  const [currentTemporalRange, setCurrentTemporalRange] = useState<
+    [string, string]
+  >(scene.temporalRange || ['2023-01-01', '2023-12-31']);
+
+  // Handle collection change - clear services when collection changes
+  const handleCollectionChange = (newCollectionId: string) => {
+    setCurrentCollectionId(newCollectionId);
+    // Clear existing services as they're no longer valid for the new collection
+    setServices([]);
+  };
+
+  // Handle temporal range change - clear services when time range changes
+  const handleTemporalRangeChange = (newTemporalRange: [string, string]) => {
+    setCurrentTemporalRange(newTemporalRange);
+    // Clear existing services as they're no longer valid for the new time range
+    setServices([]);
+  };
+
   // Handle layer visibility toggle
   const handleToggleLayer = (serviceId: string) => {
     setServices((prevServices) =>
@@ -119,15 +141,17 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
         <Splitter.Panel id='editor'>
           <EditorPanel
             config={{
-              collectionId: scene.collectionId,
+              collectionId: currentCollectionId,
               bands,
               selectedBands,
-              temporalRange: scene.temporalRange,
+              temporalRange: currentTemporalRange,
               parameterDefaults: scene.parameterDefaults
             }}
             initialCode={scene.suggestedAlgorithm}
             setServices={setServices}
             onSelectedBandsChange={setSelectedBands}
+            onCollectionChange={handleCollectionChange}
+            onTemporalRangeChange={handleTemporalRangeChange}
           />
         </Splitter.Panel>
 

@@ -19,25 +19,6 @@ export default function App() {
     }
   };
 
-  // Handle direct collection selection - create temporary scene
-  const handleSelectCollection = (collectionId: string) => {
-    const temporaryScene: SampleScene = {
-      id: `collection-${collectionId}`,
-      name: `Explore ${collectionId}`,
-      description: `Direct exploration of the ${collectionId} collection`,
-      collectionId,
-      suggestedAlgorithm: '', // Will default to basic true color or first available
-      defaultBands: [], // Will be populated from collection metadata
-      temporalRange: ['2023-01-01', '2023-12-31'], // Default temporal range
-      parameterDefaults: {
-        boundingBox: { west: -180, south: -90, east: 180, north: 90 }, // Global extent as default
-        cloudCover: 50
-      }
-    };
-    setSelectedScene(temporaryScene);
-    setSelectedSceneId(`collection-${collectionId}`);
-  };
-
   // Reset to landing page
   const handleBack = () => {
     setSelectedSceneId(null);
@@ -48,10 +29,7 @@ export default function App() {
     <Flex flexDirection='column' height='100vh'>
       <AppHeader />
       {!selectedSceneId || !selectedScene ? (
-        <LandingPage
-          onSelectScene={handleSelectScene}
-          onSelectCollection={handleSelectCollection}
-        />
+        <LandingPage onSelectScene={handleSelectScene} />
       ) : (
         <EditorPage scene={selectedScene} onBack={handleBack} />
       )}

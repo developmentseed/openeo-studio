@@ -11,13 +11,17 @@ interface EditorPanelProps {
   initialCode?: string;
   setServices: (services: ServiceInfo[]) => void;
   onSelectedBandsChange?: (bands: string[]) => void;
+  onCollectionChange?: (collectionId: string) => void;
+  onTemporalRangeChange?: (temporalRange: [string, string]) => void;
 }
 
 export function EditorPanel({
   config,
   initialCode,
   setServices,
-  onSelectedBandsChange
+  onSelectedBandsChange,
+  onCollectionChange,
+  onTemporalRangeChange
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
   const { isAuthenticated } = useAuth();
@@ -31,6 +35,8 @@ export function EditorPanel({
           initialCode={initialCode}
           setServices={setServices}
           onSelectedBandsChange={onSelectedBandsChange}
+          onCollectionChange={onCollectionChange}
+          onTemporalRangeChange={onTemporalRangeChange}
         />
       ) : (
         <OutputPanel />

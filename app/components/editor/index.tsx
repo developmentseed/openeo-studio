@@ -4,6 +4,7 @@ import { useCodeExecution } from '$hooks/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
 import { AvailableVariables } from './available-variables';
 import { BandArrayBuilder } from './band-array-builder';
+import { CollectionConfig } from './collection-config';
 import type { ExecutionConfig, ServiceInfo } from '$types';
 
 interface EditorProps {
@@ -11,13 +12,17 @@ interface EditorProps {
   initialCode?: string;
   setServices: (services: ServiceInfo[]) => void;
   onSelectedBandsChange?: (bands: string[]) => void;
+  onCollectionChange?: (collectionId: string) => void;
+  onTemporalRangeChange?: (temporalRange: [string, string]) => void;
 }
 
 export function Editor({
   config,
   initialCode,
   setServices,
-  onSelectedBandsChange
+  onSelectedBandsChange,
+  onCollectionChange,
+  onTemporalRangeChange
 }: EditorProps) {
   return (
     <CodeEditor.Root initialCode={initialCode}>
@@ -25,6 +30,8 @@ export function Editor({
         config={config}
         setServices={setServices}
         onSelectedBandsChange={onSelectedBandsChange}
+        onCollectionChange={onCollectionChange}
+        onTemporalRangeChange={onTemporalRangeChange}
       />
     </CodeEditor.Root>
   );
@@ -37,8 +44,17 @@ export function Editor({
 function EditorUI({
   config,
   setServices,
-  onSelectedBandsChange
-}: Pick<EditorProps, 'setServices' | 'config' | 'onSelectedBandsChange'>) {
+  onSelectedBandsChange,
+  onCollectionChange,
+  onTemporalRangeChange
+}: Pick<
+  EditorProps,
+  | 'setServices'
+  | 'config'
+  | 'onSelectedBandsChange'
+  | 'onCollectionChange'
+  | 'onTemporalRangeChange'
+>) {
   const editor = useCodeEditor();
   const { executeCode, isExecuting, isReady } = useCodeExecution(
     setServices,
@@ -48,6 +64,13 @@ function EditorUI({
 
   return (
     <Flex flexDirection='column' gap={2} height='100%' overflow='hidden'>
+      <CollectionConfig
+        collectionId={config.collectionId}
+        temporalRange={config.temporalRange || ['2023-01-01', '2023-12-31']}
+        onCollectionChange={onCollectionChange}
+        onTemporalRangeChange={onTemporalRangeChange}
+      />
+
       {config.bands && config.bands.length > 0 && onSelectedBandsChange && (
         <BandArrayBuilder
           availableBands={config.bands}
