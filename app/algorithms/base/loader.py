@@ -17,20 +17,20 @@ from openeo.api.process import Parameter
 # These will be populated from ExecutionConfig at runtime
 default_bounding_box = SCENE_DEFAULTS.get("boundingBox", {"west": 12.0, "south": 44.5, "east": 14, "north": 46})
 default_time = SCENE_DEFAULTS.get("time", ["2025-11-23", "2025-11-24"])
-default_bands = SCENE_DEFAULTS.get("bands", ["b02", "b03", "b04"])
+default_bands = SCENE_DEFAULTS.get("bands", ["reflectance|b02", "reflectance|b03", "reflectance|b04"])
 default_collection_id = SCENE_DEFAULTS.get("collectionId", "sentinel-2-l2a")
 default_cloud_cover_max = SCENE_DEFAULTS.get("cloudCover", 20)
 
 # Create OpenEO Parameter objects
 bounding_box = Parameter("bounding_box", default=default_bounding_box, optional=True)
 time = Parameter("time", default=default_time, optional=True)
-bands = Parameter("bands", default=[f"reflectance|{band}" for band in default_bands], optional=True)
+bands = Parameter("bands", default=[f"{band}" for band in default_bands], optional=True)
 cloud_cover_max = Parameter("cloud_cover_max", default=default_cloud_cover_max, optional=True)
 
 # Parameter collection for service creation
 parameters = [
-    time,
     bounding_box,
+    time,
     bands,
     cloud_cover_max,
 ]
@@ -47,7 +47,7 @@ graph = PGNode(
             "process_graph": {
                 "cc": {
                     "process_id": "lt",
-                    "arguments": {"x": {"from_parameter": "value"}, "y": {"from_parameter": "cloud_cover_max"}},
+                    "arguments": {"x": {"from_parameter": "value"}, "y": 20},
                     "result": True,
                 }
             }

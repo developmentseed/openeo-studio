@@ -1,12 +1,18 @@
 import { useState, useMemo } from 'react';
-import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
-import { useItem } from '@developmentseed/stac-react';
-import { StacItem } from 'stac-ts';
+import {
+  Flex,
+  IconButton,
+  Button,
+  Dialog,
+  Splitter,
+  Text,
+  Heading
+} from '@chakra-ui/react';
+import { useOpenEOCollection } from '$utils/openeo-collection';
 
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
-import { StacItemCard } from '$components/stac/stac-item-card';
-import { extractBandsFromStac } from '$utils/stac-band-parser';
+import { extractBandsFromCollection } from '$utils/stac-band-parser';
 import type { SampleScene, ServiceInfo } from '$types';
 
 interface EditorPageProps {
@@ -17,11 +23,17 @@ interface EditorPageProps {
 export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
-  const { item: itemRaw, isLoading, error } = useItem(scene.stacUrl);
-  const item = itemRaw as unknown as StacItem | null;
+  const {
+    data: collection,
+    isLoading,
+    error
+  } = useOpenEOCollection(scene.collectionId);
 
-  // Extract band metadata from STAC item
-  const bands = useMemo(() => extractBandsFromStac(item), [item]);
+  // Extract band metadata from OpenEO collection
+  const bands = useMemo(
+    () => extractBandsFromCollection(collection),
+    [collection]
+  );
 
   // Manage selected bands for data[] array
   const [selectedBands, setSelectedBands] = useState<string[]>(
@@ -123,7 +135,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
 
         <Splitter.Panel id='map'>
           <MapPanel
-            item={item}
+            bbox={scene.parameterDefaults.boundingBox}
             services={services}
             onToggleLayer={handleToggleLayer}
           />
@@ -144,7 +156,32 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
               <Dialog.CloseTrigger />
             </Dialog.Header>
             <Dialog.Body>
-              <StacItemCard item={item} isLoading={isLoading} error={error} />
+              {isLoading ? (
+                <Text>Loading collection metadata...</Text>
+              ) : error ? (
+                <Text>Error loading collection: {String(error)}</Text>
+              ) : collection ? (
+                <Flex flexDir='column' gap={3}>
+                  <Heading fontSize='sm'>Collection: {collection.id}</Heading>
+                  <Text>
+                    <strong>Title:</strong> {collection.title}
+                  </Text>
+                  <Text>
+                    <strong>Description:</strong> {collection.description}
+                  </Text>
+                  <Text>
+                    <strong>License:</strong> {collection.license}
+                  </Text>
+                  {collection.keywords && (
+                    <Text>
+                      <strong>Keywords:</strong>{' '}
+                      {collection.keywords.join(', ')}
+                    </Text>
+                  )}
+                </Flex>
+              ) : (
+                <Text>No collection data available</Text>
+              )}
             </Dialog.Body>
           </Dialog.Content>
         </Dialog.Positioner>

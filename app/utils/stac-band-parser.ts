@@ -1,10 +1,10 @@
 /**
  * STAC Band Parsing Utilities
  *
- * Extract band metadata from STAC items for display in the editor.
- * Supports Sentinel-2 L2A reflectance band structure.
+ * Extract band metadata from STAC items and collections for display in the editor.
+ * Supports Sentinel-2 L2A reflectance band structure and OpenEO collection formats.
  */
-import type { StacItem } from 'stac-ts';
+import type { StacItem, StacCollection } from 'stac-ts';
 
 import type { BandVariable } from '$types';
 
@@ -14,6 +14,14 @@ interface StacBand {
   'eo:common_name'?: string;
   'eo:center_wavelength'?: number;
   gsd?: number;
+}
+
+interface CollectionBand {
+  name: string;
+  description: string;
+  'eo:common_name'?: string;
+  'eo:center_wavelength'?: number;
+  'eo:full_width_half_max'?: number;
 }
 
 /**
@@ -62,7 +70,100 @@ export function extractBandsFromStac(
       commonName: band['eo:common_name'],
       resolution,
       wavelength,
-      path: `reflectance|${band.name}`
+      path: `${band.name}`
     };
   });
+}
+
+/**
+ * Extract band variables from an OpenEO collection's summaries.
+ *
+ * @param collection - STAC collection containing band metadata in summaries
+ * @returns Array of band variables with metadata, or empty array if not found
+ *
+ * @example
+ * ```typescript
+ * const bands = extractBandsFromCollection(collection);
+ * // [
+ * //   { variable: "B02", name: "reflectance|b02", label: "Blue", ... },
+ * //   { variable: "B03", name: "reflectance|b03", label: "Green", ... }
+ * // ]
+ * ```
+ */
+export function extractBandsFromCollection(
+  collection: StacCollection | null | undefined
+): BandVariable[] {
+  if (!collection?.summaries?.bands) {
+    return [];
+  }
+
+  const collectionBands = collection.summaries.bands as CollectionBand[];
+
+  // Filter out non-reflectance bands for now (focus on spectral bands)
+  const reflectanceBands = collectionBands.filter(
+    (band) =>
+      band.name.startsWith('reflectance|') ||
+      band['eo:common_name'] ||
+      band['eo:center_wavelength']
+  );
+
+  return reflectanceBands.map((band: CollectionBand) => {
+    // Extract label from description: "Blue (band 2)" -> "Blue"
+    const label = band.description?.match(/^([^(]+)/)?.[1]?.trim() || band.name;
+
+    // Format wavelength: 0.49 -> "490 nm"
+    const wavelength = band['eo:center_wavelength']
+      ? `${Math.round(band['eo:center_wavelength'] * 1000)} nm`
+      : undefined;
+
+    // Extract variable name from band name: "reflectance|b02" -> "B02"
+    const namePart = band.name.includes('|')
+      ? band.name.split('|')[1]
+      : band.name;
+    const variable = namePart.toUpperCase();
+
+    // Determine resolution based on common Sentinel-2 patterns
+    let resolution: string | undefined;
+    if (namePart.match(/^(b02|b03|b04|b08)$/i)) {
+      resolution = '10m';
+    } else if (namePart.match(/^(b05|b06|b07|b8a|b11|b12)$/i)) {
+      resolution = '20m';
+    } else if (namePart.match(/^(b01|b09|b10)$/i)) {
+      resolution = '60m';
+    }
+
+    return {
+      variable,
+      name: band.name,
+      label,
+      commonName: band['eo:common_name'],
+      resolution,
+      wavelength,
+      path: band.name // Use full name including namespace (e.g., "reflectance|b02")
+    };
+  });
+}
+
+/**
+ * Group bands by type for better UX in band selection.
+ *
+ * @param bands - Array of band variables
+ * @returns Object with bands grouped by category
+ */
+export function groupBandsByType(bands: BandVariable[]) {
+  const reflectanceBands: BandVariable[] = [];
+  const otherBands: BandVariable[] = [];
+
+  bands.forEach((band) => {
+    if (band.path.includes('reflectance|') || band.commonName) {
+      reflectanceBands.push(band);
+    } else {
+      otherBands.push(band);
+    }
+  });
+
+  return {
+    reflectance: reflectanceBands.sort((a, b) => a.name.localeCompare(b.name)),
+    other: otherBands.sort((a, b) => a.name.localeCompare(b.name))
+  };
 }

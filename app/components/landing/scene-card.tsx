@@ -7,7 +7,7 @@ import {
   Image,
   Spinner
 } from '@chakra-ui/react';
-import { useItem } from '@developmentseed/stac-react';
+import { useOpenEOCollection } from '$utils/openeo-collection';
 import { SampleScene } from '$types';
 
 interface SceneCardProps {
@@ -16,10 +16,12 @@ interface SceneCardProps {
 }
 
 export function SceneCard({ scene, onSelect }: SceneCardProps) {
-  const { item, isLoading } = useItem(scene.stacUrl);
+  const { data: collection, isLoading } = useOpenEOCollection(
+    scene.collectionId
+  );
 
-  // Extract thumbnail from STAC item assets
-  const thumbnail = scene.thumbnail || item?.assets?.thumbnail?.href;
+  // Use scene thumbnail if provided, otherwise fallback to collection thumbnail
+  const thumbnail = scene.thumbnailUrl || collection?.assets?.thumbnail?.href;
 
   return (
     <Card.Root

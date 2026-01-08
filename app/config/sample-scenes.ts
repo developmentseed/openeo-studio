@@ -9,15 +9,13 @@ export const SAMPLE_SCENES: SampleScene[] = [
     name: 'Sunny November day with Sentinel-2 L2A',
     description:
       'Sentinel-2 coverage with nice cloud-free scenes over Italy, for example Venice.',
-    //TODO: thumbnail
-    stacUrl:
-      'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2B_MSIL2A_20251123T101239_N0511_R022_T32TQR_20251123T105704',
+    // thumbnailUrl: 'custom-thumbnail-url', // Optional: Falls back to collection thumbnail
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: trueColorAlgorithm,
-    defaultBands: ['b02', 'b03', 'b04'], // Blue, Green, Red for true color
+    defaultBands: ['reflectance|b02', 'reflectance|b03', 'reflectance|b04'], // Blue, Green, Red for true color
     temporalRange: ['2025-05-12', '2025-05-13'],
     parameterDefaults: {
-      boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+      boundingBox: { west: 12.0, south: 44.5, east: 14.0, north: 46.0 }, // Venice area
       cloudCover: 20 // Max cloud cover percentage
     }
   },
@@ -26,15 +24,21 @@ export const SAMPLE_SCENES: SampleScene[] = [
     name: 'Monitoring Aquatic Plants and Algae with Sentinel-2 L2A',
     description:
       'Sentinel-2 derived data for monitoring aquatic plants and algae in Venice.',
-    //TODO: thumbnail
-    stacUrl:
-      'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2B_MSIL2A_20251123T101239_N0511_R022_T32TQR_20251123T105704',
+    // thumbnailUrl: 'custom-thumbnail-url', // Optional: Falls back to collection thumbnail
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: apaAlgorithm,
-    defaultBands: ['b02', 'b03', 'b04', 'b05', 'b08', 'b8a', 'b11'], // Bands useful for APA
+    defaultBands: [
+      'reflectance|b02',
+      'reflectance|b03',
+      'reflectance|b04',
+      'reflectance|b05',
+      'reflectance|b08',
+      'reflectance|b8a',
+      'reflectance|b11'
+    ], // Bands useful for APA
     temporalRange: ['2025-05-12', '2025-05-13'],
     parameterDefaults: {
-      boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+      boundingBox: { west: 12.0, south: 44.5, east: 14.0, north: 46.0 }, // Venice area
       cloudCover: 30 // Max cloud cover percentage
     }
   }

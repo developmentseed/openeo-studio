@@ -5,8 +5,7 @@ export interface SampleScene {
   id: string;
   name: string;
   description: string;
-  thumbnail?: string;
-  stacUrl: string;
+  thumbnailUrl?: string;
   collectionId: string;
   temporalRange?: string[];
 
@@ -14,8 +13,8 @@ export interface SampleScene {
   /** Default bands for this algorithm (e.g., ['b02', 'b03', 'b04']) */
   defaultBands: string[];
   /** Default parameter values for algorithm execution */
-  parameterDefaults?: {
-    boundingBox?: [number, number, number, number];
+  parameterDefaults: {
+    boundingBox: { west: number; south: number; east: number; north: number }; // Object format - now mandatory
     cloudCover?: number;
     [key: string]: unknown; // Additional algorithm-specific parameters
   };
