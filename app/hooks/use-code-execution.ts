@@ -4,7 +4,7 @@ import type { EditorView } from '@codemirror/view';
 
 import { usePyodide } from '$contexts/pyodide-context';
 import { processScript } from '$utils/code-runner';
-import type { ExecutionConfig, ServiceInfo } from '$utils/template-renderer';
+import type { ExecutionConfig, ServiceInfo } from '$types';
 
 export function useCodeExecution(
   setServices: (services: ServiceInfo[]) => void,

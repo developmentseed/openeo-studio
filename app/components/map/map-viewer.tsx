@@ -1,10 +1,11 @@
 import { useRef, useEffect } from 'react';
 import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import type { StacItem } from 'stac-ts';
+
 import { MapLayers } from './map-layers.js';
 import { LayerControl } from './layer-control';
-import type { StacItem } from 'stac-ts';
-import type { ServiceInfo } from '../../utils/template-renderer';
+import type { ServiceInfo } from '$types';
 
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 

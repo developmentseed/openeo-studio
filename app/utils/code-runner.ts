@@ -6,7 +6,7 @@ import {
   type ExecutionConfig,
   type GraphResult,
   type ServiceInfo
-} from './template-renderer';
+} from '$types';
 
 // Track active services for cleanup
 const activeServices: ServiceInfo[] = [];

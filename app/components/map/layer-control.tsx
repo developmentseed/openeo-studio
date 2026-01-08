@@ -1,10 +1,5 @@
 import { Box, Flex, IconButton, Text, VStack } from '@chakra-ui/react';
-import type { ServiceInfo } from '../../utils/template-renderer';
-
-interface LayerControlProps {
-  services: ServiceInfo[];
-  onToggleLayer: (serviceId: string) => void;
-}
+import type { ServiceInfo } from '$types';
 
 function EyeIcon() {
   return (

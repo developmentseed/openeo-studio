@@ -22,6 +22,7 @@
       "$styles/*": ["./app/styles/*"],
       "$hooks/*": ["./app/hooks/*"],
       "$pages/*": ["./app/pages/*"],
+      "$types": ["./app/types"],
       "$types/*": ["./app/types/*"],
       "$config/*": ["./app/config/*"]
     },

@@ -91,7 +91,8 @@
     "$hooks": "~/app/hooks",
     "$pages": "~/app/pages",
     "$config": "~/app/config",
-    "$test": "~/test"
+    "$test": "~/test",
+    "$types": "~/app/types"
   },
   "packageManager": "pnpm@10.21.0"
 }

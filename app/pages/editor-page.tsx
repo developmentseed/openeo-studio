@@ -2,12 +2,12 @@ import { useState, useMemo } from 'react';
 import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
 import { useItem } from '@developmentseed/stac-react';
 import { StacItem } from 'stac-ts';
+
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { StacItemCard } from '$components/stac/stac-item-card';
-import { SampleScene } from '../config/sample-scenes';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
-import type { ServiceInfo } from '../utils/template-renderer';
+import type { SampleScene, ServiceInfo } from '$types';
 
 interface EditorPageProps {
   scene: SampleScene;

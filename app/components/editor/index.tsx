@@ -4,7 +4,7 @@ import { useCodeExecution } from '$hooks/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
 import { AvailableVariables } from './available-variables';
 import { BandArrayBuilder } from './band-array-builder';
-import type { ExecutionConfig, ServiceInfo } from '$utils/template-renderer';
+import type { ExecutionConfig, ServiceInfo } from '$types';
 
 interface EditorProps {
   config: ExecutionConfig;

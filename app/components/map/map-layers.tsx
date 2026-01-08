@@ -1,5 +1,5 @@
 import { Layer, Source } from 'react-map-gl/maplibre';
-import type { ServiceInfo } from '../../utils/template-renderer';
+import type { ServiceInfo } from '$types';
 
 interface MapLayersProps {
   services: ServiceInfo[];

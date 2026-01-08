@@ -1,25 +1,7 @@
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 import apaAlgorithm from '../algorithms/visualizations/apa.py?raw';
 
-export interface SampleScene {
-  id: string;
-  name: string;
-  description: string;
-  thumbnail?: string;
-  stacUrl: string;
-  collectionId: string;
-  temporalRange?: string[];
-
-  suggestedAlgorithm: string;
-  /** Default bands for this algorithm (e.g., ['b02', 'b03', 'b04']) */
-  defaultBands: string[];
-  /** Default parameter values for algorithm execution */
-  parameterDefaults?: {
-    bbox?: [number, number, number, number];
-    cloudCover?: number;
-    [key: string]: unknown; // Additional algorithm-specific parameters
-  };
-}
+import type { SampleScene } from '$types';
 
 export const SAMPLE_SCENES: SampleScene[] = [
   {
