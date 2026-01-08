@@ -15,7 +15,7 @@ export interface SampleScene {
   defaultBands: string[];
   /** Default parameter values for algorithm execution */
   parameterDefaults?: {
-    bbox?: [number, number, number, number];
+    boundingBox?: [number, number, number, number];
     cloudCover?: number;
     [key: string]: unknown; // Additional algorithm-specific parameters
   };
@@ -56,7 +56,7 @@ export interface ExecutionConfig {
   temporalRange?: string[];
   /** Parameter defaults from scene configuration */
   parameterDefaults?: {
-    bbox?: [number, number, number, number];
+    boundingBox?: [number, number, number, number];
     cloudCover?: number;
     [key: string]: unknown;
   };
