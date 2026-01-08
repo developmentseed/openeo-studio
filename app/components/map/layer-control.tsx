@@ -43,7 +43,7 @@ export function LayerControl({ services, onToggleLayer }: LayerControlProps) {
       <Text fontSize='sm' fontWeight='bold' mb={2}>
         Map Layers
       </Text>
-      <VStack align='stretch' spacing={1}>
+      <VStack align='stretch' gap={1}>
         {services.map((service) => (
           <Flex
             key={service.id}
@@ -57,7 +57,7 @@ export function LayerControl({ services, onToggleLayer }: LayerControlProps) {
             <Text
               fontSize='sm'
               color={service.visible ? 'black' : 'gray.400'}
-              noOfLines={1}
+              lineClamp='1'
               flex={1}
             >
               {service.graphResult.name}
