@@ -4,7 +4,7 @@ import { useAuth } from 'react-oidc-context';
 import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
 import { usePyodide } from '$contexts/pyodide-context';
-import type { ExecutionConfig, ServiceInfo } from '$utils/template-renderer';
+import type { ExecutionConfig, ServiceInfo } from '$types';
 
 interface EditorPanelProps {
   config: ExecutionConfig;

@@ -8,7 +8,7 @@ import {
   Spinner
 } from '@chakra-ui/react';
 import { useItem } from '@developmentseed/stac-react';
-import { SampleScene } from '../../config/sample-scenes';
+import { SampleScene } from '$types';
 
 interface SceneCardProps {
   scene: SampleScene;

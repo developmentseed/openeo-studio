@@ -1,7 +1,7 @@
 import { Flex } from '@chakra-ui/react';
 import { MapViewer } from '$components/map/map-viewer';
 import type { StacItem } from 'stac-ts';
-import type { ServiceInfo } from '../../utils/template-renderer';
+import type { ServiceInfo } from '$types';
 
 interface MapPanelProps {
   item: StacItem | null;
