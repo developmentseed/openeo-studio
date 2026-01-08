@@ -31,7 +31,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'https://api.explorer.eopf.copernicus.eu/stac/collections/sentinel-2-l2a/items/S2B_MSIL2A_20251123T101239_N0511_R022_T32TQR_20251123T105704',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: apaAlgorithm,
-    defaultBands: ['b02', 'b03', 'b04', 'b05', 'b07', 'b08', 'b8a', 'b11'], // Bands useful for APA
+    defaultBands: ['b02', 'b03', 'b04', 'b05', 'b08', 'b8a', 'b11'], // Bands useful for APA
     temporalRange: ['2025-05-12', '2025-05-13'],
     parameterDefaults: {
       boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area

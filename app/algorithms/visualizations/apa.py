@@ -2,7 +2,7 @@
 def apa_viridis_visualization(data):
     """
     Apply viridis colormap to FAI values
-    Input data array: [B02, B03, B04, B05, B07, B8A, B11, B12]
+    Input data array: [B02, B03, B04, B05, B08, B8A, B11]
     """
     B02, B03, B04, B05, B08, B8A, B11 = (
         data[0],
