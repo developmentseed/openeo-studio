@@ -4,26 +4,26 @@ import { useCodeExecution } from '$hooks/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
 import { AvailableVariables } from './available-variables';
 import { BandArrayBuilder } from './band-array-builder';
-import type { ExecutionConfig } from '$utils/template-renderer';
+import type { ExecutionConfig, ServiceInfo } from '$types';
 
 interface EditorProps {
   config: ExecutionConfig;
   initialCode?: string;
-  setTileUrl: (url: string | undefined) => void;
+  setServices: (services: ServiceInfo[]) => void;
   onSelectedBandsChange?: (bands: string[]) => void;
 }
 
 export function Editor({
   config,
   initialCode,
-  setTileUrl,
+  setServices,
   onSelectedBandsChange
 }: EditorProps) {
   return (
     <CodeEditor.Root initialCode={initialCode}>
       <EditorUI
         config={config}
-        setTileUrl={setTileUrl}
+        setServices={setServices}
         onSelectedBandsChange={onSelectedBandsChange}
       />
     </CodeEditor.Root>
@@ -36,12 +36,12 @@ export function Editor({
  */
 function EditorUI({
   config,
-  setTileUrl,
+  setServices,
   onSelectedBandsChange
-}: Pick<EditorProps, 'setTileUrl' | 'config' | 'onSelectedBandsChange'>) {
+}: Pick<EditorProps, 'setServices' | 'config' | 'onSelectedBandsChange'>) {
   const editor = useCodeEditor();
   const { executeCode, isExecuting, isReady } = useCodeExecution(
-    setTileUrl,
+    setServices,
     editor,
     config
   );

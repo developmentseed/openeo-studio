@@ -12,9 +12,9 @@ def viz(data):
         data[2],
     )
     # True color for land (enhanced)
-    true_color_b = B04 * 3
-    true_color_r = B03 * 3
-    true_color_g = B02 * 5
+    true_color_b = B02 * 3
+    true_color_g = B03 * 3
+    true_color_r = B04 * 3
     return array_create([true_color_r, true_color_g, true_color_b])
 
 
@@ -28,4 +28,5 @@ map_viz = map_viz.linear_scale_range(
 
 # Save as PNG and return JSON representation
 map_viz = map_viz.save_result("PNG")
-map_viz.to_json()
+
+add_graph_to_map(map_viz, "True Color")

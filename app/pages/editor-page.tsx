@@ -2,11 +2,12 @@ import { useState, useMemo } from 'react';
 import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
 import { useItem } from '@developmentseed/stac-react';
 import { StacItem } from 'stac-ts';
+
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { StacItemCard } from '$components/stac/stac-item-card';
-import { SampleScene } from '../config/sample-scenes';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
+import type { SampleScene, ServiceInfo } from '$types';
 
 interface EditorPageProps {
   scene: SampleScene;
@@ -14,7 +15,7 @@ interface EditorPageProps {
 }
 
 export function EditorPage({ scene, onBack }: EditorPageProps) {
-  const [tileUrl, setTileUrl] = useState<string | undefined>();
+  const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
   const { item: itemRaw, isLoading, error } = useItem(scene.stacUrl);
   const item = itemRaw as unknown as StacItem | null;
@@ -26,6 +27,17 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [selectedBands, setSelectedBands] = useState<string[]>(
     scene.defaultBands
   );
+
+  // Handle layer visibility toggle
+  const handleToggleLayer = (serviceId: string) => {
+    setServices((prevServices) =>
+      prevServices.map((service) =>
+        service.id === serviceId
+          ? { ...service, visible: !service.visible }
+          : service
+      )
+    );
+  };
 
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
@@ -94,9 +106,15 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       >
         <Splitter.Panel id='editor'>
           <EditorPanel
-            config={{ collectionId: scene.collectionId, bands, selectedBands }}
+            config={{
+              collectionId: scene.collectionId,
+              bands,
+              selectedBands,
+              temporalRange: scene.temporalRange,
+              parameterDefaults: scene.parameterDefaults
+            }}
             initialCode={scene.suggestedAlgorithm}
-            setTileUrl={setTileUrl}
+            setServices={setServices}
             onSelectedBandsChange={setSelectedBands}
           />
         </Splitter.Panel>
@@ -104,7 +122,11 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
         <Splitter.ResizeTrigger id='editor:map' />
 
         <Splitter.Panel id='map'>
-          <MapPanel item={item} tileUrl={tileUrl} />
+          <MapPanel
+            item={item}
+            services={services}
+            onToggleLayer={handleToggleLayer}
+          />
         </Splitter.Panel>
       </Splitter.Root>
 

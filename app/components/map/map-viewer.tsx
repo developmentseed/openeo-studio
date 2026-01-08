@@ -1,17 +1,21 @@
 import { useRef, useEffect } from 'react';
 import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { MapLayers } from './map-layers.js';
 import type { StacItem } from 'stac-ts';
+
+import { MapLayers } from './map-layers.js';
+import { LayerControl } from './layer-control';
+import type { ServiceInfo } from '$types';
 
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
 interface MapViewerProps {
   item: StacItem | null;
-  tileUrl: string | undefined;
+  services: ServiceInfo[];
+  onToggleLayer: (serviceId: string) => void;
 }
 
-export function MapViewer({ item, tileUrl }: MapViewerProps) {
+export function MapViewer({ item, services, onToggleLayer }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
 
   const applyFitBounds = () => {
@@ -41,7 +45,8 @@ export function MapViewer({ item, tileUrl }: MapViewerProps) {
       style={{ flexGrow: 1 }}
       mapStyle={MAP_STYLE}
     >
-      <MapLayers tileUrl={tileUrl} />
+      <MapLayers services={services} />
+      <LayerControl services={services} onToggleLayer={onToggleLayer} />
     </Map>
   );
 }

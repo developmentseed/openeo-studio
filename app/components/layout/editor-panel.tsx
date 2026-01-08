@@ -4,19 +4,19 @@ import { useAuth } from 'react-oidc-context';
 import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
 import { usePyodide } from '$contexts/pyodide-context';
-import type { ExecutionConfig } from '$utils/template-renderer';
+import type { ExecutionConfig, ServiceInfo } from '$utils/template-renderer';
 
 interface EditorPanelProps {
   config: ExecutionConfig;
   initialCode?: string;
-  setTileUrl: (url: string | undefined) => void;
+  setServices: (services: ServiceInfo[]) => void;
   onSelectedBandsChange?: (bands: string[]) => void;
 }
 
 export function EditorPanel({
   config,
   initialCode,
-  setTileUrl,
+  setServices,
   onSelectedBandsChange
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
@@ -29,7 +29,7 @@ export function EditorPanel({
         <Editor
           config={config}
           initialCode={initialCode}
-          setTileUrl={setTileUrl}
+          setServices={setServices}
           onSelectedBandsChange={onSelectedBandsChange}
         />
       ) : (

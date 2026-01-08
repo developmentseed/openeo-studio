@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Flex, Text, Button, Collapsible, chakra } from '@chakra-ui/react';
-import type { BandVariable } from '$utils/stac-band-parser';
+
 import { CollapseIconButton, RemoveIconButton } from './icon-buttons';
-import React from 'react';
+import type { BandVariable } from '$types';
 
 interface BandArrayBuilderProps {
   /** All available bands from STAC */

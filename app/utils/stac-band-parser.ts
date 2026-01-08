@@ -6,22 +6,7 @@
  */
 import type { StacItem } from 'stac-ts';
 
-export interface BandVariable {
-  /** Variable name (e.g., "B02") */
-  variable: string;
-  /** Band identifier in lowercase (e.g., "b02") */
-  name: string;
-  /** Human-readable label (e.g., "Blue") */
-  label: string;
-  /** Common name from EO extension (e.g., "blue") */
-  commonName?: string;
-  /** Spatial resolution (e.g., "10m") */
-  resolution?: string;
-  /** Center wavelength (e.g., "490 nm") */
-  wavelength?: string;
-  /** Full path for datacube.band() (e.g., "reflectance|b02") */
-  path: string;
-}
+import type { BandVariable } from '$types';
 
 interface StacBand {
   name: string;

@@ -1,9 +1,8 @@
-import Handlebars from 'handlebars';
 import type { BandVariable } from './stac-band-parser';
 
 /**
- * Runtime execution configuration for Python script template variables.
- * Derived from Scene/STAC metadata.
+ * Runtime execution configuration for Python script parameter injection.
+ * Derived from Scene configuration, STAC metadata, and user selections.
  */
 export interface ExecutionConfig {
   /** Collection identifier for the data source */
@@ -12,34 +11,34 @@ export interface ExecutionConfig {
   bands?: BandVariable[];
   /** User-selected bands in order for data[] array */
   selectedBands?: string[];
-  // Future additions:
-  // resolution?: number;
-  // bbox?: [number, number, number, number];
+  /** Temporal range for data loading */
+  temporalRange?: string[];
+  /** Parameter defaults from scene configuration */
+  parameterDefaults?: {
+    boundingBox?: [number, number, number, number];
+    cloudCover?: number;
+    [key: string]: unknown;
+  };
 }
 
 /**
- * Compiles and renders a Python script template with the provided configuration.
- * Uses Handlebars for safe, maintainable template rendering.
- *
- * @param template - The Python script template string (e.g., from loader.py)
- * @param config - Execution configuration with runtime parameters
- * @returns Rendered Python script with variables replaced
- *
- * @example
- * ```typescript
- * const rendered = renderPythonTemplate(loaderScript, {
- *   collectionId: 'sentinel-2-l2a'
- * });
- * ```
+ * Result structure for multi-graph output from Python execution.
+ * Contains multiple process graphs with their parameter metadata.
  */
-export function renderPythonTemplate(
-  template: string,
-  config: ExecutionConfig
-): string {
-  const compiledTemplate = Handlebars.compile(template, {
-    noEscape: true, // Don't HTML-escape, we're generating Python
-    strict: true // Throw on undefined variables
-  });
+export interface GraphResult {
+  process_graph: unknown;
+  parameters: unknown[];
+  name: string;
+  visible: boolean;
+}
 
-  return compiledTemplate(config);
+/**
+ * Service tracking information for ephemeral service management.
+ */
+export interface ServiceInfo {
+  id: string;
+  location: string;
+  tileUrl: string;
+  graphResult: GraphResult;
+  visible: boolean;
 }

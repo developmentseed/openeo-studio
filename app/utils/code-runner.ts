@@ -1,10 +1,15 @@
 import { PyodideAPI } from 'pyodide';
 import loaderScript from '../algorithms/base/loader.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
+
 import {
-  renderPythonTemplate,
-  type ExecutionConfig
-} from './template-renderer';
+  type ExecutionConfig,
+  type GraphResult,
+  type ServiceInfo
+} from '$types';
+
+// Track active services for cleanup
+const activeServices: ServiceInfo[] = [];
 
 export const EXAMPLE_CODE = trueColorAlgorithm;
 
@@ -12,7 +17,7 @@ export const EXAMPLE_CODE = trueColorAlgorithm;
 const OPENEO_API_URL = 'https://api.explorer.eopf.copernicus.eu/openeo';
 const AUTH_PREFIX = 'Bearer oidc/oidc/';
 const DEFAULT_SERVICE_CONFIG = {
-  title: 'Quick view',
+  title: 'OpenEO Studio Ephemeral Service',
   description: null,
   type: 'XYZ',
   enabled: true,
@@ -31,23 +36,36 @@ const DEFAULT_SERVICE_CONFIG = {
  * @param config - Execution configuration with runtime parameters
  */
 function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
-  const processedLoader = renderPythonTemplate(loaderScript, config);
+  // Inject scene defaults as a Python dictionary for parameter initialization
+  const sceneDefaults = {
+    collectionId: config.collectionId,
+    bands: config.selectedBands || [],
+    time: config.temporalRange || [],
+    ...config.parameterDefaults
+  };
 
-  return `${processedLoader}
+  const sceneDefaultsCode = `SCENE_DEFAULTS = ${JSON.stringify(sceneDefaults)}`;
+
+  return `${sceneDefaultsCode}
+
+${loaderScript}
 
 ${algorithmScript}
+
+# Output map_graphs for service creation
+json.dumps(map_graphs)
 `;
 }
 
 /**
- * Creates an OpenEO service with the provided process graph.
+ * Creates an OpenEO service with the provided process graph and parameters.
  *
- * @param graph - The OpenEO process graph JSON
+ * @param graphResult - The process graph and parameters from map_graphs
  * @param authToken - Authentication token
  * @returns The service location URL from the response header
  */
 async function createOpenEOService(
-  graph: unknown,
+  graphResult: GraphResult,
   authToken: string
 ): Promise<string> {
   const response = await fetch(`${OPENEO_API_URL}/services`, {
@@ -58,7 +76,10 @@ async function createOpenEOService(
     },
     body: JSON.stringify({
       ...DEFAULT_SERVICE_CONFIG,
-      process: graph
+      process: {
+        process_graph: graphResult.process_graph,
+        parameters: graphResult.parameters
+      }
     })
   });
 
@@ -75,6 +96,50 @@ async function createOpenEOService(
   }
 
   return location;
+}
+
+/**
+ * Deletes an OpenEO service.
+ *
+ * @param serviceLocation - The service location URL
+ * @param authToken - Authentication token
+ */
+async function deleteOpenEOService(
+  serviceLocation: string,
+  authToken: string
+): Promise<void> {
+  try {
+    const response = await fetch(serviceLocation, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `${AUTH_PREFIX}${authToken}`
+      }
+    });
+
+    if (!response.ok) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Failed to delete service ${serviceLocation}: ${response.status}`
+      );
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Error deleting service:', error);
+  }
+}
+
+/**
+ * Cleans up all active ephemeral services.
+ *
+ * @param authToken - Authentication token
+ */
+export async function cleanupServices(authToken: string): Promise<void> {
+  const deletePromises = activeServices.map((service) =>
+    deleteOpenEOService(service.location, authToken)
+  );
+
+  await Promise.allSettled(deletePromises);
+  activeServices.length = 0; // Clear the array
 }
 
 /**
@@ -103,30 +168,52 @@ async function getTileUrl(
 }
 
 /**
- * Executes a Python script with Pyodide and creates an OpenEO service.
+ * Executes a Python script with Pyodide and creates OpenEO services for multiple graphs.
  *
  * @param pyodide - The Pyodide instance
  * @param authToken - Authentication token
  * @param script - The Python script to execute
  * @param config - Execution configuration
- * @returns The tile URL for map rendering, or undefined on error
+ * @returns Array of ServiceInfo objects for map rendering, or undefined on error
  */
 export async function processScript(
   pyodide: PyodideAPI,
   authToken: string,
   script: string,
   config: ExecutionConfig
-): Promise<string | undefined> {
+): Promise<ServiceInfo[] | undefined> {
   try {
-    // Execute Python code and get process graph
+    // Clean up previous services before creating new ones
+    await cleanupServices(authToken);
+
+    // Execute Python code and get map_graphs array
     const result = await pyodide.runPythonAsync(getPythonCode(script, config));
-    const graph = JSON.parse(result);
+    const mapGraphs: GraphResult[] = JSON.parse(result);
 
-    // Create OpenEO service and get tile URL
-    const serviceLocation = await createOpenEOService(graph, authToken);
-    const tileUrl = await getTileUrl(serviceLocation, authToken);
+    if (!Array.isArray(mapGraphs)) {
+      throw new Error('Expected map_graphs array from Python execution');
+    }
 
-    return tileUrl;
+    // Create services for each graph
+    const services: ServiceInfo[] = [];
+
+    for (const graphResult of mapGraphs) {
+      const serviceLocation = await createOpenEOService(graphResult, authToken);
+      const tileUrl = await getTileUrl(serviceLocation, authToken);
+
+      const serviceInfo: ServiceInfo = {
+        id: crypto.randomUUID(),
+        location: serviceLocation,
+        tileUrl,
+        graphResult,
+        visible: graphResult.visible
+      };
+
+      services.push(serviceInfo);
+      activeServices.push(serviceInfo);
+    }
+
+    return services;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error executing Python code:', error);

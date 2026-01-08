@@ -4,10 +4,10 @@ import type { EditorView } from '@codemirror/view';
 
 import { usePyodide } from '$contexts/pyodide-context';
 import { processScript } from '$utils/code-runner';
-import type { ExecutionConfig } from '$utils/template-renderer';
+import type { ExecutionConfig, ServiceInfo } from '$types';
 
 export function useCodeExecution(
-  setTileUrl: (url: string | undefined) => void,
+  setServices: (services: ServiceInfo[]) => void,
   editor: EditorView | null,
   config: ExecutionConfig
 ) {
@@ -21,17 +21,19 @@ export function useCodeExecution(
     setIsExecuting(true);
     try {
       const content = editor.state.doc.toString();
-      const url = await processScript(
+      const services = await processScript(
         pyodide,
         user?.access_token ?? '',
         content,
         config
       );
-      setTileUrl(url);
+      if (services) {
+        setServices(services);
+      }
     } finally {
       setIsExecuting(false);
     }
-  }, [pyodide, user?.access_token, editor, setTileUrl, config]);
+  }, [pyodide, user?.access_token, editor, setServices, config]);
 
   return {
     executeCode,

@@ -72,7 +72,6 @@
     "@testing-library/user-event": "^14.6.1",
     "@uiw/codemirror-theme-github": "^4.25.4",
     "codemirror": "^6.0.2",
-    "handlebars": "^4.7.8",
     "maplibre-gl": "^5.12.0",
     "polished": "^4.3.1",
     "pyodide": "^0.29.0",
@@ -92,7 +91,8 @@
     "$hooks": "~/app/hooks",
     "$pages": "~/app/pages",
     "$config": "~/app/config",
-    "$test": "~/test"
+    "$test": "~/test",
+    "$types": "~/app/types"
   },
   "packageManager": "pnpm@10.21.0"
 }
