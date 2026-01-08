@@ -39,8 +39,8 @@ function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
   // Inject scene defaults as a Python dictionary for parameter initialization
   const sceneDefaults = {
     collectionId: config.collectionId,
-    selectedBands: config.selectedBands || [],
-    temporalRange: config.temporalRange || [],
+    bands: config.selectedBands || [],
+    time: config.temporalRange || [],
     ...config.parameterDefaults
   };
 

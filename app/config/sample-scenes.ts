@@ -17,7 +17,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     defaultBands: ['b02', 'b03', 'b04'], // Blue, Green, Red for true color
     temporalRange: ['2025-05-12', '2025-05-13'],
     parameterDefaults: {
-      bbox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+      boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
       cloudCover: 20 // Max cloud cover percentage
     }
   },
@@ -34,7 +34,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     defaultBands: ['b02', 'b03', 'b04', 'b05', 'b07', 'b08', 'b8a', 'b11'], // Bands useful for APA
     temporalRange: ['2025-05-12', '2025-05-13'],
     parameterDefaults: {
-      bbox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+      boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
       cloudCover: 30 // Max cloud cover percentage
     }
   }
