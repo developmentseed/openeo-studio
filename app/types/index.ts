@@ -6,7 +6,6 @@ export interface SampleScene {
   name: string;
   description: string;
   thumbnail?: string;
-  stacUrl: string;
   collectionId: string;
   temporalRange?: string[];
 

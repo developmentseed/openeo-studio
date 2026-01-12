@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
-import { useItem } from '@developmentseed/stac-react';
-import { StacItem } from 'stac-ts';
+import { useCollection } from '@developmentseed/stac-react';
 
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
-import { StacItemCard } from '$components/stac/stac-item-card';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
 import type { SampleScene, ServiceInfo } from '$types';
+import { StacCollection } from 'stac-ts';
 
 interface EditorPageProps {
   scene: SampleScene;
@@ -17,12 +16,11 @@ interface EditorPageProps {
 export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
-  const { item: itemRaw, isLoading, error } = useItem(scene.stacUrl);
-  const item = itemRaw as unknown as StacItem | null;
+  const { collection: collectionRaw } = useCollection(scene.collectionId);
+  const collection = collectionRaw as unknown as StacCollection | null;
 
   // Extract band metadata from STAC item
-  const bands = useMemo(() => extractBandsFromStac(item), [item]);
-
+  const bands = useMemo(() => extractBandsFromStac(collection), [collection]);
   // Manage selected bands for data[] array
   const [selectedBands, setSelectedBands] = useState<string[]>(
     scene.defaultBands
@@ -38,6 +36,15 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       )
     );
   };
+
+  const mapBounds = useMemo(() => {
+    return collection?.extent?.spatial?.bbox?.[0] as [
+      number,
+      number,
+      number,
+      number
+    ];
+  }, [collection]);
 
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
@@ -123,7 +130,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
 
         <Splitter.Panel id='map'>
           <MapPanel
-            item={item}
+            bounds={mapBounds}
             services={services}
             onToggleLayer={handleToggleLayer}
           />
@@ -143,9 +150,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
               <Dialog.Title>Scene Information</Dialog.Title>
               <Dialog.CloseTrigger />
             </Dialog.Header>
-            <Dialog.Body>
-              <StacItemCard item={item} isLoading={isLoading} error={error} />
-            </Dialog.Body>
+            <Dialog.Body>{/* TODO */}🚧 WIP</Dialog.Body>
           </Dialog.Content>
         </Dialog.Positioner>
       </Dialog.Root>

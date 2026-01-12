@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { StacItem } from 'stac-ts';
 
 import { MapLayers } from './map-layers.js';
 import { LayerControl } from './layer-control';
@@ -10,28 +9,28 @@ import type { ServiceInfo } from '$types';
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
 interface MapViewerProps {
-  item: StacItem | null;
+  bounds?: [number, number, number, number];
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
 }
 
-export function MapViewer({ item, services, onToggleLayer }: MapViewerProps) {
+export function MapViewer({ bounds, services, onToggleLayer }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
 
   const applyFitBounds = () => {
     const map = mapRef.current;
-    if (!map || !item?.bbox) return;
+    if (!map || !bounds) return;
 
-    map.fitBounds(item.bbox as unknown as [number, number, number, number], {
+    map.fitBounds(bounds, {
       padding: 50,
       duration: 1000
     });
   };
 
-  // Apply fitBounds when item changes (or is done loading)
+  // Apply fitBounds when bounds changes (or is done loading)
   useEffect(() => {
     applyFitBounds();
-  }, [item?.id, item?.bbox]);
+  }, [bounds]);
 
   return (
     <Map

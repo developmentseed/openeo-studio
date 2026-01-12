@@ -46,7 +46,7 @@ function Root() {
   return (
     <AuthProvider {...oidcConfig}>
       <ChakraProvider value={system}>
-        <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/stac'>
+        <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
           <PyodideProvider>
             <App />
           </PyodideProvider>

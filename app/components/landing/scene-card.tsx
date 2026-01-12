@@ -7,7 +7,7 @@ import {
   Image,
   Spinner
 } from '@chakra-ui/react';
-import { useItem } from '@developmentseed/stac-react';
+import { useCollection } from '@developmentseed/stac-react';
 import { SampleScene } from '$types';
 
 interface SceneCardProps {
@@ -16,10 +16,10 @@ interface SceneCardProps {
 }
 
 export function SceneCard({ scene, onSelect }: SceneCardProps) {
-  const { item, isLoading } = useItem(scene.stacUrl);
+  const { collection, isLoading } = useCollection(scene.collectionId);
 
   // Extract thumbnail from STAC item assets
-  const thumbnail = scene.thumbnail || item?.assets?.thumbnail?.href;
+  const thumbnail = scene.thumbnail || collection?.assets?.thumbnail?.href;
 
   return (
     <Card.Root
