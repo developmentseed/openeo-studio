@@ -47,7 +47,7 @@ graph = PGNode(
             "process_graph": {
                 "cc": {
                     "process_id": "lt",
-                    "arguments": {"x": {"from_parameter": "value"}, "y": {"from_parameter": "cloud_cover_max"}},
+                    "arguments": {"x": {"from_parameter": "value"}, "y": 20},
                     "result": True,
                 }
             }
