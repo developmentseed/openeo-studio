@@ -8,8 +8,7 @@ import {
   Box,
   Field,
   Slider,
-  NativeSelectRoot,
-  NativeSelectField
+  NativeSelect
 } from '@chakra-ui/react';
 import { useCollections } from '@developmentseed/stac-react';
 
@@ -44,6 +43,7 @@ export function DataConfigForm({
   const [localStartDate, setLocalStartDate] = useState(temporalRange[0]);
   const [localEndDate, setLocalEndDate] = useState(temporalRange[1]);
   const [localCloudCover, setLocalCloudCover] = useState(cloudCover);
+  const [showValidation, setShowValidation] = useState(false);
 
   // Sync with props when they change
   useEffect(() => {
@@ -54,26 +54,35 @@ export function DataConfigForm({
   }, [collectionId, temporalRange, cloudCover]);
 
   // Validation
-  const isDateValid = () => {
-    if (!localStartDate || !localEndDate) return false;
+  const isStartDateValid = () => {
+    if (!localStartDate) return false;
     const start = new Date(localStartDate);
-    const end = new Date(localEndDate);
-    return start <= end && !isNaN(start.getTime()) && !isNaN(end.getTime());
+    return !isNaN(start.getTime());
   };
 
-  const hasChanges = () => {
-    return (
-      localCollection !== collectionId ||
-      localStartDate !== temporalRange[0] ||
-      localEndDate !== temporalRange[1] ||
-      localCloudCover !== cloudCover
-    );
+  const isEndDateValid = () => {
+    if (!localEndDate) return false;
+    const end = new Date(localEndDate);
+    return !isNaN(end.getTime());
+  };
+
+  const isDateRangeValid = () => {
+    if (!isStartDateValid() || !isEndDateValid()) return false;
+    const start = new Date(localStartDate);
+    const end = new Date(localEndDate);
+    return start <= end;
+  };
+
+  const isEndDateBeforeStart = () => {
+    if (!isStartDateValid() || !isEndDateValid()) return false;
+    return new Date(localStartDate) > new Date(localEndDate);
   };
 
   const collectionChanged = localCollection !== collectionId;
 
   const handleApply = () => {
-    if (!isDateValid()) return;
+    setShowValidation(true);
+    if (!isDateRangeValid() || !localCollection) return;
 
     onApply({
       collectionId: localCollection,
@@ -87,6 +96,7 @@ export function DataConfigForm({
     setLocalCollection(collectionId);
     setLocalStartDate(temporalRange[0]);
     setLocalEndDate(temporalRange[1]);
+    setShowValidation(false);
     setLocalCloudCover(cloudCover);
     onCancel?.();
   };
@@ -94,12 +104,13 @@ export function DataConfigForm({
   return (
     <VStack gap={6} align='stretch'>
       {/* Collection Selector */}
-      <Field.Root>
+      <Field.Root invalid={showValidation && !localCollection}>
         <Field.Label htmlFor='collection'>Collection</Field.Label>
-        <NativeSelectRoot size='sm' disabled={collectionsLoading}>
-          <NativeSelectField
+        <NativeSelect.Root size='sm' disabled={collectionsLoading}>
+          <NativeSelect.Field
             id='collection'
             value={localCollection}
+            placeholder='Select a collection...'
             onChange={(e) => setLocalCollection(e.target.value)}
           >
             {collections?.collections?.map((collection) => (
@@ -107,50 +118,83 @@ export function DataConfigForm({
                 {collection.title || collection.id}
               </option>
             ))}
-          </NativeSelectField>
-        </NativeSelectRoot>
-        {collectionChanged && (
+          </NativeSelect.Field>
+          <NativeSelect.Indicator />
+        </NativeSelect.Root>
+        {collectionId && collectionChanged && (
           <Field.HelperText color='orange.600'>
             ⚠️ Changing collection will reset band selections
           </Field.HelperText>
         )}
+        {showValidation && !localCollection && (
+          <Field.ErrorText>Please select a collection</Field.ErrorText>
+        )}
       </Field.Root>
 
       {/* Temporal Range */}
-      <Field.Root invalid={!isDateValid()}>
-        <Field.Label>Temporal Range</Field.Label>
+      <VStack gap={3} align='stretch'>
+        <Text fontSize='sm' fontWeight='semibold'>
+          Temporal Range
+        </Text>
         <HStack gap={3}>
           <VStack gap={1} align='stretch' flex={1}>
-            <Text fontSize='xs' color='gray.600'>
-              Start Date
-            </Text>
-            <Input
-              type='date'
-              value={localStartDate}
-              onChange={(e) => setLocalStartDate(e.target.value)}
-              max={localEndDate}
-            />
+            <Field.Root invalid={showValidation && !isStartDateValid()}>
+              <Field.Label htmlFor='start-date' fontSize='xs'>
+                Start Date
+              </Field.Label>
+              <Input
+                id='start-date'
+                type='date'
+                value={localStartDate}
+                onChange={(e) => setLocalStartDate(e.target.value)}
+                max={localEndDate}
+              />
+              {showValidation && !isStartDateValid() && (
+                <Field.ErrorText>Please select a start date</Field.ErrorText>
+              )}
+            </Field.Root>
           </VStack>
           <Text color='gray.400' pt={5}>
             to
           </Text>
           <VStack gap={1} align='stretch' flex={1}>
-            <Text fontSize='xs' color='gray.600'>
-              End Date
-            </Text>
-            <Input
-              type='date'
-              value={localEndDate}
-              onChange={(e) => setLocalEndDate(e.target.value)}
-              min={localStartDate}
-            />
+            <Field.Root
+              invalid={
+                showValidation &&
+                (!isEndDateValid() ||
+                  (isStartDateValid() &&
+                    isEndDateValid() &&
+                    isEndDateBeforeStart()))
+              }
+            >
+              <Field.Label htmlFor='end-date' fontSize='xs'>
+                End Date
+              </Field.Label>
+              <Input
+                id='end-date'
+                type='date'
+                value={localEndDate}
+                onChange={(e) => setLocalEndDate(e.target.value)}
+                min={localStartDate}
+              />
+              {showValidation && !isEndDateValid() && (
+                <Field.ErrorText>Please select an end date</Field.ErrorText>
+              )}
+              {showValidation &&
+                isEndDateValid() &&
+                isStartDateValid() &&
+                isEndDateBeforeStart() && (
+                  <Field.ErrorText>
+                    Start date must be before end date
+                  </Field.ErrorText>
+                )}
+            </Field.Root>
           </VStack>
         </HStack>
-        {!isDateValid() && (
-          <Field.ErrorText>Please enter a valid date range</Field.ErrorText>
-        )}
-      </Field.Root>
-
+      </VStack>
+      <Text color='gray.400' pt={5}>
+        to
+      </Text>
       {/* Cloud Cover */}
       <Field.Root>
         <Field.Label htmlFor='cloud-cover'>Maximum Cloud Cover</Field.Label>
@@ -192,10 +236,10 @@ export function DataConfigForm({
           <Button
             colorPalette='blue'
             onClick={handleApply}
-            disabled={!isDateValid() || !hasChanges() || isLoading}
+            disabled={isLoading}
             loading={isLoading}
           >
-            {collectionChanged && '⚠️ '}Apply Changes
+            {collectionId && collectionChanged && '⚠️ '}Apply Changes
           </Button>
         </HStack>
       )}

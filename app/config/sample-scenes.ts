@@ -3,6 +3,8 @@ import apaAlgorithm from '../algorithms/visualizations/apa.py?raw';
 
 import type { SampleScene } from '$types';
 
+export const BLANK_SCENE_ID = 'blank';
+
 export const SAMPLE_SCENES: SampleScene[] = [
   {
     id: 'sentinel-2-adriatic',
@@ -43,5 +45,16 @@ export const SAMPLE_SCENES: SampleScene[] = [
 ];
 
 export function getSceneById(id: string): SampleScene | undefined {
+  if (id === BLANK_SCENE_ID) {
+    return {
+      id: BLANK_SCENE_ID,
+      name: 'Custom Analysis',
+      description: 'Configure your own data source',
+      collectionId: '',
+      temporalRange: ['', ''] as [string, string],
+      suggestedAlgorithm: '',
+      defaultBands: []
+    };
+  }
   return SAMPLE_SCENES.find((scene) => scene.id === id);
 }

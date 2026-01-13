@@ -17,7 +17,8 @@ interface EditorPageProps {
 export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const isBlankScene = !scene.collectionId;
+  const [isConfigOpen, setIsConfigOpen] = useState(isBlankScene);
 
   // Data configuration state
   const [collectionId, setCollectionId] = useState(scene.collectionId);
@@ -66,6 +67,18 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
     if (collectionChanged) {
       setSelectedBands([]);
     }
+
+    // Close modal after config is applied
+    setIsConfigOpen(false);
+  };
+
+  // Prevent closing config modal without valid configuration
+  const handleConfigOpenChange = (e: { open: boolean }) => {
+    // Only allow closing if we have a valid collection and temporal range configured
+    if (!e.open && (!collectionId || !temporalRange[0] || !temporalRange[1])) {
+      return; // Don't allow closing
+    }
+    setIsConfigOpen(e.open);
   };
 
   const mapBounds = useMemo(() => {
@@ -207,7 +220,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       {/* Data Configuration Modal */}
       <DataConfigDialog
         open={isConfigOpen}
-        onOpenChange={(e) => setIsConfigOpen(e.open)}
+        onOpenChange={handleConfigOpenChange}
         collectionId={collectionId}
         temporalRange={temporalRange}
         cloudCover={cloudCover}

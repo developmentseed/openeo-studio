@@ -54,7 +54,7 @@ export function DataConfigDialog({
         <Dialog.Content>
           <Dialog.Header>
             <Dialog.Title>
-              Update Configuration
+              Configuration
               {isLoading && ' - Loading...'}
             </Dialog.Title>
             <Dialog.CloseTrigger disabled={isLoading} />

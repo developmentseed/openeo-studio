@@ -1,6 +1,7 @@
 import { SimpleGrid } from '@chakra-ui/react';
-import { SAMPLE_SCENES } from '../../config/sample-scenes';
+import { BLANK_SCENE_ID, SAMPLE_SCENES } from '../../config/sample-scenes';
 import { SceneCard } from './scene-card';
+import { BlankCard } from './blank-card';
 
 interface SceneGridProps {
   onSelectScene: (sceneId: string) => void;
@@ -12,6 +13,7 @@ export function SceneGrid({ onSelectScene }: SceneGridProps) {
       {SAMPLE_SCENES.map((scene) => (
         <SceneCard key={scene.id} scene={scene} onSelect={onSelectScene} />
       ))}
+      <BlankCard onSelect={() => onSelectScene(BLANK_SCENE_ID)} />
     </SimpleGrid>
   );
 }
