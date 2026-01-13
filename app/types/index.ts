@@ -7,7 +7,7 @@ export interface SampleScene {
   description: string;
   thumbnail?: string;
   collectionId: string;
-  temporalRange?: string[];
+  temporalRange: [string, string];
 
   suggestedAlgorithm: string;
   /** Default bands for this algorithm (e.g., ['b02', 'b03', 'b04']) */

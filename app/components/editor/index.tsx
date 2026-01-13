@@ -48,7 +48,7 @@ function EditorUI({
 
   return (
     <Flex flexDirection='column' gap={2} height='100%' overflow='hidden'>
-      {config.bands && config.bands.length > 0 && onSelectedBandsChange && (
+      {config.bands && onSelectedBandsChange && (
         <BandArrayBuilder
           availableBands={config.bands}
           selectedBands={config.selectedBands || []}
