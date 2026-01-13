@@ -82,12 +82,15 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   };
 
   const mapBounds = useMemo(() => {
-    return collection?.extent?.spatial?.bbox?.[0] as [
-      number,
-      number,
-      number,
-      number
-    ];
+    return (
+      scene.parameterDefaults?.boundingBox ||
+      (collection?.extent?.spatial?.bbox?.[0] as [
+        number,
+        number,
+        number,
+        number
+      ])
+    );
   }, [collection]);
 
   return (
