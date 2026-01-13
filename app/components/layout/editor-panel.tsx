@@ -1,5 +1,4 @@
 import { Flex } from '@chakra-ui/react';
-import { useAuth } from 'react-oidc-context';
 
 import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
@@ -20,8 +19,7 @@ export function EditorPanel({
   onSelectedBandsChange
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
-  const { isAuthenticated } = useAuth();
-  const isReady = isAuthenticated && !!pyodide;
+  const isReady = !!pyodide;
 
   return (
     <Flex flexDirection='column' p={4} gap={2} height='100%' overflow='hidden'>

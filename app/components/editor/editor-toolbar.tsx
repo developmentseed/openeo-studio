@@ -1,4 +1,5 @@
-import { Flex, Button } from '@chakra-ui/react';
+import { Flex, Button, Text } from '@chakra-ui/react';
+import { useAuth } from 'react-oidc-context';
 
 interface EditorToolbarProps {
   executeCode: () => Promise<void>;
@@ -11,12 +12,19 @@ export function EditorToolbar({
   isExecuting,
   isReady
 }: EditorToolbarProps) {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <Flex justifyContent='flex-end'>
+    <Flex justifyContent='flex-end' alignItems='center' gap={3}>
+      {!isAuthenticated && (
+        <Text fontSize='sm' color='orange.600'>
+          Log in to run analysis
+        </Text>
+      )}
       <Button
         size='sm'
         variant='outline'
-        disabled={!isReady || isExecuting}
+        disabled={!isReady || isExecuting || !isAuthenticated}
         layerStyle='handDrawn'
         onClick={executeCode}
         loading={isExecuting}

@@ -12,7 +12,7 @@ export function useCodeExecution(
   config: ExecutionConfig
 ) {
   const { pyodide } = usePyodide();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [isExecuting, setIsExecuting] = useState(false);
 
   const executeCode = useCallback(async () => {
@@ -38,6 +38,6 @@ export function useCodeExecution(
   return {
     executeCode,
     isExecuting,
-    isReady: isAuthenticated && !!pyodide && !!editor
+    isReady: !!pyodide && !!editor
   };
 }
