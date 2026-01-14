@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { SceneGrid } from '$components/landing/scene-grid';
-import { DataConfigDialog } from '$components/stac/data-config-dialog';
+import { DataConfigDialog } from '$components/setup/data-config-dialog';
 import { APP_TITLE } from '$config/constants';
 
 interface LandingPageProps {

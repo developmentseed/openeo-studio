@@ -1,6 +1,6 @@
 import { Dialog, Portal, Button, VStack, CloseButton } from '@chakra-ui/react';
 
-import { MarkdownRenderer } from '$components/md-renderer';
+import { MarkdownRenderer } from '$utils/md-renderer';
 import content from './docs-page.md?raw';
 
 export function DocsPageModal() {

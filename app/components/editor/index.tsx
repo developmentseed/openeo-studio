@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { CodeEditor, useCodeEditor } from './code-editor';
-import { useCodeExecution } from '$hooks/use-code-execution';
+import { useCodeExecution } from '$components/editor/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
 import { AvailableVariables } from './available-variables';
 import { BandArrayBuilder } from './band-array-builder';

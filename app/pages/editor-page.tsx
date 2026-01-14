@@ -4,7 +4,7 @@ import { useCollection } from '@developmentseed/stac-react';
 
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
-import { DataConfigDialog } from '$components/stac/data-config-dialog';
+import { DataConfigDialog } from '$components/setup/data-config-dialog';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
 import type { SampleScene, ServiceInfo } from '$types';
 import { StacCollection } from 'stac-ts';
