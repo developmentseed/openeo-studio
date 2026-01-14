@@ -39,7 +39,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     temporalRange: ['2025-05-12', '2025-05-13'],
     parameterDefaults: {
       boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
-      cloudCover: 30 // Max cloud cover percentage
+      cloudCover: 20 // Max cloud cover percentage
     }
   }
 ];
@@ -53,7 +53,11 @@ export function getSceneById(id: string): SampleScene | undefined {
       collectionId: '',
       temporalRange: ['', ''] as [string, string],
       suggestedAlgorithm: '',
-      defaultBands: []
+      defaultBands: [],
+      parameterDefaults: {
+        boundingBox: [0, -90, 180, 90], // west, south, east, north
+        cloudCover: 20 // Max cloud cover percentage
+      }
     };
   }
   return SAMPLE_SCENES.find((scene) => scene.id === id);

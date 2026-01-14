@@ -17,15 +17,16 @@ interface EditorPageProps {
 export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
-  const isBlankScene = !scene.collectionId;
-  const [isConfigOpen, setIsConfigOpen] = useState(isBlankScene);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Data configuration state
   const [collectionId, setCollectionId] = useState(scene.collectionId);
   const [temporalRange, setTemporalRange] = useState<[string, string]>(
     scene.temporalRange
   );
-  const [cloudCover, setCloudCover] = useState(100);
+  const [cloudCover, setCloudCover] = useState(
+    scene.parameterDefaults?.cloudCover || 100
+  );
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
@@ -72,26 +73,13 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
     setIsConfigOpen(false);
   };
 
-  // Prevent closing config modal without valid configuration
   const handleConfigOpenChange = (e: { open: boolean }) => {
-    // Only allow closing if we have a valid collection and temporal range configured
-    if (!e.open && (!collectionId || !temporalRange[0] || !temporalRange[1])) {
-      return; // Don't allow closing
-    }
     setIsConfigOpen(e.open);
   };
 
   const mapBounds = useMemo(() => {
-    return (
-      scene.parameterDefaults?.boundingBox ||
-      (collection?.extent?.spatial?.bbox?.[0] as [
-        number,
-        number,
-        number,
-        number
-      ])
-    );
-  }, [collection]);
+    return scene.parameterDefaults?.boundingBox;
+  }, []);
 
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>

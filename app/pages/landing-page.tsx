@@ -1,14 +1,42 @@
+import { useState } from 'react';
 import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { SceneGrid } from '$components/landing/scene-grid';
+import { DataConfigDialog } from '$components/stac/data-config-dialog';
 import { APP_TITLE } from '$config/constants';
 
 interface LandingPageProps {
   onSelectScene: (sceneId: string) => void;
+  onStartFromScratch: (config: {
+    collectionId: string;
+    temporalRange: [string, string];
+    cloudCover: number;
+  }) => void;
 }
 
-export function LandingPage({ onSelectScene }: LandingPageProps) {
+export function LandingPage({
+  onSelectScene,
+  onStartFromScratch
+}: LandingPageProps) {
   const { isAuthenticated, isLoading } = useAuth();
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  const handleBlankSceneClick = () => {
+    setIsConfigOpen(true);
+  };
+
+  const handleConfigApply = (config: {
+    collectionId: string;
+    temporalRange: [string, string];
+    cloudCover: number;
+  }) => {
+    setIsConfigOpen(false);
+    onStartFromScratch(config);
+  };
+
+  const handleConfigCancel = () => {
+    setIsConfigOpen(false);
+  };
 
   return (
     <Box flex={1} overflowY='auto' px={8} py={8}>
@@ -22,7 +50,10 @@ export function LandingPage({ onSelectScene }: LandingPageProps) {
           </Text>
         </Flex>
 
-        <SceneGrid onSelectScene={onSelectScene} />
+        <SceneGrid
+          onSelectScene={onSelectScene}
+          onBlankSceneClick={handleBlankSceneClick}
+        />
 
         {!isAuthenticated && !isLoading && (
           <Text fontSize='md' color='orange.600' fontWeight='medium'>
@@ -31,6 +62,19 @@ export function LandingPage({ onSelectScene }: LandingPageProps) {
           </Text>
         )}
       </Flex>
+
+      <DataConfigDialog
+        open={isConfigOpen}
+        onOpenChange={(e) => {
+          if (!e.open) {
+            handleConfigCancel();
+          }
+        }}
+        collectionId=''
+        temporalRange={['', '']}
+        cloudCover={20}
+        onApply={handleConfigApply}
+      />
     </Box>
   );
 }
