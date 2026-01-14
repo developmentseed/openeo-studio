@@ -4,6 +4,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 import { StacApiProvider } from '@developmentseed/stac-react';
 import { BrowserRouter } from 'react-router';
+import { WebStorageStateStore } from 'oidc-client-ts';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
 
@@ -21,9 +22,10 @@ const baseName = new URL(
     : `https://ds.io/${publicUrl.replace(/^\//, '')}`
 ).pathname;
 
-const authRedirectUri = `${window.location.protocol}//${window.location.host}${baseName}`;
+const authRedirectUri = `${window.location.protocol}//${window.location.host}${baseName}/auth/callback`;
 
 const oidcConfig: AuthProviderProps = {
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
   authority: authAuthority,
   client_id: authClientId,
   redirect_uri: authRedirectUri,
@@ -34,7 +36,7 @@ const oidcConfig: AuthProviderProps = {
       window.sessionStorage.setItem('postAuthPath', returnTo);
     }
     // Clean up URL by removing query params
-    window.history.replaceState({}, '', '/');
+    window.history.replaceState({}, '', `${baseName || '/'}`);
   }
 };
 

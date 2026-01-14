@@ -14,8 +14,15 @@ async function hash(string: string) {
 }
 
 export function UserInfo() {
-  const { isLoading, isAuthenticated, user, signinRedirect, removeUser } =
-    useAuth();
+  const {
+    isLoading,
+    isAuthenticated,
+    user,
+    signinRedirect,
+    removeUser,
+    events,
+    signinSilent
+  } = useAuth();
   const location = useLocation();
 
   const profile = user?.profile;
@@ -26,6 +33,13 @@ export function UserInfo() {
       hash(profile.email).then(setUserEmailHash);
     }
   }, [profile?.email]);
+
+  useEffect(() => {
+    // the `return` is important - addAccessTokenExpiring() returns a cleanup function
+    return events.addAccessTokenExpiring(() => {
+      signinSilent();
+    });
+  }, [events, signinSilent]);
 
   if (!isAuthenticated || !profile || isLoading) {
     return (
