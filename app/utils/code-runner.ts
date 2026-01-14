@@ -37,11 +37,21 @@ const DEFAULT_SERVICE_CONFIG = {
  */
 function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
   // Inject the user-selected run configuration for parameter initialization
+  // Normalize bounding box from array [west, south, east, north] to object form
+  const boundingBox = Array.isArray(config.boundingBox)
+    ? {
+        west: config.boundingBox[0],
+        south: config.boundingBox[1],
+        east: config.boundingBox[2],
+        north: config.boundingBox[3]
+      }
+    : config.boundingBox;
+
   const runConfig = {
     collectionId: config.collectionId,
     bands: config.selectedBands || [],
     time: config.temporalRange || [],
-    boundingBox: config.boundingBox,
+    boundingBox,
     cloudCover: config.cloudCover,
     ...(config.algorithmParams || {})
   };
