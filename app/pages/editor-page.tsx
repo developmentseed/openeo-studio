@@ -115,7 +115,8 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
             {scene.name}
           </Flex>
           <Flex fontSize='xs' color='gray.600'>
-            {scene.description}
+            {collectionId} Collection, {temporalRange[0]} to {temporalRange[1]}
+            {cloudCover && ', Cloud Cover ≤ ' + cloudCover}%
           </Flex>
         </Flex>
         <Button
