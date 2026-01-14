@@ -59,6 +59,9 @@ importers:
       maplibre-gl:
         specifier: ^5.12.0
         version: 5.12.0
+      oidc-client-ts:
+        specifier: ^3.4.1
+        version: 3.4.1
       polished:
         specifier: ^4.3.1
         version: 4.3.1
@@ -79,7 +82,7 @@ importers:
         version: 10.1.0(@types/react@19.2.3)(react@19.2.0)
       react-oidc-context:
         specifier: ^3.3.0
-        version: 3.3.0(oidc-client-ts@3.4.0)(react@19.2.0)
+        version: 3.3.0(oidc-client-ts@3.4.1)(react@19.2.0)
       react-router:
         specifier: ^7.12.0
         version: 7.12.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -3139,8 +3142,8 @@ packages:
     resolution: {integrity: sha512-gXah6aZrcUxjWg2zR2MwouP2eHlCBzdV4pygudehaKXSGW4v2AsRQUK+lwwXhii6KFZcunEnmSUoYp5CXibxtA==}
     engines: {node: '>= 0.4'}
 
-  oidc-client-ts@3.4.0:
-    resolution: {integrity: sha512-Fe4EKXYxT1SkKfvEv4qOkVlPWYBjrV+4XXKLSvX9U4s5EHchawF1x2sguO+6u0tOa/Xw6lOvD/ClzCAxJUI25g==}
+  oidc-client-ts@3.4.1:
+    resolution: {integrity: sha512-jNdst/U28Iasukx/L5MP6b274Vr7ftQs6qAhPBCvz6Wt5rPCA+Q/tUmCzfCHHWweWw5szeMy2Gfrm1rITwUKrw==}
     engines: {node: '>=18'}
 
   once@1.4.0:
@@ -8066,7 +8069,7 @@ snapshots:
       define-properties: 1.2.1
       es-object-atoms: 1.1.1
 
-  oidc-client-ts@3.4.0:
+  oidc-client-ts@3.4.1:
     dependencies:
       jwt-decode: 4.0.0
 
@@ -8275,9 +8278,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-oidc-context@3.3.0(oidc-client-ts@3.4.0)(react@19.2.0):
+  react-oidc-context@3.3.0(oidc-client-ts@3.4.1)(react@19.2.0):
     dependencies:
-      oidc-client-ts: 3.4.0
+      oidc-client-ts: 3.4.1
       react: 19.2.0
 
   react-refresh@0.18.0: {}
