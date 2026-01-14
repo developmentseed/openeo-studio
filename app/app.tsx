@@ -7,6 +7,7 @@ import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
 import UhOh404 from '$pages/uhoh/404';
 import { useSceneValues } from './stores/scene/selectors';
+import { RequireAuth } from '$components/auth/require-auth';
 import Callback from '$components/auth/callback';
 
 export default function App() {
@@ -24,7 +25,10 @@ export default function App() {
       <Routes>
         <Route path='/auth/callback' element={<Callback />} />
         <Route path='/' element={<LandingPage />} />
-        <Route path='/editor/:sceneId' element={<EditorPage />} />
+        <Route
+          path='/editor/:sceneId'
+          element={<RequireAuth Component={EditorPage} />}
+        />
         <Route path='*' element={<UhOh404 />} />
       </Routes>
     </Flex>

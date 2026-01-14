@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Flex, Heading, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { useNavigate } from 'react-router';
 import { SceneGrid } from '$components/landing/scene-grid';
@@ -9,7 +9,7 @@ import { useSceneValues } from '../stores/scene/selectors';
 import { BLANK_SCENE_ID, getSceneById } from '$config/sample-scenes';
 
 export function LandingPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, signinRedirect } = useAuth();
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   const [, setSceneValues] = useSceneValues();
@@ -53,13 +53,23 @@ export function LandingPage() {
           </Text>
         </Flex>
 
-        <SceneGrid onBlankSceneClick={handleBlankSceneClick} />
+        {isAuthenticated && (
+          <SceneGrid onBlankSceneClick={handleBlankSceneClick} />
+        )}
 
         {!isAuthenticated && !isLoading && (
-          <Text fontSize='md' color='orange.600' fontWeight='medium'>
-            You need an account to use {APP_TITLE}. Please log in using the
-            button in the top-right corner.
-          </Text>
+          <Flex flexFlow='column' alignItems='start' gap={4}>
+            <Text fontSize='md' color='orange.600' fontWeight='medium'>
+              You need an account to use {APP_TITLE}. Please log in to continue.
+            </Text>
+            <Button
+              variant='solid'
+              colorPalette='primary'
+              onClick={() => signinRedirect()}
+            >
+              Login
+            </Button>
+          </Flex>
         )}
       </Flex>
 
