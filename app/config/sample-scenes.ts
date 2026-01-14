@@ -15,10 +15,8 @@ export const SAMPLE_SCENES: SampleScene[] = [
     suggestedAlgorithm: trueColorAlgorithm,
     defaultBands: ['reflectance|b02', 'reflectance|b03', 'reflectance|b04'], // Blue, Green, Red for true color
     temporalRange: ['2025-05-12', '2025-05-13'],
-    parameterDefaults: {
-      boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
-      cloudCover: 20 // Max cloud cover percentage
-    }
+    boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+    cloudCover: 20 // Max cloud cover percentage
   },
   {
     id: 'sentinel-2-apa',
@@ -37,10 +35,8 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'reflectance|b11'
     ], // Bands useful for APA
     temporalRange: ['2025-05-12', '2025-05-13'],
-    parameterDefaults: {
-      boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
-      cloudCover: 20 // Max cloud cover percentage
-    }
+    boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+    cloudCover: 20 // Max cloud cover percentage
   }
 ];
 
@@ -54,10 +50,8 @@ export function getSceneById(id: string): SampleScene | undefined {
       temporalRange: ['', ''] as [string, string],
       suggestedAlgorithm: '',
       defaultBands: [],
-      parameterDefaults: {
-        boundingBox: [0, -90, 180, 90], // west, south, east, north
-        cloudCover: 20 // Max cloud cover percentage
-      }
+      boundingBox: [0, -90, 180, 90], // west, south, east, north
+      cloudCover: 20 // Max cloud cover percentage
     };
   }
   return SAMPLE_SCENES.find((scene) => scene.id === id);

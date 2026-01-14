@@ -36,17 +36,19 @@ const DEFAULT_SERVICE_CONFIG = {
  * @param config - Execution configuration with runtime parameters
  */
 function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
-  // Inject scene defaults as a Python dictionary for parameter initialization
-  const sceneDefaults = {
+  // Inject the user-selected run configuration for parameter initialization
+  const runConfig = {
     collectionId: config.collectionId,
     bands: config.selectedBands || [],
     time: config.temporalRange || [],
-    ...config.parameterDefaults
+    boundingBox: config.boundingBox,
+    cloudCover: config.cloudCover,
+    ...(config.algorithmParams || {})
   };
 
-  const sceneDefaultsCode = `SCENE_DEFAULTS = ${JSON.stringify(sceneDefaults)}`;
+  const runConfigCode = `RUN_CONFIG = ${JSON.stringify(runConfig)}`;
 
-  return `${sceneDefaultsCode}
+  return `${runConfigCode}
 
 ${loaderScript}
 

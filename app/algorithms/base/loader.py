@@ -2,7 +2,7 @@
 Base data loader script for Sentinel-2 L2A imagery.
 This script is combined with algorithm scripts to create complete processing workflows.
 
-Parameters are dynamically instantiated with scene defaults and user selections.
+Parameters are dynamically instantiated with the user-selected run configuration.
 Uses OpenEO Parameter objects for proper type validation and service graph integration.
 """
 
@@ -13,13 +13,13 @@ from openeo.rest.result import SaveResult
 from openeo.processes import array_create, absolute, and_, if_
 from openeo.api.process import Parameter
 
-# Initialize parameters with scene defaults
+# Initialize parameters with run configuration
 # These will be populated from ExecutionConfig at runtime
-default_collection_id = SCENE_DEFAULTS.get("collectionId", "sentinel-2-l2a")
-default_bounding_box = SCENE_DEFAULTS.get("boundingBox", {"west": 12.0, "south": 44.5, "east": 14, "north": 46})
-default_time = SCENE_DEFAULTS.get("time", ["2025-11-23", "2025-11-24"])
-default_bands = SCENE_DEFAULTS.get("bands", ["reflectance|b02", "reflectance|b03", "reflectance|b04"])
-default_cloud_cover_max = SCENE_DEFAULTS.get("cloudCover", 20)
+default_collection_id = RUN_CONFIG.get("collectionId", "sentinel-2-l2a")
+default_bounding_box = RUN_CONFIG.get("boundingBox", {"west": 12.0, "south": 44.5, "east": 14, "north": 46})
+default_time = RUN_CONFIG.get("time", ["2025-11-23", "2025-11-24"])
+default_bands = RUN_CONFIG.get("bands", ["reflectance|b02", "reflectance|b03", "reflectance|b04"])
+default_cloud_cover_max = RUN_CONFIG.get("cloudCover", 20)
 
 # Create OpenEO Parameter objects
 bounding_box = Parameter("bounding_box", default=default_bounding_box, optional=True)

@@ -4,10 +4,11 @@ import { useCodeExecution } from '$components/editor/use-code-execution';
 import { EditorToolbar } from './editor-toolbar';
 import { AvailableVariables } from './available-variables';
 import { BandArrayBuilder } from './band-array-builder';
-import type { ExecutionConfig, ServiceInfo } from '$types';
+import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
 
 interface EditorProps {
   config: ExecutionConfig;
+  availableBands?: BandVariable[];
   initialCode?: string;
   setServices: (services: ServiceInfo[]) => void;
   onSelectedBandsChange?: (bands: string[]) => void;
@@ -15,6 +16,7 @@ interface EditorProps {
 
 export function Editor({
   config,
+  availableBands,
   initialCode,
   setServices,
   onSelectedBandsChange
@@ -23,6 +25,7 @@ export function Editor({
     <CodeEditor.Root initialCode={initialCode}>
       <EditorUI
         config={config}
+        availableBands={availableBands}
         setServices={setServices}
         onSelectedBandsChange={onSelectedBandsChange}
       />
@@ -36,9 +39,13 @@ export function Editor({
  */
 function EditorUI({
   config,
+  availableBands,
   setServices,
   onSelectedBandsChange
-}: Pick<EditorProps, 'setServices' | 'config' | 'onSelectedBandsChange'>) {
+}: Pick<
+  EditorProps,
+  'setServices' | 'config' | 'availableBands' | 'onSelectedBandsChange'
+>) {
   const editor = useCodeEditor();
   const { executeCode, isExecuting, isReady } = useCodeExecution(
     setServices,
@@ -48,9 +55,9 @@ function EditorUI({
 
   return (
     <Flex flexDirection='column' gap={2} height='100%' overflow='hidden'>
-      {config.bands && onSelectedBandsChange && (
+      {availableBands && onSelectedBandsChange && (
         <BandArrayBuilder
-          availableBands={config.bands}
+          availableBands={availableBands}
           selectedBands={config.selectedBands || []}
           onSelectionChange={onSelectedBandsChange}
         />

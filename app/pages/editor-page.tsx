@@ -24,9 +24,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   const [temporalRange, setTemporalRange] = useState<[string, string]>(
     scene.temporalRange
   );
-  const [cloudCover, setCloudCover] = useState(
-    scene.parameterDefaults?.cloudCover || 100
-  );
+  const [cloudCover, setCloudCover] = useState(scene.cloudCover || 100);
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
@@ -78,7 +76,7 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   };
 
   const mapBounds = useMemo(() => {
-    return scene.parameterDefaults?.boundingBox;
+    return scene.boundingBox;
   }, []);
 
   return (
@@ -169,11 +167,12 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
           <EditorPanel
             config={{
               collectionId,
-              bands,
               selectedBands,
               temporalRange,
-              parameterDefaults: scene.parameterDefaults
+              boundingBox: scene.boundingBox,
+              cloudCover
             }}
+            availableBands={bands}
             initialCode={scene.suggestedAlgorithm}
             setServices={setServices}
             onSelectedBandsChange={setSelectedBands}

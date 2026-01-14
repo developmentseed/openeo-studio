@@ -2,22 +2,24 @@
  * Sample configuration for quick-starting analysis.
  */
 export interface SampleScene {
+  /** UI selection metadata */
   id: string;
   name: string;
   description: string;
   thumbnail?: string;
+
+  /** Data defaults (feed loader/SCENE_DEFAULTS) */
   collectionId: string;
   temporalRange: [string, string];
+  boundingBox?: [number, number, number, number];
+  cloudCover?: number;
 
+  /** Algorithm defaults (feed editor) */
   suggestedAlgorithm: string;
-  /** Default bands for this algorithm (e.g., ['b02', 'b03', 'b04']) */
   defaultBands: string[];
-  /** Default parameter values for algorithm execution */
-  parameterDefaults?: {
-    boundingBox?: [number, number, number, number];
-    cloudCover?: number;
-    [key: string]: unknown; // Additional algorithm-specific parameters
-  };
+
+  /** Optional algorithm-specific parameters */
+  algorithmParams?: Record<string, unknown>;
 }
 
 /**
@@ -47,18 +49,16 @@ export interface BandVariable {
 export interface ExecutionConfig {
   /** Collection identifier for the data source */
   collectionId: string;
-  /** Available band variables from STAC metadata */
-  bands?: BandVariable[];
-  /** User-selected bands in order for data[] array */
-  selectedBands?: string[];
   /** Temporal range for data loading */
   temporalRange?: string[];
-  /** Parameter defaults from scene configuration */
-  parameterDefaults?: {
-    boundingBox?: [number, number, number, number];
-    cloudCover?: number;
-    [key: string]: unknown;
-  };
+  /** Spatial extent */
+  boundingBox?: [number, number, number, number];
+  /** Cloud cover percentage */
+  cloudCover?: number;
+  /** User-selected bands in order for data[] array */
+  selectedBands?: string[];
+  /** Optional algorithm-specific parameters */
+  algorithmParams?: Record<string, unknown>;
 }
 
 /**

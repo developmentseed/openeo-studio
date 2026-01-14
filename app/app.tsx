@@ -22,10 +22,7 @@ export default function App() {
       ...scene,
       collectionId: blankSceneConfig.collectionId,
       temporalRange: blankSceneConfig.temporalRange,
-      parameterDefaults: {
-        ...(scene.parameterDefaults || {}),
-        cloudCover: blankSceneConfig.cloudCover
-      }
+      cloudCover: blankSceneConfig.cloudCover
     };
   }
 
