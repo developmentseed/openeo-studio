@@ -1,30 +1,41 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
+import { useParams } from 'react-router';
+import { StacCollection } from 'stac-ts';
 
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { DataConfigDialog } from '$components/setup/data-config-dialog';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
-import type { SampleScene, ServiceInfo } from '$types';
-import { StacCollection } from 'stac-ts';
+import { BLANK_SCENE_ID, getSceneById } from '$config/sample-scenes';
+import { NotFound } from './uhoh/error';
+import SmartLink from '$components/common/smart-link';
+import {
+  useCloudCover,
+  useCollectionId,
+  useSelectedBands,
+  useServices,
+  useTemporalRange
+} from '../stores/scene/selectors';
 
-interface EditorPageProps {
-  scene: SampleScene;
-  onBack: () => void;
-}
+export function EditorPage() {
+  const { sceneId } = useParams();
 
-export function EditorPage({ scene, onBack }: EditorPageProps) {
-  const [services, setServices] = useState<ServiceInfo[]>([]);
+  const scene = getSceneById(sceneId!);
+
+  if (!scene) {
+    throw new NotFound('Scene not found');
+  }
+
+  const [services, setServices] = useServices();
   const [isInspectOpen, setIsInspectOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Data configuration state
-  const [collectionId, setCollectionId] = useState(scene.collectionId);
-  const [temporalRange, setTemporalRange] = useState<[string, string]>(
-    scene.temporalRange
-  );
-  const [cloudCover, setCloudCover] = useState(scene.cloudCover || 100);
+  const [collectionId, setCollectionId] = useCollectionId();
+  const [temporalRange, setTemporalRange] = useTemporalRange();
+  const [cloudCover, setCloudCover] = useCloudCover();
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
@@ -32,14 +43,21 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
   // Extract band metadata from STAC item
   const bands = useMemo(() => extractBandsFromStac(collection), [collection]);
   // Manage selected bands for data[] array
-  const [selectedBands, setSelectedBands] = useState<string[]>(
-    scene.defaultBands
-  );
+  const [selectedBands, setSelectedBands] = useSelectedBands();
+
+  useEffect(() => {
+    if (scene.id !== BLANK_SCENE_ID) {
+      setCollectionId(scene.collectionId);
+      setTemporalRange(scene.temporalRange);
+      setCloudCover(scene.cloudCover || 100);
+      setSelectedBands(scene.defaultBands);
+    }
+  }, [scene]);
 
   // Handle layer visibility toggle
   const handleToggleLayer = (serviceId: string) => {
-    setServices((prevServices) =>
-      prevServices.map((service) =>
+    setServices(
+      services.map((service) =>
         service.id === serviceId
           ? { ...service, visible: !service.visible }
           : service
@@ -93,20 +111,22 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       >
         <IconButton
           aria-label='Back to scenes'
-          onClick={onBack}
+          asChild
           size='sm'
           variant='ghost'
         >
-          <svg
-            version='1.1'
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            viewBox='0 0 16 16'
-          >
-            <rect width='16' height='16' id='icon-bound' fill='none' />
-            <polygon points='8.414,13.586 3.828,9 16,9 16,7 3.828,7 8.414,2.414 7,1 0,8 7,15' />
-          </svg>
+          <SmartLink to='/'>
+            <svg
+              version='1.1'
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              viewBox='0 0 16 16'
+            >
+              <rect width='16' height='16' id='icon-bound' fill='none' />
+              <polygon points='8.414,13.586 3.828,9 16,9 16,7 3.828,7 8.414,2.414 7,1 0,8 7,15' />
+            </svg>
+          </SmartLink>
         </IconButton>
         <Flex flexDirection='column' flex={1}>
           <Flex fontSize='md' fontWeight='semibold'>

@@ -1,25 +1,19 @@
 import { useState } from 'react';
 import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
+import { useNavigate } from 'react-router';
 import { SceneGrid } from '$components/landing/scene-grid';
 import { DataConfigDialog } from '$components/setup/data-config-dialog';
 import { APP_TITLE } from '$config/constants';
+import { useSceneValues } from '../stores/scene/selectors';
+import { BLANK_SCENE_ID, getSceneById } from '$config/sample-scenes';
 
-interface LandingPageProps {
-  onSelectScene: (sceneId: string) => void;
-  onStartFromScratch: (config: {
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-  }) => void;
-}
-
-export function LandingPage({
-  onSelectScene,
-  onStartFromScratch
-}: LandingPageProps) {
+export function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  const [, setSceneValues] = useSceneValues();
+  const navigate = useNavigate();
 
   const handleBlankSceneClick = () => {
     setIsConfigOpen(true);
@@ -31,7 +25,16 @@ export function LandingPage({
     cloudCover: number;
   }) => {
     setIsConfigOpen(false);
-    onStartFromScratch(config);
+
+    const blankScene = getSceneById(BLANK_SCENE_ID)!;
+
+    setSceneValues({
+      collectionId: config.collectionId,
+      temporalRange: config.temporalRange,
+      cloudCover: config.cloudCover,
+      selectedBands: blankScene.defaultBands
+    });
+    navigate(`/editor/${BLANK_SCENE_ID}`);
   };
 
   const handleConfigCancel = () => {
@@ -50,10 +53,7 @@ export function LandingPage({
           </Text>
         </Flex>
 
-        <SceneGrid
-          onSelectScene={onSelectScene}
-          onBlankSceneClick={handleBlankSceneClick}
-        />
+        <SceneGrid onBlankSceneClick={handleBlankSceneClick} />
 
         {!isAuthenticated && !isLoading && (
           <Text fontSize='md' color='orange.600' fontWeight='medium'>

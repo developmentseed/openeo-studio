@@ -3,12 +3,14 @@ import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 import { StacApiProvider } from '@developmentseed/stac-react';
+import { BrowserRouter } from 'react-router';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
 
 import system from './styles/theme';
 
 import App from './app';
+import ErrorBoundary from '$pages/uhoh/boundary';
 
 const publicUrl = import.meta.env.VITE_BASE_URL || '';
 const authAuthority = import.meta.env.VITE_AUTH_AUTHORITY || '';
@@ -44,15 +46,19 @@ function Root() {
   }, []);
 
   return (
-    <AuthProvider {...oidcConfig}>
-      <ChakraProvider value={system}>
-        <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
-          <PyodideProvider>
-            <App />
-          </PyodideProvider>
-        </StacApiProvider>
-      </ChakraProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider {...oidcConfig}>
+        <ChakraProvider value={system}>
+          <ErrorBoundary>
+            <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
+              <PyodideProvider>
+                <App />
+              </PyodideProvider>
+            </StacApiProvider>
+          </ErrorBoundary>
+        </ChakraProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
