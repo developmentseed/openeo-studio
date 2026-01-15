@@ -1,7 +1,7 @@
 {
   "name": "openeo-studio",
   "description": "Interactive code editor for openEO satellite imagery processing",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/developmentseed/openeo-studio.git"
