@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { useNavigate } from 'react-router';
@@ -14,6 +14,11 @@ export function LandingPage() {
 
   const [, setSceneValues] = useSceneValues();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Reset when the user is back to the landing page.
+    setSceneValues();
+  }, []);
 
   const handleBlankSceneClick = () => {
     setIsConfigOpen(true);
