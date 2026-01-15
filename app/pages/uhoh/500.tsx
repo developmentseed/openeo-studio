@@ -4,7 +4,7 @@ import { Heading, Text, VStack } from '@chakra-ui/react';
 export default function UhOh500() {
   return (
     <VStack as='main' h='100%' gap={0} p={20}>
-      <title>OpenEO Studio - Critical Error</title>
+      <title>{import.meta.env.VITE_APP_TITLE} - Critical Error</title>
 
       <Heading size='7xl'>500</Heading>
       <Text fontSize='2xl' mt={4}>
