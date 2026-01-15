@@ -13,8 +13,15 @@ async function hash(string: string) {
 }
 
 export function UserInfo() {
-  const { isLoading, isAuthenticated, user, signinRedirect, removeUser } =
-    useAuth();
+  const {
+    isLoading,
+    isAuthenticated,
+    user,
+    signinRedirect,
+    removeUser,
+    events,
+    signinSilent
+  } = useAuth();
 
   const profile = user?.profile;
 
@@ -25,6 +32,13 @@ export function UserInfo() {
     }
   }, [profile?.email]);
 
+  useEffect(() => {
+    // the `return` is important - addAccessTokenExpiring() returns a cleanup function
+    return events.addAccessTokenExpiring(() => {
+      signinSilent();
+    });
+  }, [events, signinSilent]);
+
   if (!isAuthenticated || !profile || isLoading) {
     return (
       <Button
@@ -32,7 +46,9 @@ export function UserInfo() {
         onClick={(e) => {
           e.preventDefault();
           if (!isLoading) {
-            signinRedirect();
+            signinRedirect({
+              state: window.location.href.replace(window.location.origin, '')
+            });
           }
         }}
         layerStyle='handDrawn'
