@@ -8,7 +8,6 @@ import { StacCollection } from 'stac-ts';
 import { EditorHeader } from '$components/layout/editor-header';
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
-import { DataConfigDialog } from '$components/setup/data-config-dialog';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
 import type { ServiceInfo } from '$types';
 import { getSceneById, BLANK_SCENE_ID } from '$config/sample-scenes';
@@ -31,7 +30,6 @@ export function EditorPage() {
   const isBlankScene = scene?.id === BLANK_SCENE_ID && blankSceneConfig;
 
   const [services, setServices] = useState<ServiceInfo[]>([]);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Data configuration state
   const [collectionId, setCollectionId] = useState(
@@ -97,13 +95,6 @@ export function EditorPage() {
     if (collectionChanged) {
       setSelectedBands([]);
     }
-
-    // Close modal after config is applied
-    setIsConfigOpen(false);
-  };
-
-  const handleConfigOpenChange = (e: { open: boolean }) => {
-    setIsConfigOpen(e.open);
   };
 
   return (
@@ -113,7 +104,6 @@ export function EditorPage() {
         collectionId={collectionId}
         temporalRange={temporalRange}
         cloudCover={cloudCover}
-        onConfigOpen={() => setIsConfigOpen(true)}
       />
 
       {/* Editor and Map panels */}
@@ -151,16 +141,6 @@ export function EditorPage() {
           />
         </Splitter.Panel>
       </Splitter.Root>
-
-      {/* Data Configuration Modal */}
-      <DataConfigDialog
-        open={isConfigOpen}
-        onOpenChange={handleConfigOpenChange}
-        collectionId={collectionId}
-        temporalRange={temporalRange}
-        cloudCover={cloudCover}
-        onApply={handleConfigApply}
-      />
     </Flex>
   );
 }
