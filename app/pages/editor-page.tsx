@@ -137,6 +137,7 @@ export function EditorPage() {
             initialCode={scene.suggestedAlgorithm}
             setServices={setServices}
             onSelectedBandsChange={setSelectedBands}
+            onConfigApply={handleConfigApply}
           />
         </Splitter.Panel>
 

@@ -133,9 +133,7 @@ export function DataConfigForm({
 
       {/* Temporal Range */}
       <VStack gap={3} align='stretch'>
-        <Text fontSize='sm' fontWeight='semibold'>
-          Temporal Range
-        </Text>
+        <Text fontSize='sm'>Temporal Range</Text>
         <HStack gap={3}>
           <VStack gap={1} align='stretch' flex={1}>
             <Field.Root invalid={showValidation && !isStartDateValid()}>
@@ -192,9 +190,6 @@ export function DataConfigForm({
           </VStack>
         </HStack>
       </VStack>
-      <Text color='gray.400' pt={5}>
-        to
-      </Text>
       {/* Cloud Cover */}
       <Field.Root>
         <Field.Label htmlFor='cloud-cover'>Maximum Cloud Cover</Field.Label>

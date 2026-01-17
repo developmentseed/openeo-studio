@@ -50,7 +50,7 @@ export interface ExecutionConfig {
   /** Collection identifier for the data source */
   collectionId: string;
   /** Temporal range for data loading */
-  temporalRange?: string[];
+  temporalRange: [string, string];
   /** Spatial extent */
   boundingBox?: [number, number, number, number];
   /** Cloud cover percentage */
