@@ -1,6 +1,7 @@
 import { Button, Image } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
+import { useLocation } from 'react-router';
 
 async function hash(string: string) {
   const utf8 = new TextEncoder().encode(string);
@@ -15,6 +16,7 @@ async function hash(string: string) {
 export function UserInfo() {
   const { isLoading, isAuthenticated, user, signinRedirect, removeUser } =
     useAuth();
+  const location = useLocation();
 
   const profile = user?.profile;
 
@@ -32,7 +34,10 @@ export function UserInfo() {
         onClick={(e) => {
           e.preventDefault();
           if (!isLoading) {
-            signinRedirect();
+            // Pass current location through OIDC state parameter
+            signinRedirect({
+              state: { returnTo: location.pathname }
+            });
           }
         }}
         layerStyle='handDrawn'

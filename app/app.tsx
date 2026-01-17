@@ -1,56 +1,46 @@
-import { useState } from 'react';
-import { Flex } from '@chakra-ui/react';
+import { useEffect } from 'react';
+import { Flex, Spinner } from '@chakra-ui/react';
+import { Route, Routes, useNavigate } from 'react-router';
+import { useAuth } from 'react-oidc-context';
 import { AppHeader } from '$components/layout/app-header';
 import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
-import { getSceneById, BLANK_SCENE_ID } from './config/sample-scenes';
 
 export default function App() {
-  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
-  const [blankSceneConfig, setBlankSceneConfig] = useState<{
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-  } | null>(null);
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Get the selected scene data
-  let scene = selectedSceneId ? getSceneById(selectedSceneId) : null;
+  // Handle post-auth navigation
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      const postAuthPath = window.sessionStorage.getItem('postAuthPath');
+      if (postAuthPath) {
+        window.sessionStorage.removeItem('postAuthPath');
+        navigate(postAuthPath, { replace: true });
+      }
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
-  // If it's a blank scene, override defaults with the configured values
-  if (scene && scene.id === BLANK_SCENE_ID && blankSceneConfig) {
-    scene = {
-      ...scene,
-      collectionId: blankSceneConfig.collectionId,
-      temporalRange: blankSceneConfig.temporalRange,
-      cloudCover: blankSceneConfig.cloudCover
-    };
+  // Don't render routes if we're about to redirect after auth
+  const postAuthPath = window.sessionStorage.getItem('postAuthPath');
+  if (isLoading || (isAuthenticated && postAuthPath)) {
+    return (
+      <Flex flexDirection='column' height='100vh'>
+        <AppHeader />
+        <Flex flex={1} alignItems='center' justifyContent='center'>
+          <Spinner size='xl' />
+        </Flex>
+      </Flex>
+    );
   }
-
-  // If scene not found but ID is set, reset
-  if (selectedSceneId && !scene) {
-    setSelectedSceneId(null);
-  }
-
-  const handleStartFromScratch = (config: {
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-  }) => {
-    setBlankSceneConfig(config);
-    setSelectedSceneId(BLANK_SCENE_ID);
-  };
 
   return (
     <Flex flexDirection='column' height='100vh'>
       <AppHeader />
-      {!selectedSceneId ? (
-        <LandingPage
-          onSelectScene={setSelectedSceneId}
-          onStartFromScratch={handleStartFromScratch}
-        />
-      ) : scene ? (
-        <EditorPage scene={scene} onBack={() => setSelectedSceneId(null)} />
-      ) : null}
+      <Routes>
+        <Route path='/' element={<LandingPage />} />
+        <Route path='/editor/:sceneId' element={<EditorPage />} />
+      </Routes>
     </Flex>
   );
 }

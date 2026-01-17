@@ -1,40 +1,72 @@
 import { useState, useMemo } from 'react';
 import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
+import { useParams, useLocation, useNavigate } from 'react-router';
+import { useAuth } from 'react-oidc-context';
+import { StacCollection } from 'stac-ts';
 
 import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { DataConfigDialog } from '$components/setup/data-config-dialog';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
-import type { SampleScene, ServiceInfo } from '$types';
-import { StacCollection } from 'stac-ts';
+import type { ServiceInfo } from '$types';
+import { getSceneById, BLANK_SCENE_ID } from '$config/sample-scenes';
+import SmartLink from '$utils/smart-link';
 
-interface EditorPageProps {
-  scene: SampleScene;
-  onBack: () => void;
-}
+export function EditorPage() {
+  const { sceneId } = useParams<{ sceneId: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isLoading } = useAuth();
 
-export function EditorPage({ scene, onBack }: EditorPageProps) {
+  const scene = getSceneById(sceneId!);
+
+  // For blank scenes, location.state overrides scene defaults
+  const blankSceneConfig = location.state as {
+    collectionId: string;
+    temporalRange: [string, string];
+    cloudCover: number;
+  } | null;
+
+  const isBlankScene = scene?.id === BLANK_SCENE_ID && blankSceneConfig;
+
   const [services, setServices] = useState<ServiceInfo[]>([]);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Data configuration state
-  const [collectionId, setCollectionId] = useState(scene.collectionId);
-  const [temporalRange, setTemporalRange] = useState<[string, string]>(
-    scene.temporalRange
+  const [collectionId, setCollectionId] = useState(
+    isBlankScene ? blankSceneConfig.collectionId : scene?.collectionId || ''
   );
-  const [cloudCover, setCloudCover] = useState(scene.cloudCover || 100);
+  const [temporalRange, setTemporalRange] = useState<[string, string]>(
+    isBlankScene
+      ? blankSceneConfig.temporalRange
+      : scene?.temporalRange || ['', '']
+  );
+  const [cloudCover, setCloudCover] = useState(
+    isBlankScene ? blankSceneConfig.cloudCover : scene?.cloudCover || 100
+  );
+  const [selectedBands, setSelectedBands] = useState<string[]>(
+    scene?.defaultBands || []
+  );
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
 
   // Extract band metadata from STAC item
   const bands = useMemo(() => extractBandsFromStac(collection), [collection]);
-  // Manage selected bands for data[] array
-  const [selectedBands, setSelectedBands] = useState<string[]>(
-    scene.defaultBands
-  );
+  const mapBounds = useMemo(() => scene?.boundingBox, [scene]);
+
+  // Early return
+  if (isLoading) {
+    return null; // Still loading auth state
+  }
+
+  if (!scene) {
+    // Scene not found - navigate back
+    navigate('/', { replace: true });
+    return null;
+  }
 
   // Handle layer visibility toggle
   const handleToggleLayer = (serviceId: string) => {
@@ -75,10 +107,6 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
     setIsConfigOpen(e.open);
   };
 
-  const mapBounds = useMemo(() => {
-    return scene.boundingBox;
-  }, []);
-
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
       {/* Sub-header with back button and scene info */}
@@ -93,20 +121,22 @@ export function EditorPage({ scene, onBack }: EditorPageProps) {
       >
         <IconButton
           aria-label='Back to scenes'
-          onClick={onBack}
           size='sm'
           variant='ghost'
+          asChild
         >
-          <svg
-            version='1.1'
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            viewBox='0 0 16 16'
-          >
-            <rect width='16' height='16' id='icon-bound' fill='none' />
-            <polygon points='8.414,13.586 3.828,9 16,9 16,7 3.828,7 8.414,2.414 7,1 0,8 7,15' />
-          </svg>
+          <SmartLink to='/'>
+            <svg
+              version='1.1'
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              viewBox='0 0 16 16'
+            >
+              <rect width='16' height='16' id='icon-bound' fill='none' />
+              <polygon points='8.414,13.586 3.828,9 16,9 16,7 3.828,7 8.414,2.414 7,1 0,8 7,15' />
+            </svg>
+          </SmartLink>
         </IconButton>
         <Flex flexDirection='column' flex={1}>
           <Flex fontSize='md' fontWeight='semibold'>

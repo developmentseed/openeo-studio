@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 import { StacApiProvider } from '@developmentseed/stac-react';
+import { BrowserRouter } from 'react-router';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
 
@@ -26,10 +27,13 @@ const oidcConfig: AuthProviderProps = {
   authority: authAuthority,
   client_id: authClientId,
   redirect_uri: authRedirectUri,
-  onSigninCallback: () => {
-    window.history.replaceState({}, '', '/');
-  },
-  onRemoveUser: () => {
+  onSigninCallback: (user) => {
+    // Store the return path in sessionStorage so App component can navigate
+    const returnTo = (user?.state as { returnTo?: string })?.returnTo;
+    if (returnTo && returnTo !== '/') {
+      window.sessionStorage.setItem('postAuthPath', returnTo);
+    }
+    // Clean up URL by removing query params
     window.history.replaceState({}, '', '/');
   }
 };
@@ -44,15 +48,17 @@ function Root() {
   }, []);
 
   return (
-    <AuthProvider {...oidcConfig}>
-      <ChakraProvider value={system}>
-        <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
-          <PyodideProvider>
-            <App />
-          </PyodideProvider>
-        </StacApiProvider>
-      </ChakraProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider {...oidcConfig}>
+        <ChakraProvider value={system}>
+          <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
+            <PyodideProvider>
+              <App />
+            </PyodideProvider>
+          </StacApiProvider>
+        </ChakraProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
