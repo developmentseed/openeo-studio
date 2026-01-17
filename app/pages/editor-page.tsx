@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Flex, IconButton, Button, Dialog, Splitter } from '@chakra-ui/react';
+import { Flex, IconButton, Button, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { useParams, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
@@ -31,7 +31,6 @@ export function EditorPage() {
   const isBlankScene = scene?.id === BLANK_SCENE_ID && blankSceneConfig;
 
   const [services, setServices] = useState<ServiceInfo[]>([]);
-  const [isInspectOpen, setIsInspectOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Data configuration state
@@ -151,24 +150,6 @@ export function EditorPage() {
           size='sm'
           variant='outline'
           layerStyle='handDrawn'
-          onClick={() => setIsInspectOpen(true)}
-        >
-          Inspect Metadata
-          <svg
-            version='1.1'
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            viewBox='0 0 16 16'
-          >
-            <rect width='16' height='16' id='icon-bound' fill='none' />
-            <path d='M8,2C2,2 0,8 0,8C0,8 2,14 8,14C14,14 16,8 16,8C16,8 14,2 8,2ZM8,12C4.519,12 2.787,9.272 2.168,8C2.481,7.358 3.082,6.34 4.051,5.491C4.03,5.66 4,5.826 4,6C4,8.209 5.791,10 8,10C10.209,10 12,8.209 12,6C12,5.825 11.97,5.658 11.949,5.49C12.917,6.338 13.519,7.356 13.832,8C13.214,9.267 11.479,12 8,12Z' />
-          </svg>
-        </Button>
-        <Button
-          size='sm'
-          variant='outline'
-          layerStyle='handDrawn'
           onClick={() => setIsConfigOpen(true)}
         >
           Update Configuration
@@ -219,24 +200,6 @@ export function EditorPage() {
           />
         </Splitter.Panel>
       </Splitter.Root>
-
-      {/* STAC Item Inspection Modal */}
-      <Dialog.Root
-        open={isInspectOpen}
-        onOpenChange={(e) => setIsInspectOpen(e.open)}
-        size='lg'
-      >
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content>
-            <Dialog.Header>
-              <Dialog.Title>Scene Information</Dialog.Title>
-              <Dialog.CloseTrigger />
-            </Dialog.Header>
-            <Dialog.Body>{/* TODO */}🚧 WIP</Dialog.Body>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Dialog.Root>
 
       {/* Data Configuration Modal */}
       <DataConfigDialog
