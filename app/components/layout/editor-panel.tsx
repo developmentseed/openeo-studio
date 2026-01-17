@@ -51,7 +51,7 @@ export function EditorPanel({
             temporalRange={config.temporalRange}
             cloudCover={config.cloudCover}
             onApply={onConfigApply}
-            showActions={false}
+            showActions={true}
           />
 
           {availableBands && onSelectedBandsChange && (
