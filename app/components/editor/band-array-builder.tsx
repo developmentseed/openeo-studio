@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Flex, Text, Button, Collapsible, chakra } from '@chakra-ui/react';
+import { Flex, Text, Button, chakra } from '@chakra-ui/react';
 
-import { CollapseIconButton, RemoveIconButton } from './icon-buttons';
+import { RemoveIconButton } from './icon-buttons';
 import type { BandVariable } from '$types';
 
 interface BandArrayBuilderProps {
@@ -22,7 +22,6 @@ export function BandArrayBuilder({
   selectedBands,
   onSelectionChange
 }: BandArrayBuilderProps) {
-  const [isOpen, setIsOpen] = useState(true);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Clear invalid selections when available bands change
@@ -80,121 +79,85 @@ export function BandArrayBuilder({
     .filter((b): b is BandVariable => b !== undefined);
 
   return (
-    <Flex
-      direction='column'
-      borderWidth='2px'
-      borderColor='gray.300'
-      layerStyle='handDrawn'
-      flexShrink={0}
-    >
-      <Flex
-        alignItems='center'
-        justifyContent='space-between'
-        p={3}
-        pb={isOpen ? 2 : 3}
-        cursor='pointer'
-        onClick={() => setIsOpen(!isOpen)}
-        _hover={{ bg: 'gray.50' }}
-      >
-        <Text fontSize='sm' fontWeight='bold' color='gray.700'>
-          Build your data cube
-        </Text>
-        <CollapseIconButton isOpen={isOpen} />
-      </Flex>
+    <>
+      <Flex gap={4} flex={1} minHeight={0}>
+        {/* Available bands column */}
+        <Flex direction='column' gap={2} flex={1} minHeight={0}>
+          <Text fontSize='sm'>Available bands</Text>
+          {availableBands.length === 0 && (
+            <Text fontSize='xs' color='gray.500' fontStyle='italic'>
+              ⚠️ The parser could not find suitable bands in this collection.
+            </Text>
+          )}
 
-      <Collapsible.Root open={isOpen}>
-        <Collapsible.Content>
-          <Flex direction='column' gap={3} px={3} pb={3}>
-            {availableBands.length === 0 ? (
+          <Flex direction='column' gap={1} flex={1} overflowY='auto'>
+            {availableToAdd.map((band) => (
+              <Button
+                key={band.name}
+                size='xs'
+                variant='outline'
+                onClick={() => addBand(band.name)}
+                justifyContent='flex-start'
+                layerStyle='handDrawn'
+              >
+                {band.variable} - {band.label}
+                {band.resolution && (
+                  <Text as='span' fontSize='xs' color='gray.500' ml={1}>
+                    ({band.resolution})
+                  </Text>
+                )}
+              </Button>
+            ))}
+            {availableToAdd.length === 0 && availableBands.length > 0 && (
               <Text fontSize='xs' color='gray.500' fontStyle='italic'>
-                ⚠️ The parser could not find suitable bands in this collection.
+                All bands selected
               </Text>
-            ) : (
-              <Flex gap={4}>
-                {/* Available bands */}
-                <Flex direction='column' gap={2} flex={1}>
-                  <Text fontSize='xs' fontWeight='semibold' color='gray.600'>
-                    Available bands
-                  </Text>
-                  <Flex
-                    direction='column'
-                    gap={1}
-                    maxHeight='200px'
-                    overflowY='auto'
-                  >
-                    {availableToAdd.map((band) => (
-                      <Button
-                        key={band.name}
-                        size='xs'
-                        variant='outline'
-                        onClick={() => addBand(band.name)}
-                        justifyContent='flex-start'
-                        layerStyle='handDrawn'
-                      >
-                        {band.variable} - {band.label}
-                        {band.resolution && (
-                          <Text as='span' fontSize='xs' color='gray.500' ml={1}>
-                            ({band.resolution})
-                          </Text>
-                        )}
-                      </Button>
-                    ))}
-                    {availableToAdd.length === 0 &&
-                      availableBands.length > 0 && (
-                        <Text fontSize='xs' color='gray.500' fontStyle='italic'>
-                          All bands selected
-                        </Text>
-                      )}
-                  </Flex>
-                </Flex>
-
-                {/* Selected bands */}
-                <Flex direction='column' gap={2} flex={1}>
-                  <Text fontSize='xs' fontWeight='semibold' color='gray.600'>
-                    Selected band dimension
-                  </Text>
-                  <Flex
-                    wrap='wrap'
-                    minHeight='200px'
-                    alignItems='center'
-                    alignContent='flex-start'
-                  >
-                    <Text fontSize='32px' fontWeight='light' color='gray.500'>
-                      [
-                    </Text>
-                    {selectedBandDetails.map((band, index) => (
-                      <React.Fragment key={band.name}>
-                        <SelectedBandChip
-                          key={band.name}
-                          index={index}
-                          band={band}
-                          onRemove={() => removeBand(index)}
-                          onDragStart={() => handleDragStart(index)}
-                          onDragOver={(e) => handleDragOver(e, index)}
-                          onDragEnd={handleDragEnd}
-                          isDragging={draggedIndex === index}
-                        />
-                        {index < selectedBandDetails.length - 1 && (
-                          <chakra.span mr={2}>,</chakra.span>
-                        )}
-                      </React.Fragment>
-                    ))}
-                    <Text fontSize='32px' fontWeight='light' color='gray.500'>
-                      ]
-                    </Text>
-                    {selectedBands.length === 0 && (
-                      <Text fontSize='xs' color='gray.500' fontStyle='italic'>
-                        Click bands to add
-                      </Text>
-                    )}
-                  </Flex>
-                </Flex>
-              </Flex>
             )}
           </Flex>
-        </Collapsible.Content>
-      </Collapsible.Root>
-    </Flex>
+        </Flex>
+
+        {/* Selected bands column */}
+        {availableBands.length > 0 && (
+          <Flex direction='column' gap={2} flex={1} minHeight={0}>
+            <Text fontSize='sm'>Selected band dimension</Text>
+            <Flex
+              wrap='wrap'
+              flex={1}
+              alignItems='center'
+              alignContent='flex-start'
+            >
+              <Text fontSize='32px' fontWeight='light' color='gray.500'>
+                [
+              </Text>
+              {selectedBandDetails.map((band, index) => (
+                <React.Fragment key={band.name}>
+                  <SelectedBandChip
+                    index={index}
+                    band={band}
+                    onRemove={() => removeBand(index)}
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                    isDragging={draggedIndex === index}
+                  />
+                  {index < selectedBandDetails.length - 1 && (
+                    <chakra.span mr={2}>,</chakra.span>
+                  )}
+                </React.Fragment>
+              ))}
+              <Text fontSize='32px' fontWeight='light' color='gray.500'>
+                ]
+              </Text>
+              {selectedBands.length === 0 && (
+                <Text fontSize='xs' color='gray.500' fontStyle='italic'>
+                  Click bands to add
+                </Text>
+              )}
+            </Flex>
+          </Flex>
+        )}
+      </Flex>
+    </>
   );
 }
 

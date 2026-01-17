@@ -45,7 +45,7 @@ export function EditorPanel({
       </Tabs.List>
 
       <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
-        <Flex flexDirection='column' gap={4} height='100%'>
+        <Flex flexDirection='column' gap={8} height='100%'>
           <DataConfigForm
             collectionId={config.collectionId}
             temporalRange={config.temporalRange}
