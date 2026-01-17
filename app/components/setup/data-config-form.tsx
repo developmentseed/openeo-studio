@@ -234,7 +234,7 @@ export function DataConfigForm({
             disabled={isLoading}
             loading={isLoading}
           >
-            {collectionId && collectionChanged && '⚠️ '}Apply Changes
+            {collectionId && collectionChanged && '⚠️ '}Confirm Changes
           </Button>
         </HStack>
       )}
