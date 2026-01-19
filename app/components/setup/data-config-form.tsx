@@ -229,7 +229,7 @@ export function DataConfigForm({
             </Button>
           )}
           <Button
-            colorPalette='blue'
+            variant='outline'
             onClick={handleApply}
             disabled={isLoading}
             loading={isLoading}
