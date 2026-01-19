@@ -1,4 +1,4 @@
-import { Flex, Tabs } from '@chakra-ui/react';
+import { Flex, Popover, Portal, Tabs } from '@chakra-ui/react';
 
 import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
@@ -7,6 +7,7 @@ import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
 import { AvailableVariables } from '$components/editor/available-variables';
 import { BandArrayBuilder } from '$components/editor/band-array-builder';
 import { DataConfigForm } from '$components/setup/data-config-form';
+import { InfoIconButton } from '$components/editor/icon-buttons';
 
 interface EditorPanelProps {
   config: ExecutionConfig;
@@ -72,7 +73,31 @@ export function EditorPanel({
         flexDirection='column'
         p={4}
       >
-        <AvailableVariables selectedBands={config.selectedBands || []} />
+        {/* <AvailableVariables selectedBands={config.selectedBands || []} /> */}
+
+        <Flex justifyContent='flex-end' mb={2}>
+          <Popover.Root positioning={{ placement: 'bottom-end' }} size='lg'>
+            <Popover.Trigger>
+              <InfoIconButton />
+            </Popover.Trigger>
+            <Portal>
+              <Popover.Positioner>
+                <Popover.Content minW='lg'>
+                  <Popover.CloseTrigger />
+                  <Popover.Arrow />
+                  <Popover.Body>
+                    <Popover.Title fontWeight='medium'>
+                      Available Variables
+                    </Popover.Title>
+                    <AvailableVariables
+                      selectedBands={config.selectedBands || []}
+                    />
+                  </Popover.Body>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Portal>
+          </Popover.Root>
+        </Flex>
 
         {isReady ? (
           <Editor
