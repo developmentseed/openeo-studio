@@ -18,11 +18,10 @@ export function EditorHeader({
     <Flex
       alignItems='center'
       gap={4}
-      px={6}
-      py={3}
+      px={4}
+      py={2}
       borderBottomWidth='1px'
       borderColor='gray.200'
-      bg='gray.50'
     >
       <IconButton aria-label='Back to scenes' size='sm' variant='ghost' asChild>
         <SmartLink to='/'>

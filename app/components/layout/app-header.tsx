@@ -5,7 +5,14 @@ import { DocsPageModal } from '$pages/docs-modal-page';
 
 export function AppHeader() {
   return (
-    <Flex alignItems='center' justifyContent='space-between' p={8}>
+    <Flex
+      alignItems='center'
+      justifyContent='space-between'
+      px={4}
+      py={2}
+      borderBottomWidth='1px'
+      borderColor='gray.200'
+    >
       <Heading size='md'>{APP_TITLE}</Heading>
       <Flex ml='auto' alignItems='center' gap={4}>
         <DocsPageModal
