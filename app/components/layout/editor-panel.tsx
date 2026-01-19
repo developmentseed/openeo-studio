@@ -72,7 +72,7 @@ export function EditorPanel({
         flexDirection='column'
         p={4}
       >
-        <AvailableVariables />
+        <AvailableVariables selectedBands={config.selectedBands || []} />
 
         {isReady ? (
           <Editor

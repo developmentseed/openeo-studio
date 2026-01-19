@@ -1,12 +1,16 @@
-import { Flex, Text, Code } from '@chakra-ui/react';
+import { Flex, Text, Code, Heading } from '@chakra-ui/react';
 
 /**
  * Display available variables from the loader script.
  * Helps users understand what they can use in their algorithm code.
  */
-export function AvailableVariables() {
+export function AvailableVariables({
+  selectedBands
+}: {
+  selectedBands: string[];
+}) {
   return (
-    <Flex direction='column' gap={2} px={3} pb={3}>
+    <Flex direction='column' gap={2} py={3}>
       <Flex alignItems='baseline' gap={2}>
         <Code fontSize='sm' fontFamily='monospace' colorPalette='blue'>
           datacube
@@ -36,6 +40,27 @@ export function AvailableVariables() {
           Datacube with pixel selection applied (first pixel in time)
         </Text>
       </Flex>
+
+      {selectedBands.length > 0 && (
+        <>
+          <Heading size='sm' mt={4} mb={2}>
+            Selected Bands
+          </Heading>
+          {selectedBands.map((band, index) => (
+            <Flex key={band} alignItems='baseline' gap={2}>
+              <Code fontSize='sm' fontFamily='monospace' colorPalette='blue'>
+                data[{index}]
+              </Code>
+              <Text fontSize='xs' color='gray.500'>
+                :
+              </Text>
+              <Code fontSize='xs' colorPalette='gray'>
+                {band}
+              </Code>
+            </Flex>
+          ))}
+        </>
+      )}
     </Flex>
   );
 }
