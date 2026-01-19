@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages SPA redirect hack
+      // This script takes the current URL and redirects to the root with the path as a query parameter
+      // The root index.html will then extract the path and use client-side routing
+      
+      // Store the path (including search params and hash)
+      const path = window.location.pathname.slice(1) + 
+                   window.location.search + 
+                   window.location.hash;
+      
+      // Redirect to root with the path as a query parameter
+      // The 'p' parameter will be read by index.html
+      window.location.replace(
+        window.location.origin + '/?p=/' + path
+      );
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>

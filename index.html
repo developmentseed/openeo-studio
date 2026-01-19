@@ -23,6 +23,20 @@
   <meta name='title' content='%VITE_APP_TITLE%'>
   <meta name='description' content='%VITE_APP_DESCRIPTION%'>
 
+  <!-- GitHub Pages SPA redirect handler -->
+  <script>
+    // Check if we're being redirected from 404.html
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('p');
+      if (redirect) {
+        // Remove the 'p' parameter and navigate to the actual path
+        const path = redirect.startsWith('/') ? redirect : '/' + redirect;
+        window.history.replaceState(null, '', path);
+      }
+    })();
+  </script>
+
   <style>
     #welcome-banner {
       position: fixed;
