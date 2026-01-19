@@ -27,10 +27,8 @@ export function BandArrayBuilder({
 
   // Clear invalid selections when available bands change
   useEffect(() => {
-    if (availableBands.length === 0 && selectedBands.length > 0) {
-      // Collection is loading or changed - clear selections
-      onSelectionChange([]);
-    } else if (selectedBands.length > 0) {
+    // Only validate selections if we have bands loaded
+    if (availableBands.length > 0 && selectedBands.length > 0) {
       // Filter out any selected bands that are no longer available
       const availableBandNames = new Set(availableBands.map((b) => b.name));
       const validSelections = selectedBands.filter((name) =>
@@ -40,7 +38,7 @@ export function BandArrayBuilder({
         onSelectionChange(validSelections);
       }
     }
-  }, [availableBands]);
+  }, [availableBands, selectedBands]);
 
   const selectedBandSet = new Set(selectedBands);
   const availableToAdd = availableBands.filter(
