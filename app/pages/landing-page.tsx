@@ -35,12 +35,17 @@ export function LandingPage() {
     <Box flex={1} overflowY='auto' px={8} py={8}>
       <Flex flexDirection='column' maxWidth='1200px' mx='auto' gap={6}>
         <Flex flexDirection='column' gap={2}>
-          <Heading size='2xl'>Welcome to {APP_TITLE}</Heading>
+          <Heading as='h1' size='2xl'>
+            Welcome to the {APP_TITLE} for Sentinel EOPF
+          </Heading>
 
-          <Text fontSize='lg' color='gray.600'>
-            Select a sample scene to start exploring and processing satellite
-            imagery
-          </Text>
+          <Box maxW='3xl'>
+            <Text fontSize='lg' color='gray.600'>
+              Write and execute openEO python code directly in your browser to
+              process cloud&#8209;native Sentinel EOPF Zarr data. Visualize
+              results instantly with on&#8209;the&#8209;fly rendering.
+            </Text>
+          </Box>
 
           <Box>
             <DocsPageModal
@@ -63,6 +68,8 @@ export function LandingPage() {
             />
           </Box>
         </Flex>
+
+        <Heading size='xl'>Explore the sample visualization processing</Heading>
 
         <SceneGrid onBlankSceneClick={handleBlankSceneClick} />
 

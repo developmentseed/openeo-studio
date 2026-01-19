@@ -6,7 +6,7 @@ import { DocsPageModal } from '$pages/docs-modal-page';
 export function AppHeader() {
   return (
     <Flex alignItems='center' justifyContent='space-between' p={8}>
-      <Heading size='2xl'>{APP_TITLE}</Heading>
+      <Heading size='md'>{APP_TITLE}</Heading>
       <Flex ml='auto' alignItems='center' gap={4}>
         <DocsPageModal
           trigger={
