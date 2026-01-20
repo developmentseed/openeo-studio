@@ -15,14 +15,13 @@ import App from './app';
 const publicUrl = import.meta.env.VITE_BASE_URL || '';
 const authAuthority = import.meta.env.VITE_AUTH_AUTHORITY || '';
 const authClientId = import.meta.env.VITE_AUTH_CLIENT_ID || '';
+const authRedirectUri = import.meta.env.VITE_AUTH_REDIRECT_URI || '';
 
 const baseName = new URL(
   publicUrl.startsWith('http')
     ? publicUrl
     : `https://ds.io/${publicUrl.replace(/^\//, '')}`
 ).pathname;
-
-const authRedirectUri = `${window.location.protocol}//${window.location.host}${baseName}/auth/callback`;
 
 const oidcConfig: AuthProviderProps = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
