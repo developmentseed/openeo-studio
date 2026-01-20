@@ -98,7 +98,6 @@ export function BandArrayBuilder({
                 variant='outline'
                 onClick={() => addBand(band.name)}
                 justifyContent='flex-start'
-                layerStyle='handDrawn'
               >
                 {band.variable} - {band.label}
                 {band.resolution && (

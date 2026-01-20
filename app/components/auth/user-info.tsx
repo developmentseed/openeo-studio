@@ -40,7 +40,6 @@ export function UserInfo() {
             });
           }
         }}
-        layerStyle='handDrawn'
       >
         Login
       </Button>
@@ -57,7 +56,6 @@ export function UserInfo() {
         e.preventDefault();
         removeUser();
       }}
-      layerStyle='handDrawn'
     >
       Logout{' '}
       <Image
@@ -65,7 +63,6 @@ export function UserInfo() {
         src={`https://www.gravatar.com/avatar/${userEmailHash}?d=initials`}
         alt='User image'
         className='profile-image'
-        layerStyle='handDrawn'
       />
     </Button>
   );

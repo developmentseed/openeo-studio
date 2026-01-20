@@ -14,7 +14,6 @@ export function MapPanel({ bounds, services, onToggleLayer }: MapPanelProps) {
       <Flex
         m={2}
         flexGrow={1}
-        layerStyle='handDrawn'
         overflow='hidden'
         border='2px solid {colors.base.300a}'
       >

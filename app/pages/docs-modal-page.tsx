@@ -10,7 +10,7 @@ export function DocsPageModal({ trigger }: { trigger: React.ReactNode }) {
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner py={4}>
-          <Dialog.Content layerStyle='handDrawn'>
+          <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Documentation</Dialog.Title>
               <Dialog.CloseTrigger asChild unstyled ml='auto'>

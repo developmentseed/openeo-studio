@@ -25,7 +25,6 @@ export function EditorToolbar({
         size='sm'
         variant='outline'
         disabled={!isReady || isExecuting || !isAuthenticated}
-        layerStyle='handDrawn'
         onClick={executeCode}
         loading={isExecuting}
       >
