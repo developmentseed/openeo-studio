@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flex, Text, Button, chakra } from '@chakra-ui/react';
+import { Box, Button, Flex, Text, useRecipe } from '@chakra-ui/react';
 
 import { RemoveIconButton } from './icon-buttons';
 import type { BandVariable } from '$types';
@@ -79,11 +79,14 @@ export function BandArrayBuilder({
     .filter((b): b is BandVariable => b !== undefined);
 
   return (
-    <>
+    <Box>
+      <Text fontSize='sm' fontWeight='medium'>
+        Bands
+      </Text>
       <Flex gap={4} flex={1} minHeight={0}>
         {/* Available bands column */}
         <Flex direction='column' gap={2} flex={1} minHeight={0}>
-          <Text fontSize='sm'>Available bands</Text>
+          <Text fontSize='sm'>Available</Text>
           {availableBands.length === 0 && (
             <Text fontSize='xs' color='gray.500' fontStyle='italic'>
               ⚠️ The parser could not find suitable bands in this collection.
@@ -118,35 +121,20 @@ export function BandArrayBuilder({
         {/* Selected bands column */}
         {availableBands.length > 0 && (
           <Flex direction='column' gap={2} flex={1} minHeight={0}>
-            <Text fontSize='sm'>Selected band dimension</Text>
-            <Flex
-              wrap='wrap'
-              flex={1}
-              alignItems='center'
-              alignContent='flex-start'
-            >
-              <Text fontSize='32px' fontWeight='light' color='gray.500'>
-                [
-              </Text>
+            <Text fontSize='sm'>Selected</Text>
+            <Flex direction='column' gap={1} flex={1} overflowY='auto'>
               {selectedBandDetails.map((band, index) => (
-                <React.Fragment key={band.name}>
-                  <SelectedBandChip
-                    index={index}
-                    band={band}
-                    onRemove={() => removeBand(index)}
-                    onDragStart={() => handleDragStart(index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragEnd={handleDragEnd}
-                    isDragging={draggedIndex === index}
-                  />
-                  {index < selectedBandDetails.length - 1 && (
-                    <chakra.span mr={2}>,</chakra.span>
-                  )}
-                </React.Fragment>
+                <SelectedBandChip
+                  key={`${band.name}`}
+                  index={index}
+                  band={band}
+                  onRemove={() => removeBand(index)}
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  isDragging={draggedIndex === index}
+                />
               ))}
-              <Text fontSize='32px' fontWeight='light' color='gray.500'>
-                ]
-              </Text>
               {selectedBands.length === 0 && (
                 <Text fontSize='xs' color='gray.500' fontStyle='italic'>
                   Click bands to add
@@ -156,7 +144,7 @@ export function BandArrayBuilder({
           </Flex>
         )}
       </Flex>
-    </>
+    </Box>
   );
 }
 
@@ -179,32 +167,57 @@ function SelectedBandChip({
   onDragEnd,
   isDragging
 }: SelectedBandChipProps) {
+  const button = useRecipe({ key: 'button' });
+  const styles = button({
+    variant: 'outline',
+    size: 'xs'
+  });
   return (
-    <Flex
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-      alignItems='center'
-      pl={1}
-      bg={isDragging ? 'blue.100' : 'blue.50'}
-      borderRadius='md'
-      borderWidth='2px'
-      borderColor='blue.300'
-      layerStyle='handDrawn'
-      cursor='grab'
-      opacity={isDragging ? 0.5 : 1}
-      transition='all 0.2s'
-      _hover={{ bg: 'blue.100', transform: 'translateY(-2px)' }}
-      _active={{ cursor: 'grabbing' }}
-    >
-      <Text px={2} fontSize='xs' color='gray.700'>
-        {index}:{' '}
-      </Text>
-      <Text fontSize='xs' fontWeight='bold'>
-        {band.variable}
-      </Text>
-      <RemoveIconButton onClick={onRemove} />
+    <Flex alignItems='center' opacity={isDragging ? 0.5 : 1}>
+      <Box minW='14' flexShrink={0}>
+        <Text fontSize='xs' color='gray.700'>
+          data[{index}]:
+        </Text>
+      </Box>
+      <Flex
+        css={styles}
+        draggable
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+        transition='all 0.2s'
+        cursor='grab'
+        _active={{ cursor: 'grabbing' }}
+        flex={1}
+        gap={2}
+        alignItems='center'
+        justifyContent='space-between'
+        color='gray.500'
+      >
+        <svg
+          version='1.1'
+          xmlns='http://www.w3.org/2000/svg'
+          width='16'
+          height='16'
+          viewBox='0 0 16 16'
+          fill='currentColor'
+        >
+          <rect width='16' height='16' id='icon-bound' fill='none' />
+          <path
+            id='grip-vertical'
+            d='M7,13L5,13L5,15L7,15L7,13ZM11,13L9,13L9,15L11,15L11,13ZM7,9L5,9L5,11L7,11L7,9ZM11,9L9,9L9,11L11,11L11,9ZM7,5L5,5L5,7L7,7L7,5ZM11,5L9,5L9,7L11,7L11,5ZM7,1L5,1L5,3L7,3L7,1ZM11,1L9,1L9,3L11,3L11,1Z'
+          />
+        </svg>
+        <Box textAlign='left' flex={1} color='fg'>
+          {band.variable}{' '}
+          {band.name && (
+            <Text as='span' fontSize='xs' color='gray.500' ml={1}>
+              {band.name}
+            </Text>
+          )}
+        </Box>
+        <RemoveIconButton onClick={onRemove} />
+      </Flex>
     </Flex>
   );
 }

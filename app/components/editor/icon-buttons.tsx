@@ -47,11 +47,9 @@ export function RemoveIconButton({ onClick }: RemoveIconButtonProps) {
     <IconButton
       size='2xs'
       variant='ghost'
-      colorPalette='gray'
       onClick={onClick}
       aria-label='Remove band'
-      color='gray.400'
-      _hover={{ color: 'gray.600' }}
+      _hover={{ bgColor: 'gray.200' }}
     >
       <svg
         version='1.1'
