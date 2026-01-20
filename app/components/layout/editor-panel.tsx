@@ -77,7 +77,7 @@ export function EditorPanel({
 
         <Flex justifyContent='flex-end' mb={2}>
           <Popover.Root positioning={{ placement: 'bottom-end' }} size='lg'>
-            <Popover.Trigger>
+            <Popover.Trigger asChild>
               <InfoIconButton />
             </Popover.Trigger>
             <Portal>
