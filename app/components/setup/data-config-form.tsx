@@ -201,7 +201,6 @@ export function DataConfigForm({
               min={0}
               max={100}
               step={5}
-              disabled={true} // TODO: disabled while backend support is added
             >
               <Slider.Control>
                 <Slider.Track>
