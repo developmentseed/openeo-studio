@@ -1,8 +1,6 @@
+import { useNavigate } from 'react-router';
 import { Box, Text, VStack, Icon } from '@chakra-ui/react';
-
-interface BlankCardProps {
-  onSelect: () => void;
-}
+import { BLANK_SCENE_ID } from '$config/sample-scenes';
 
 const PlusIcon = () => (
   <svg
@@ -17,11 +15,12 @@ const PlusIcon = () => (
   </svg>
 );
 
-export function BlankCard({ onSelect }: BlankCardProps) {
+export function BlankCard() {
+  const navigate = useNavigate();
   return (
     <Box
       as='button'
-      onClick={onSelect}
+      onClick={() => navigate(`/editor/${BLANK_SCENE_ID}`)}
       borderWidth='2px'
       borderStyle='dashed'
       borderColor='gray.300'

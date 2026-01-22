@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Flex, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
-import { useParams, useLocation, useNavigate } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { StacCollection } from 'stac-ts';
 
@@ -14,53 +14,78 @@ import { getSceneById, BLANK_SCENE_ID } from '$config/sample-scenes';
 
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();
-  const location = useLocation();
   const navigate = useNavigate();
   const { isLoading } = useAuth();
 
   const scene = getSceneById(sceneId!);
-
-  // For blank scenes, location.state overrides scene defaults
-  const blankSceneConfig = location.state as {
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-  } | null;
-
-  const isBlankScene = scene?.id === BLANK_SCENE_ID && blankSceneConfig;
+  const isBlankScene = sceneId === BLANK_SCENE_ID;
 
   const [services, setServices] = useState<ServiceInfo[]>([]);
 
+  // Get defaults based on scene type
+  const getSceneDefaults = () => {
+    if (isBlankScene) {
+      return {
+        collectionId: 'sentinel-2-l2a',
+        cloudCover: 50,
+        temporalRange: ['', ''] as [string, string],
+        defaultBands: [] as string[]
+      };
+    }
+    return {
+      collectionId: scene!.collectionId,
+      cloudCover: scene!.cloudCover ?? 100,
+      temporalRange: scene!.temporalRange,
+      defaultBands: scene!.defaultBands ?? []
+    };
+  };
+
+  const defaults = getSceneDefaults();
+
   // Data configuration state
-  const [collectionId, _setCollectionId] = useState(
-    isBlankScene ? blankSceneConfig.collectionId : scene?.collectionId || ''
-  );
-  const [temporalRange, setTemporalRange] = useState<[string, string]>(
-    isBlankScene
-      ? blankSceneConfig.temporalRange
-      : scene?.temporalRange || ['', '']
-  );
-  const [cloudCover, setCloudCover] = useState(
-    isBlankScene ? blankSceneConfig.cloudCover : scene?.cloudCover || 100
-  );
-  const [selectedBands, setSelectedBands] = useState<string[]>(
-    scene?.defaultBands || []
-  );
+  const [collectionId, _setCollectionId] = useState(defaults.collectionId);
+  const [temporalRange, setTemporalRange] = useState(defaults.temporalRange);
+  const [cloudCover, setCloudCover] = useState(defaults.cloudCover);
+  const [selectedBands, setSelectedBands] = useState(defaults.defaultBands);
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
 
+  // For blank scenes, set temporal range from collection extent when available
+  useEffect(() => {
+    if (isBlankScene && collection?.extent?.temporal?.interval) {
+      const intervals = collection.extent.temporal.interval;
+      if (intervals.length > 0 && intervals[0].length >= 2) {
+        const [, end] = intervals[0];
+        if (end) {
+          // Convert ISO datetime to date-only format (YYYY-MM-DD)
+          const endDate = new Date(end);
+          // Set start date to one month before end date
+          const startDate = new Date(endDate);
+          startDate.setMonth(startDate.getMonth() - 1);
+
+          const startDateStr = startDate.toISOString().split('T')[0];
+          const endDateStr = endDate.toISOString().split('T')[0];
+          setTemporalRange([startDateStr, endDateStr]);
+        }
+      }
+    }
+  }, [isBlankScene, collection]);
+
   // Extract band metadata from STAC item
   const bands = useMemo(() => extractBandsFromStac(collection), [collection]);
-  const mapBounds = useMemo(() => scene?.boundingBox, [scene]);
+  const mapBounds = useMemo(
+    () => (isBlankScene ? undefined : scene?.boundingBox),
+    [isBlankScene, scene]
+  );
 
   // Early return
   if (isLoading) {
     return null; // Still loading auth state
   }
 
-  if (!scene) {
-    // Scene not found - navigate back
+  if (!scene && !isBlankScene) {
+    // Scene not found and not blank scene - navigate back
     navigate('/', { replace: true });
     return null;
   }
@@ -93,7 +118,7 @@ export function EditorPage() {
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
       <EditorHeader
-        sceneName={scene.name}
+        sceneName={isBlankScene ? '...' : scene!.name}
         collectionId={collectionId}
         temporalRange={temporalRange}
         cloudCover={cloudCover}
@@ -113,11 +138,11 @@ export function EditorPage() {
               collectionId,
               selectedBands,
               temporalRange,
-              boundingBox: scene.boundingBox,
+              boundingBox: isBlankScene ? undefined : scene!.boundingBox,
               cloudCover
             }}
             availableBands={bands}
-            initialCode={scene.suggestedAlgorithm}
+            initialCode={scene?.suggestedAlgorithm || ''}
             setServices={setServices}
             onSelectedBandsChange={setSelectedBands}
             onTemporalRangeChange={handleTemporalRangeChange}

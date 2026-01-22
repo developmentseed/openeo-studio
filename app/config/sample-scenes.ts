@@ -41,18 +41,5 @@ export const SAMPLE_SCENES: SampleScene[] = [
 ];
 
 export function getSceneById(id: string): SampleScene | undefined {
-  if (id === BLANK_SCENE_ID) {
-    return {
-      id: BLANK_SCENE_ID,
-      name: 'Custom Analysis',
-      description: 'Configure your own data source',
-      collectionId: '',
-      temporalRange: ['', ''] as [string, string],
-      suggestedAlgorithm: '',
-      defaultBands: [],
-      boundingBox: [0, -90, 180, 90], // west, south, east, north
-      cloudCover: 20 // Max cloud cover percentage
-    };
-  }
   return SAMPLE_SCENES.find((scene) => scene.id === id);
 }
