@@ -1,11 +1,10 @@
 import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react';
-import { useAuth } from 'react-oidc-context';
 import { useNavigate } from 'react-router';
+
 import { SceneGrid } from '$components/landing/scene-grid';
 import { APP_TITLE } from '$config/constants';
 
 export function LandingPage() {
-  const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -45,13 +44,6 @@ export function LandingPage() {
         <Heading size='xl'>Explore the sample visualization processing</Heading>
 
         <SceneGrid />
-
-        {!isAuthenticated && !isLoading && (
-          <Text fontSize='md' color='orange.600' fontWeight='medium'>
-            You need an account to use {APP_TITLE}. Please log in using the
-            button in the top-right corner.
-          </Text>
-        )}
       </Flex>
     </Box>
   );
