@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
-import { Route, Routes, useNavigate } from 'react-router';
+import { Navigate, Route, Routes, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
 import { AppHeader } from '$components/layout/app-header';
@@ -73,6 +73,7 @@ export default function App() {
         <Route path='/' element={<LandingPage />} />
         <Route path='/docs' element={<DocsPage />} />
         <Route path='/editor/:sceneId' element={<EditorPage />} />
+        <Route path='*' element={<Navigate to='/' replace />} />
       </Routes>
     </Flex>
   );
