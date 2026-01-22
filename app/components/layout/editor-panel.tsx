@@ -1,17 +1,12 @@
-import { Flex, Popover, Portal, Tabs, VStack } from '@chakra-ui/react';
+import { Flex, Tabs } from '@chakra-ui/react';
 
 import { CodeEditor, useCodeEditor } from '$components/editor/code-editor';
 import { useCodeExecution } from '$components/editor/use-code-execution';
 import { EditorToolbar } from '$components/editor/editor-toolbar';
-import { OutputPanel } from '$components/editor/output-panel';
+import { ConfigurationTab } from '$components/editor/configuration-tab';
+import { CodeTab } from '$components/editor/code-tab';
 import { usePyodide } from '$contexts/pyodide-context';
 import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
-import { AvailableVariables } from '$components/editor/available-variables';
-import { BandArrayBuilder } from '$components/setup/band-array-builder';
-import { CollectionDisplay } from '$components/setup/collection-display';
-import { TemporalRangePicker } from '$components/setup/temporal-range-picker';
-import { CloudCoverSlider } from '$components/setup/cloud-cover-slider';
-import { InfoIconButton } from '$components/editor/icon-buttons';
 
 interface EditorPanelProps {
   config: ExecutionConfig;
@@ -84,27 +79,16 @@ function EditorPanelContent({
         </Tabs.List>
 
         <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
-          <VStack gap={6} align='stretch'>
-            <CollectionDisplay collectionId={config.collectionId} />
-
-            <TemporalRangePicker
-              temporalRange={config.temporalRange}
-              onTemporalRangeChange={onTemporalRangeChange}
-            />
-
-            <CloudCoverSlider
-              cloudCover={config.cloudCover || 100}
-              onCloudCoverChange={onCloudCoverChange}
-            />
-
-            {availableBands && onSelectedBandsChange && (
-              <BandArrayBuilder
-                availableBands={availableBands}
-                selectedBands={config.selectedBands || []}
-                onSelectionChange={onSelectedBandsChange}
-              />
-            )}
-          </VStack>
+          <ConfigurationTab
+            collectionId={config.collectionId}
+            temporalRange={config.temporalRange}
+            cloudCover={config.cloudCover || 100}
+            selectedBands={config.selectedBands || []}
+            availableBands={availableBands}
+            onTemporalRangeChange={onTemporalRangeChange}
+            onCloudCoverChange={onCloudCoverChange}
+            onSelectedBandsChange={onSelectedBandsChange}
+          />
         </Tabs.Content>
 
         <Tabs.Content
@@ -116,42 +100,10 @@ function EditorPanelContent({
           minHeight={0}
           overflow='hidden'
         >
-          <Flex justifyContent='flex-end' mb={2}>
-            <Popover.Root positioning={{ placement: 'bottom-end' }} size='lg'>
-              <Popover.Trigger asChild>
-                <InfoIconButton />
-              </Popover.Trigger>
-              <Portal>
-                <Popover.Positioner>
-                  <Popover.Content minW='lg'>
-                    <Popover.CloseTrigger />
-                    <Popover.Arrow />
-                    <Popover.Body>
-                      <Popover.Title fontWeight='medium'>
-                        Available Variables
-                      </Popover.Title>
-                      <AvailableVariables
-                        selectedBands={config.selectedBands || []}
-                      />
-                    </Popover.Body>
-                  </Popover.Content>
-                </Popover.Positioner>
-              </Portal>
-            </Popover.Root>
-          </Flex>
-
-          {isReady ? (
-            <Flex
-              flexDirection='column'
-              flex={1}
-              minHeight={0}
-              overflow='hidden'
-            >
-              <CodeEditor.View />
-            </Flex>
-          ) : (
-            <OutputPanel />
-          )}
+          <CodeTab
+            isReady={isReady}
+            selectedBands={config.selectedBands || []}
+          />
         </Tabs.Content>
       </Tabs.Root>
 
