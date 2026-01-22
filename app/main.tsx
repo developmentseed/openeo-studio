@@ -20,7 +20,21 @@ const oidcConfig: AuthProviderProps = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
   authority: authAuthority,
   client_id: authClientId,
-  redirect_uri: authRedirectUri
+  redirect_uri: authRedirectUri,
+  onSigninCallback: (user) => {
+    // Mark that we are handling an auth callback so the app can avoid rendering
+    // intermediate routes that cause a flash.
+    window.sessionStorage.setItem('authInProgress', '1');
+
+    // Extract the return path from OIDC state
+    const returnTo = (user?.state as { returnTo?: string })?.returnTo;
+    if (returnTo && returnTo !== '/') {
+      // Store it so App can navigate after render
+      window.sessionStorage.setItem('postAuthPath', returnTo);
+    }
+    // Clean up URL (remove auth params)
+    window.history.replaceState({}, '', window.location.pathname);
+  }
 };
 
 // Root component.
