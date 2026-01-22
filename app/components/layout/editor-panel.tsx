@@ -1,4 +1,4 @@
-import { Flex, Popover, Portal, Tabs } from '@chakra-ui/react';
+import { Flex, Popover, Portal, Tabs, VStack } from '@chakra-ui/react';
 
 import { Editor } from '$components/editor';
 import { OutputPanel } from '$components/editor/output-panel';
@@ -6,7 +6,9 @@ import { usePyodide } from '$contexts/pyodide-context';
 import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
 import { AvailableVariables } from '$components/editor/available-variables';
 import { BandArrayBuilder } from '$components/editor/band-array-builder';
-import { DataConfigForm } from '$components/setup/data-config-form';
+import { CollectionDisplay } from '$components/setup/collection-display';
+import { TemporalRangePicker } from '$components/setup/temporal-range-picker';
+import { CloudCoverSlider } from '$components/setup/cloud-cover-slider';
 import { InfoIconButton } from '$components/editor/icon-buttons';
 
 interface EditorPanelProps {
@@ -15,11 +17,8 @@ interface EditorPanelProps {
   initialCode?: string;
   setServices: (services: ServiceInfo[]) => void;
   onSelectedBandsChange?: (bands: string[]) => void;
-  onConfigApply: (config: {
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-  }) => void;
+  onTemporalRangeChange: (temporalRange: [string, string]) => void;
+  onCloudCoverChange: (cloudCover: number) => void;
 }
 
 export function EditorPanel({
@@ -28,7 +27,8 @@ export function EditorPanel({
   initialCode,
   setServices,
   onSelectedBandsChange,
-  onConfigApply
+  onTemporalRangeChange,
+  onCloudCoverChange
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
   const isReady = !!pyodide;
@@ -46,13 +46,17 @@ export function EditorPanel({
       </Tabs.List>
 
       <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
-        <Flex flexDirection='column' gap={8} height='100%'>
-          <DataConfigForm
-            collectionId={config.collectionId}
+        <VStack gap={6} align='stretch'>
+          <CollectionDisplay collectionId={config.collectionId} />
+
+          <TemporalRangePicker
             temporalRange={config.temporalRange}
-            cloudCover={config.cloudCover}
-            onApply={onConfigApply}
-            showActions={true}
+            onTemporalRangeChange={onTemporalRangeChange}
+          />
+
+          <CloudCoverSlider
+            cloudCover={config.cloudCover || 100}
+            onCloudCoverChange={onCloudCoverChange}
           />
 
           {availableBands && onSelectedBandsChange && (
@@ -62,7 +66,7 @@ export function EditorPanel({
               onSelectionChange={onSelectedBandsChange}
             />
           )}
-        </Flex>
+        </VStack>
       </Tabs.Content>
 
       <Tabs.Content

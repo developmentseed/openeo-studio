@@ -32,7 +32,7 @@ export function EditorPage() {
   const [services, setServices] = useState<ServiceInfo[]>([]);
 
   // Data configuration state
-  const [collectionId, setCollectionId] = useState(
+  const [collectionId, _setCollectionId] = useState(
     isBlankScene ? blankSceneConfig.collectionId : scene?.collectionId || ''
   );
   const [temporalRange, setTemporalRange] = useState<[string, string]>(
@@ -76,25 +76,18 @@ export function EditorPage() {
     );
   };
 
-  // Handle data configuration changes
-  const handleConfigApply = (config: {
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-  }) => {
-    const collectionChanged = config.collectionId !== collectionId;
-
-    setCollectionId(config.collectionId);
-    setTemporalRange(config.temporalRange);
-    setCloudCover(config.cloudCover);
-
-    // Clear services when data config changes
+  // Handle temporal range changes - immediately updates state and clears services
+  const handleTemporalRangeChange = (newTemporalRange: [string, string]) => {
+    setTemporalRange(newTemporalRange);
+    // Clear services when temporal range changes
     setServices([]);
+  };
 
-    // Reset band selection if collection changed
-    if (collectionChanged) {
-      setSelectedBands([]);
-    }
+  // Handle cloud cover changes - immediately updates state and clears services
+  const handleCloudCoverChange = (newCloudCover: number) => {
+    setCloudCover(newCloudCover);
+    // Clear services when cloud cover changes
+    setServices([]);
   };
 
   return (
@@ -127,7 +120,8 @@ export function EditorPage() {
             initialCode={scene.suggestedAlgorithm}
             setServices={setServices}
             onSelectedBandsChange={setSelectedBands}
-            onConfigApply={handleConfigApply}
+            onTemporalRangeChange={handleTemporalRangeChange}
+            onCloudCoverChange={handleCloudCoverChange}
           />
         </Splitter.Panel>
 
