@@ -72,6 +72,7 @@ export default function App() {
       <Routes>
         <Route path='/' element={<LandingPage />} />
         <Route path='/docs' element={<DocsPage />} />
+        <Route path='/editor' element={<EditorPage />} />
         <Route path='/editor/:sceneId' element={<EditorPage />} />
         <Route path='*' element={<Navigate to='/' replace />} />
       </Routes>

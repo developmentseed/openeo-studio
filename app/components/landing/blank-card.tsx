@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router';
 import { Box, Text, VStack, Icon } from '@chakra-ui/react';
-import { BLANK_SCENE_ID } from '$config/sample-scenes';
 
 const PlusIcon = () => (
   <svg
@@ -20,7 +19,7 @@ export function BlankCard() {
   return (
     <Box
       as='button'
-      onClick={() => navigate(`/editor/${BLANK_SCENE_ID}`)}
+      onClick={() => navigate('/editor')}
       borderWidth='2px'
       borderStyle='dashed'
       borderColor='gray.300'

@@ -10,7 +10,7 @@ import { EditorPanel } from '$components/layout/editor-panel';
 import { MapPanel } from '$components/layout/map-panel';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
 import type { ServiceInfo } from '$types';
-import { getSceneById, BLANK_SCENE_ID } from '$config/sample-scenes';
+import { getSceneById } from '$config/sample-scenes';
 
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();
@@ -18,7 +18,7 @@ export function EditorPage() {
   const { isLoading, isAuthenticated } = useAuth();
 
   const scene = getSceneById(sceneId!);
-  const isBlankScene = sceneId === BLANK_SCENE_ID;
+  const isBlankScene = !sceneId;
 
   const [services, setServices] = useState<ServiceInfo[]>([]);
 
