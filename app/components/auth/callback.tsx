@@ -4,25 +4,21 @@ import { Heading, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from 'react-router';
 
 export default function Callback() {
-  const { isAuthenticated, user } = useAuth();
-
+  const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Prefer explicit returnTo value from state, fall back to any
-      // stored post-auth path, otherwise go home.
-      const returnTo = (user.state as { returnTo?: string } | null)?.returnTo;
-      const postAuthPath = window.sessionStorage.getItem('postAuthPath');
-      const redirectUrl = returnTo || postAuthPath || '/';
-
-      if (postAuthPath) {
-        window.sessionStorage.removeItem('postAuthPath');
-      }
-
-      navigate(redirectUrl, { replace: true });
+    if (!isLoading && isAuthenticated && user) {
+      // Get the return path from user state
+      const returnTo =
+        (user.state as { returnTo?: string } | null)?.returnTo || '/';
+      // Navigate immediately
+      navigate(returnTo, { replace: true });
+    } else if (!isLoading && !isAuthenticated) {
+      // Auth failed, redirect home
+      navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, isLoading, user, navigate]);
 
   return (
     <VStack

@@ -12,31 +12,15 @@ import system from './styles/theme';
 
 import App from './app';
 
-const publicUrl = import.meta.env.VITE_BASE_URL || '';
 const authAuthority = import.meta.env.VITE_AUTH_AUTHORITY || '';
 const authClientId = import.meta.env.VITE_AUTH_CLIENT_ID || '';
 const authRedirectUri = import.meta.env.VITE_AUTH_REDIRECT_URI || '';
-
-const baseName = new URL(
-  publicUrl.startsWith('http')
-    ? publicUrl
-    : `https://ds.io/${publicUrl.replace(/^\//, '')}`
-).pathname;
 
 const oidcConfig: AuthProviderProps = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
   authority: authAuthority,
   client_id: authClientId,
-  redirect_uri: authRedirectUri,
-  onSigninCallback: (user) => {
-    // Store the return path in sessionStorage so App component can navigate
-    const returnTo = (user?.state as { returnTo?: string })?.returnTo;
-    if (returnTo && returnTo !== '/') {
-      window.sessionStorage.setItem('postAuthPath', returnTo);
-    }
-    // Clean up URL by removing query params
-    window.history.replaceState({}, '', `${baseName || '/'}`);
-  }
+  redirect_uri: authRedirectUri
 };
 
 // Root component.
