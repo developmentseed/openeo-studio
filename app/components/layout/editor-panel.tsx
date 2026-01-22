@@ -67,13 +67,14 @@ function EditorPanelContent({
   return (
     <Flex flexDirection='column' height='100%'>
       <Tabs.Root
+        variant='subtle'
         defaultValue='configuration'
         display='flex'
         flex={1}
         flexDirection='column'
         minHeight={0}
       >
-        <Tabs.List>
+        <Tabs.List px='lg' py='sm'>
           <Tabs.Trigger value='configuration'>CONFIGURATION</Tabs.Trigger>
           <Tabs.Trigger value='code'>CODE</Tabs.Trigger>
         </Tabs.List>
