@@ -1,9 +1,18 @@
 import { Button, Flex, Heading, Separator } from '@chakra-ui/react';
+import { useNavigate, useLocation } from 'react-router';
 import { APP_TITLE } from '$config/constants';
 import { UserInfo } from '$components/auth/user-info';
-import { DocsPageModal } from '$pages/docs-modal-page';
 
 export function AppHeader() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleDocsClick = () => {
+    if (location.pathname !== '/docs') {
+      navigate('/docs');
+    }
+  };
+
   return (
     <Flex
       alignItems='center'
@@ -15,13 +24,9 @@ export function AppHeader() {
     >
       <Heading size='md'>{APP_TITLE}</Heading>
       <Flex ml='auto' alignItems='center' gap={4}>
-        <DocsPageModal
-          trigger={
-            <Button variant='ghost' size='sm'>
-              Documentation
-            </Button>
-          }
-        />
+        <Button variant='ghost' size='sm' onClick={handleDocsClick}>
+          Documentation
+        </Button>
         <Separator orientation='vertical' height='8' />
         <UserInfo />
       </Flex>

@@ -1,11 +1,12 @@
 import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
+import { useNavigate } from 'react-router';
 import { SceneGrid } from '$components/landing/scene-grid';
 import { APP_TITLE } from '$config/constants';
-import { DocsPageModal } from './docs-modal-page';
 
 export function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <Box flex={1} overflowY='auto' px={8} py={8}>
@@ -24,24 +25,20 @@ export function LandingPage() {
           </Box>
 
           <Box>
-            <DocsPageModal
-              trigger={
-                <Button variant='outline'>
-                  Read the docs{' '}
-                  <svg
-                    version='1.1'
-                    xmlns='http://www.w3.org/2000/svg'
-                    width='16'
-                    height='16'
-                    viewBox='0 0 16 16'
-                    style={{ fill: 'currentColor' }}
-                  >
-                    <rect width='16' height='16' id='icon-bound' fill='none' />
-                    <polygon points='7.586,2.414 12.172,7 0,7 0,9 12.172,9 7.586,13.586 9,15 16,8 9,1' />
-                  </svg>
-                </Button>
-              }
-            />
+            <Button variant='outline' onClick={() => navigate('/docs')}>
+              Read the docs{' '}
+              <svg
+                version='1.1'
+                xmlns='http://www.w3.org/2000/svg'
+                width='16'
+                height='16'
+                viewBox='0 0 16 16'
+                style={{ fill: 'currentColor' }}
+              >
+                <rect width='16' height='16' id='icon-bound' fill='none' />
+                <polygon points='7.586,2.414 12.172,7 0,7 0,9 12.172,9 7.586,13.586 9,15 16,8 9,1' />
+              </svg>
+            </Button>
           </Box>
         </Flex>
 

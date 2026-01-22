@@ -5,6 +5,7 @@ import Callback from '$components/auth/callback';
 import { AppHeader } from '$components/layout/app-header';
 import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
+import { DocsPage } from '$pages/docs-page';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Routes>
         <Route path='/auth/callback' element={<Callback />} />
         <Route path='/' element={<LandingPage />} />
+        <Route path='/docs' element={<DocsPage />} />
         <Route path='/editor/:sceneId' element={<EditorPage />} />
       </Routes>
     </Flex>
