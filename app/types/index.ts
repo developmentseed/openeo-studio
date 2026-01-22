@@ -26,8 +26,6 @@ export interface SampleScene {
  * Represents a band variable extracted from STAC metadata.
  */
 export interface BandVariable {
-  /** Variable name (e.g., "B02") */
-  variable: string;
   /** Band identifier in lowercase (e.g., "b02") */
   name: string;
   /** Human-readable label (e.g., "Blue") */
@@ -38,8 +36,6 @@ export interface BandVariable {
   resolution?: string;
   /** Center wavelength (e.g., "490 nm") */
   wavelength?: string;
-  /** Full path for datacube.band() (e.g., "reflectance|b02") */
-  path: string;
 }
 
 /**

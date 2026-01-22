@@ -102,7 +102,7 @@ export function BandArrayBuilder({
                 onClick={() => addBand(band.name)}
                 justifyContent='flex-start'
               >
-                {band.variable} - {band.label}
+                {`${band.name} - ${band.label}`}
                 {band.resolution && (
                   <Text as='span' fontSize='xs' color='gray.500' ml={1}>
                     ({band.resolution})
@@ -174,9 +174,9 @@ function SelectedBandChip({
   });
   return (
     <Flex alignItems='center' opacity={isDragging ? 0.5 : 1}>
-      <Box minW='14' flexShrink={0}>
+      <Box minW='8' flexShrink={0}>
         <Text fontSize='xs' color='gray.700'>
-          data[{index}]:
+          [{index}]:
         </Text>
       </Box>
       <Flex
@@ -209,12 +209,7 @@ function SelectedBandChip({
           />
         </svg>
         <Box textAlign='left' flex={1} color='fg'>
-          {band.variable}{' '}
-          {band.name && (
-            <Text as='span' fontSize='xs' color='gray.500' ml={1}>
-              {band.name}
-            </Text>
-          )}
+          {band.name}
         </Box>
         <RemoveIconButton onClick={onRemove} />
       </Flex>

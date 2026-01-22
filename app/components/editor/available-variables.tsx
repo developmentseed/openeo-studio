@@ -49,7 +49,7 @@ export function AvailableVariables({
           {selectedBands.map((band, index) => (
             <Flex key={band} alignItems='baseline' gap={2}>
               <Code fontSize='sm' fontFamily='monospace' colorPalette='blue'>
-                data[{index}]
+                [{index}]
               </Code>
               <Text fontSize='xs' color='gray.500'>
                 :
