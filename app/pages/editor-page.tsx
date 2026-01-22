@@ -15,7 +15,7 @@ import { getSceneById, BLANK_SCENE_ID } from '$config/sample-scenes';
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();
   const navigate = useNavigate();
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
 
   const scene = getSceneById(sceneId!);
   const isBlankScene = sceneId === BLANK_SCENE_ID;
@@ -147,6 +147,12 @@ export function EditorPage() {
             onSelectedBandsChange={setSelectedBands}
             onTemporalRangeChange={handleTemporalRangeChange}
             onCloudCoverChange={handleCloudCoverChange}
+            defaultTab={isBlankScene ? 'configuration' : 'code'}
+            autoExecuteOnReady={
+              isAuthenticated &&
+              !isBlankScene &&
+              !!scene?.suggestedAlgorithm?.trim()
+            } // Auto-execute only if user is logged in AND this is a sample scene AND it has a non-empty suggested algorithm.
           />
         </Splitter.Panel>
 

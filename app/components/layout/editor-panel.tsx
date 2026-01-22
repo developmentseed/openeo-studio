@@ -1,4 +1,5 @@
 import { Flex, Tabs } from '@chakra-ui/react';
+import { useEffect, useRef, useState } from 'react';
 
 import { CodeEditor, useCodeEditor } from '$components/editor/code-editor';
 import { useCodeExecution } from '$components/editor/use-code-execution';
@@ -16,6 +17,8 @@ interface EditorPanelProps {
   onSelectedBandsChange?: (bands: string[]) => void;
   onTemporalRangeChange: (temporalRange: [string, string]) => void;
   onCloudCoverChange: (cloudCover: number) => void;
+  defaultTab?: 'configuration' | 'code';
+  autoExecuteOnReady?: boolean;
 }
 
 export function EditorPanel({
@@ -25,7 +28,9 @@ export function EditorPanel({
   setServices,
   onSelectedBandsChange,
   onTemporalRangeChange,
-  onCloudCoverChange
+  onCloudCoverChange,
+  defaultTab = 'configuration',
+  autoExecuteOnReady = false
 }: EditorPanelProps) {
   const { pyodide } = usePyodide();
   const isReady = !!pyodide;
@@ -40,6 +45,8 @@ export function EditorPanel({
         onTemporalRangeChange={onTemporalRangeChange}
         onCloudCoverChange={onCloudCoverChange}
         isReady={isReady}
+        defaultTab={defaultTab}
+        autoExecuteOnReady={autoExecuteOnReady}
       />
     </CodeEditor.Root>
   );
@@ -55,20 +62,40 @@ function EditorPanelContent({
   onSelectedBandsChange,
   onTemporalRangeChange,
   onCloudCoverChange,
-  isReady
-}: Omit<EditorPanelProps, 'initialCode'> & { isReady: boolean }) {
+  isReady,
+  defaultTab = 'configuration',
+  autoExecuteOnReady = false
+}: Omit<EditorPanelProps, 'initialCode'> & {
+  isReady: boolean;
+  defaultTab?: 'configuration' | 'code';
+  autoExecuteOnReady?: boolean;
+}) {
   const editor = useCodeEditor();
+  const [showAutoExecHint, setShowAutoExecHint] = useState(false);
   const {
     executeCode,
     isExecuting,
     isReady: isExecutionReady
   } = useCodeExecution(setServices, editor, config);
 
+  const hasAutoExecutedRef = useRef(false);
+  useEffect(() => {
+    if (!autoExecuteOnReady) return;
+    if (hasAutoExecutedRef.current) return;
+    if (!isExecutionReady) return;
+
+    hasAutoExecutedRef.current = true;
+    setShowAutoExecHint(true);
+    const t = setTimeout(() => setShowAutoExecHint(false), 1500);
+    executeCode();
+    return () => clearTimeout(t);
+  }, [autoExecuteOnReady, isExecutionReady, executeCode]);
+
   return (
     <Flex flexDirection='column' height='100%'>
       <Tabs.Root
         variant='subtle'
-        defaultValue='configuration'
+        defaultValue={defaultTab}
         display='flex'
         flex={1}
         flexDirection='column'
@@ -113,6 +140,7 @@ function EditorPanelContent({
         isReady={isExecutionReady}
         isExecuting={isExecuting}
         executeCode={executeCode}
+        showAutoExecHint={showAutoExecHint}
       />
     </Flex>
   );
