@@ -15,7 +15,15 @@ export function EditorToolbar({
   const { isAuthenticated } = useAuth();
 
   return (
-    <Flex justifyContent='flex-end' alignItems='center' gap={3}>
+    <Flex
+      justifyContent='flex-end'
+      alignItems='center'
+      gap={3}
+      px='lg'
+      py='sm'
+      borderTop='1px solid'
+      borderColor='gray.200'
+    >
       {!isAuthenticated && (
         <Text fontSize='sm' color='orange.600'>
           Log in to run analysis
