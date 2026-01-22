@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Flex, Text, useRecipe } from '@chakra-ui/react';
 
-import { RemoveIconButton } from './icon-buttons';
+import { RemoveIconButton } from '$components/editor/icon-buttons';
 import type { BandVariable } from '$types';
 
 interface BandArrayBuilderProps {

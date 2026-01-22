@@ -5,7 +5,7 @@ import { OutputPanel } from '$components/editor/output-panel';
 import { usePyodide } from '$contexts/pyodide-context';
 import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
 import { AvailableVariables } from '$components/editor/available-variables';
-import { BandArrayBuilder } from '$components/editor/band-array-builder';
+import { BandArrayBuilder } from '$components/setup/band-array-builder';
 import { CollectionDisplay } from '$components/setup/collection-display';
 import { TemporalRangePicker } from '$components/setup/temporal-range-picker';
 import { CloudCoverSlider } from '$components/setup/cloud-cover-slider';
