@@ -24,7 +24,11 @@
     "lint": "pnpm lint:scripts",
     "lint:scripts": "eslint app/",
     "ts-check": "npx tsc --noEmit --skipLibCheck",
-    "test": "jest"
+    "test": "jest",
+    "test:integration": "playwright test",
+    "test:integration:ui": "playwright test --ui",
+    "test:integration:debug": "playwright test --debug",
+    "test:integration:headed": "playwright test --headed"
   },
   "engines": {
     "node": "22.x"
@@ -32,6 +36,7 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.58.0",
     "@types/babel__core": "^7",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
@@ -49,6 +54,7 @@
     "husky": "^9.1.7",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
+    "playwright": "^1.58.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
@@ -96,5 +102,5 @@
     "$test": "~/test",
     "$types": "~/app/types"
   },
-  "packageManager": "pnpm@10.21.0"
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }

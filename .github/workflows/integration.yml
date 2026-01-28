@@ -1,0 +1,40 @@
+# This workflow runs integration tests:
+#
+#   1. Tests frontend user flows with mocked APIs using Playwright
+#   2. Validates user-facing functionality
+
+name: Integration Tests
+
+on:
+  workflow_run:
+    workflows: [Checks]
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium
+
+      - name: Run integration tests
+        run: pnpm test:integration
