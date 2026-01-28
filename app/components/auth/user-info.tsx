@@ -1,7 +1,8 @@
 import { Button, Image } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
-import { useLocation } from 'react-router';
+
+import { LoginButton } from '$components/auth/login-button';
 
 async function hash(string: string) {
   const utf8 = new TextEncoder().encode(string);
@@ -14,16 +15,8 @@ async function hash(string: string) {
 }
 
 export function UserInfo() {
-  const {
-    isLoading,
-    isAuthenticated,
-    user,
-    signinRedirect,
-    removeUser,
-    events,
-    signinSilent
-  } = useAuth();
-  const location = useLocation();
+  const { isLoading, isAuthenticated, user, removeUser, events, signinSilent } =
+    useAuth();
 
   const profile = user?.profile;
 
@@ -42,22 +35,7 @@ export function UserInfo() {
   }, [events, signinSilent]);
 
   if (!isAuthenticated || !profile || isLoading) {
-    return (
-      <Button
-        variant='ghost'
-        onClick={(e) => {
-          e.preventDefault();
-          if (!isLoading) {
-            // Pass current location through OIDC state parameter
-            signinRedirect({
-              state: { returnTo: location.pathname }
-            });
-          }
-        }}
-      >
-        Login
-      </Button>
-    );
+    return <LoginButton />;
   }
 
   // const username =
@@ -66,18 +44,31 @@ export function UserInfo() {
   return (
     <Button
       variant='outline'
+      size='sm'
+      paddingLeft={1.5}
       onClick={(e) => {
         e.preventDefault();
         removeUser();
       }}
     >
-      Logout{' '}
       <Image
-        width={8}
+        width={6}
+        height={6}
+        borderRadius='xs'
         src={`https://www.gravatar.com/avatar/${userEmailHash}?d=initials`}
         alt='User image'
-        className='profile-image'
       />
+      Logout
+      <svg
+        version='1.1'
+        xmlns='http://www.w3.org/2000/svg'
+        width='16'
+        height='16'
+        viewBox='0 0 16 16'
+      >
+        <rect width='16' height='16' id='icon-bound' fill='none' />
+        <path d='M14,14l0,-12l-6,0l0,-2l8,0l0,16l-8,0l0,-2l6,0Zm-9.002,-0.998l-4.998,-5.002l5,-5l1.416,1.416l-2.588,2.584l8.172,0l0,2l-8.172,0l2.586,2.586l-1.416,1.416Z' />
+      </svg>
     </Button>
   );
 }

@@ -27,11 +27,7 @@ export function EditorToolbar({
       borderColor='gray.200'
     >
       <Text fontSize='sm' color='gray.500'>
-        {isExecuting && showAutoExecHint
-          ? 'Running analysis…'
-          : isAuthenticated
-            ? ''
-            : 'Log in to run analysis'}
+        {isExecuting && showAutoExecHint ? 'Running analysis…' : ''}
       </Text>
       <Flex alignItems='center' gap={3}>
         <Button

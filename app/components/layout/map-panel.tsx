@@ -1,5 +1,7 @@
 import { Flex } from '@chakra-ui/react';
+import { useAuth } from 'react-oidc-context';
 import { MapViewer } from '$components/map/map-viewer';
+import { LoginDialog } from '$components/auth/login-dialog';
 import type { ServiceInfo } from '$types';
 
 interface MapPanelProps {
@@ -9,13 +11,14 @@ interface MapPanelProps {
 }
 
 export function MapPanel({ bounds, services, onToggleLayer }: MapPanelProps) {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <Flex flexGrow={1} h='100%'>
+    <Flex flexGrow={1} h='100%' position='relative'>
       <Flex
-        m={2}
         flexGrow={1}
-        overflow='hidden'
-        border='2px solid {colors.base.300a}'
+        filter={!isAuthenticated ? 'blur(16px)' : undefined}
+        pointerEvents={!isAuthenticated ? 'none' : 'auto'}
       >
         <MapViewer
           bounds={bounds}
@@ -23,6 +26,7 @@ export function MapPanel({ bounds, services, onToggleLayer }: MapPanelProps) {
           onToggleLayer={onToggleLayer}
         />
       </Flex>
+      <LoginDialog isOpen={!isAuthenticated} />
     </Flex>
   );
 }
