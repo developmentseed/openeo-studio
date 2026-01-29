@@ -6,9 +6,8 @@ test.describe('Navigation', () => {
     test('landing page loads and displays main content', async ({ page }) => {
       await page.goto('/');
 
-      // Verify page title/heading is visible
-      const heading = page.getByRole('heading').first();
-      await expect(heading).toBeVisible();
+      // Verify page title/heading is visible (h1 is main title)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
       // Verify main sections are present
       await expect(page.getByText(/explore|analyze|satellite/i)).toBeVisible();
@@ -101,7 +100,7 @@ test.describe('Navigation', () => {
       // Verify landed on home page
       await expect(authenticatedPage).toHaveURL('/');
       await expect(
-        authenticatedPage.getByRole('heading').first()
+        authenticatedPage.getByRole('heading', { level: 1 })
       ).toBeVisible();
     });
   });

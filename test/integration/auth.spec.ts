@@ -99,6 +99,9 @@ test.describe('Authenticated UI', () => {
     const applyButton = authenticatedPage.getByRole('button', {
       name: /apply/i
     });
-    await expect(applyButton).toBeEnabled();
+    await expect(
+      applyButton,
+      'Apply button should be enabled when authenticated and ready'
+    ).toBeEnabled({ timeout: 15000 }); // wait for pyodide
   });
 });
