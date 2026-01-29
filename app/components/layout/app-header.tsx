@@ -27,6 +27,7 @@ export function AppHeader() {
         to='/'
         paddingInline='3.5'
         height='9'
+        aria-label='Home'
         _hover={{ textDecoration: 'none' }}
         _focus={{ outline: 'none' }}
         _focusVisible={{
