@@ -30,6 +30,11 @@ export default defineConfig({
     command: 'pnpm dev',
     url: 'http://localhost:9000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000
+    timeout: 120 * 1000,
+    env: {
+      VITE_BASE_URL: 'http://localhost:9000',
+      VITE_APP_TITLE: process.env.VITE_APP_TITLE || 'title',
+      VITE_APP_DESCRIPTION: process.env.VITE_APP_DESCRIPTION || 'description'
+    }
   }
 });
