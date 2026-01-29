@@ -7,22 +7,16 @@ interface LoginButtonProps {
 }
 
 export function LoginButton({ size = 'sm' }: LoginButtonProps) {
-  const { signinRedirect, signinSilent, isLoading } = useAuth();
+  const { signinRedirect, isLoading } = useAuth();
   const location = useLocation();
 
-  const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (isLoading) return;
 
-    try {
-      // Try silent signin first (uses iframe, no page navigation)
-      await signinSilent();
-    } catch {
-      // If silent signin fails, fall back to redirect
-      signinRedirect({
-        state: { returnTo: location.pathname }
-      });
-    }
+    signinRedirect({
+      state: { returnTo: location.pathname }
+    });
   };
 
   return (
