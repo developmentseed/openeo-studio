@@ -1,4 +1,4 @@
-import { Flex, Tabs } from '@chakra-ui/react';
+import { Flex, Popover, Portal, Tabs } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { CodeEditor, useCodeEditor } from '$components/editor/code-editor';
@@ -6,6 +6,8 @@ import { useCodeExecution } from '$components/editor/use-code-execution';
 import { EditorToolbar } from '$components/editor/editor-toolbar';
 import { ConfigurationTab } from '$components/editor/configuration-tab';
 import { CodeTab } from '$components/editor/code-tab';
+import { AvailableVariables } from '$components/editor/available-variables';
+import { InfoIconButton } from '$components/editor/icon-buttons';
 import { usePyodide } from '$contexts/pyodide-context';
 import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
 
@@ -71,6 +73,9 @@ function EditorPanelContent({
   autoExecuteOnReady?: boolean;
 }) {
   const editor = useCodeEditor();
+  const [activeTab, setActiveTab] = useState<'configuration' | 'code'>(
+    defaultTab
+  );
   const [showAutoExecHint, setShowAutoExecHint] = useState(false);
   const {
     executeCode,
@@ -91,11 +96,18 @@ function EditorPanelContent({
     return () => clearTimeout(t);
   }, [autoExecuteOnReady, isExecutionReady, executeCode]);
 
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
   return (
     <Flex flexDirection='column' height='100%'>
       <Tabs.Root
         variant='subtle'
-        defaultValue={defaultTab}
+        value={activeTab}
+        onValueChange={({ value }) =>
+          setActiveTab(value as 'configuration' | 'code')
+        }
         display='flex'
         flex={1}
         flexDirection='column'
@@ -104,6 +116,31 @@ function EditorPanelContent({
         <Tabs.List px='lg' py='sm'>
           <Tabs.Trigger value='configuration'>CONFIGURATION</Tabs.Trigger>
           <Tabs.Trigger value='code'>CODE</Tabs.Trigger>
+          {activeTab === 'code' && (
+            <Flex marginLeft='auto' alignItems='center'>
+              <Popover.Root positioning={{ placement: 'bottom-end' }} size='lg'>
+                <Popover.Trigger asChild>
+                  <InfoIconButton />
+                </Popover.Trigger>
+                <Portal>
+                  <Popover.Positioner>
+                    <Popover.Content minW='lg'>
+                      <Popover.CloseTrigger />
+                      <Popover.Arrow />
+                      <Popover.Body>
+                        <Popover.Title fontWeight='medium'>
+                          Available Variables
+                        </Popover.Title>
+                        <AvailableVariables
+                          selectedBands={config.selectedBands || []}
+                        />
+                      </Popover.Body>
+                    </Popover.Content>
+                  </Popover.Positioner>
+                </Portal>
+              </Popover.Root>
+            </Flex>
+          )}
         </Tabs.List>
 
         <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
@@ -128,10 +165,7 @@ function EditorPanelContent({
           minHeight={0}
           overflow='hidden'
         >
-          <CodeTab
-            isReady={isReady}
-            selectedBands={config.selectedBands || []}
-          />
+          <CodeTab isReady={isReady} />
         </Tabs.Content>
       </Tabs.Root>
 
