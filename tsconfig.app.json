@@ -34,5 +34,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["app"]
+  "include": ["app", "test/integration/mock-auth-provider.tsx"]
 }

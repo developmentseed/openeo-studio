@@ -1,11 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { mockUnauthenticatedUser } from './helpers/mock-auth';
+import { expect } from '@playwright/test';
+import { test } from './__fixtures__';
 
-test.describe('Authentication UI Flow (mocked)', () => {
-  test('should show login dialog when unauthenticated on editor page', async ({
-    page
-  }) => {
-    await mockUnauthenticatedUser(page);
+test.describe('Unauthenticated UI', () => {
+  test('should show login dialog on editor page', async ({ page }) => {
     await page.goto('/editor');
 
     // Login dialog should be visible
@@ -16,14 +13,15 @@ test.describe('Authentication UI Flow (mocked)', () => {
       page.getByText('Sign in to your account to analyze satellite data')
     ).toBeVisible();
 
-    // Login button should be present
-    const loginButton = page.getByRole('button', { name: /login/i }).first();
+    // Login button in dialog should be present and enabled
+    const loginButton = page
+      .getByRole('dialog')
+      .getByRole('button', { name: /login/i });
     await expect(loginButton).toBeVisible();
     await expect(loginButton).toBeEnabled();
   });
 
   test('should blur map when unauthenticated', async ({ page }) => {
-    await mockUnauthenticatedUser(page);
     await page.goto('/editor');
 
     // Wait for map to load
@@ -40,24 +38,67 @@ test.describe('Authentication UI Flow (mocked)', () => {
     }
   });
 
-  test('should show login button in header when unauthenticated', async ({
-    page
-  }) => {
-    await mockUnauthenticatedUser(page);
+  test('should show login button in header', async ({ page }) => {
     await page.goto('/');
 
+    // Login button in header - match by role and name
     const loginButton = page.getByRole('button', { name: /login/i });
     await expect(loginButton).toBeVisible();
   });
 
-  test('should keep Apply button disabled when unauthenticated', async ({
-    page
-  }) => {
-    await mockUnauthenticatedUser(page);
+  test('should disable Apply button in toolbar', async ({ page }) => {
     await page.goto('/editor');
 
     // Apply button should be disabled
     const applyButton = page.getByRole('button', { name: /apply/i });
     await expect(applyButton).toBeDisabled();
+  });
+
+  test('should not show login hint in editor toolbar', async ({ page }) => {
+    await page.goto('/editor');
+
+    // Hint text should not be visible
+    const hintText = page.getByText('Log in to run analysis');
+    await expect(hintText).not.toBeVisible();
+  });
+});
+
+test.describe('Authenticated UI', () => {
+  test('should hide login dialog', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto('/editor');
+
+    // Login dialog should not be visible when authenticated
+    await expect(
+      authenticatedPage.getByRole('heading', {
+        name: 'Authentication Required'
+      })
+    ).not.toBeVisible();
+  });
+
+  test('should show logout button with user avatar in header', async ({
+    authenticatedPage
+  }) => {
+    await authenticatedPage.goto('/');
+
+    // Logout button in header
+    const logoutButton = authenticatedPage.getByRole('button', {
+      name: /logout/i
+    });
+    await expect(logoutButton).toBeVisible();
+
+    // Should have user avatar image
+    await expect(logoutButton.locator('img')).toBeVisible();
+  });
+
+  test('should enable Apply button in toolbar', async ({
+    authenticatedPage
+  }) => {
+    await authenticatedPage.goto('/editor');
+
+    // Apply button should be enabled
+    const applyButton = authenticatedPage.getByRole('button', {
+      name: /apply/i
+    });
+    await expect(applyButton).toBeEnabled();
   });
 });

@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:9000",
+      "localStorage": [
+        {
+          "name": "oidc.user:http://localhost:9000/mock-oidc:test-client-id",
+          "value": "{\"id_token\":\"mock-id-token\",\"access_token\":\"mock-access-token\",\"token_type\":\"Bearer\",\"scope\":\"openid profile email\",\"profile\":{\"sub\":\"123\",\"email\":\"test@example.com\",\"name\":\"Playwright Tester\"},\"expires_at\":1800000000}"
+        }
+      ]
+    }
+  ]
+}

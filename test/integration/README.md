@@ -1,6 +1,6 @@
 # Integration Tests
 
-Frontend integration tests using Playwright with mocked backend APIs.
+Frontend integration tests using Playwright with mocked backend APIs and authentication.
 
 ## Running Tests
 
@@ -23,17 +23,26 @@ pnpm test:integration auth.spec.ts
 
 ## Test Structure
 
-- `test/integration/` - Test files
-- `test/integration/helpers/` - Test utilities and mocks
-  - `mock-auth.ts` - Authentication mocking helpers
+- `test/integration/*.spec.ts` - Test specifications (e.g., `auth.spec.ts`)
+- `test/integration/__mocks__/` - Mock components and utilities
+- `test/integration/__fixtures__/` - Test setup, configuration, and fixtures
 
 ## Mocking Strategy
 
-All backend APIs are mocked in tests:
+### Authentication
 
-- **OAuth/OIDC**: Mocked via localStorage manipulation
-- **STAC API**: Mocked via route interception
-- **Other APIs**: Mock as needed per test
+- **MockAuthProvider** (`test/integration/__mocks__/auth-provider.tsx`) - Provides mock OIDC context when `window.__MOCK_AUTH__` is set
+- **Fixtures** (`test/integration/__fixtures__/index.ts`) - Playwright fixtures inject `window.__MOCK_AUTH__` via `page.addInitScript()` before app loads
+- **Main app** (`app/main.tsx`) - Conditionally uses `MockAuthProvider` or real `AuthProvider` based on `window.__MOCK_AUTH__`
+
+### Python Runtime
+
+- **Pyodide Mock** (`test/integration/__fixtures__/index.ts`) - Mocks `window.loadPyodide` to prevent WebAssembly memory allocation errors during tests
+- Applied to all tests via the `page` fixture override
+
+### Other APIs
+
+- **STAC API**: Mocked via route interception as needed
 
 ## Writing Tests
 
@@ -46,20 +55,7 @@ Tests focus on:
 
 Tests do NOT:
 
-- ❌ Make real API calls
+- ❌ Make real OIDC auth calls
+- ❌ Load Pyodide (WebAssembly runtime)
 - ❌ Depend on external services
 - ❌ Require OAuth credentials
-
-## Example
-
-```typescript
-import { test, expect } from '@playwright/test';
-import { mockAuthenticatedUser } from './helpers/mock-auth';
-
-test('my test', async ({ page }) => {
-  await mockAuthenticatedUser(page);
-  await page.goto('/editor');
-
-  // Your assertions here
-});
-```

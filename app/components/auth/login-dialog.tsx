@@ -14,6 +14,9 @@ export function LoginDialog({ isOpen }: { isOpen: boolean }) {
       alignItems='center'
       justifyContent='center'
       bg='whiteAlpha.400'
+      role='dialog'
+      aria-labelledby='auth-dialog-title'
+      aria-describedby='auth-dialog-description'
     >
       <VStack
         bg='white'
@@ -24,8 +27,10 @@ export function LoginDialog({ isOpen }: { isOpen: boolean }) {
         textAlign='center'
         gap={4}
       >
-        <Heading size='md'>Authentication Required</Heading>
-        <Text fontSize='sm' color='gray.600'>
+        <Heading id='auth-dialog-title' size='md'>
+          Authentication Required
+        </Heading>
+        <Text id='auth-dialog-description' fontSize='sm' color='gray.600'>
           Sign in to your account to analyze satellite data and visualize
           results on the map.
         </Text>

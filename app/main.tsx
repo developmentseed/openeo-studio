@@ -7,6 +7,8 @@ import { BrowserRouter } from 'react-router';
 import { WebStorageStateStore } from 'oidc-client-ts';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
+// Mock auth provider for Playwright tests - only used when window.__MOCK_AUTH__ is set
+import { MockAuthProvider } from '../test/integration/__mocks__/auth-provider';
 
 import system from './styles/theme';
 
@@ -46,9 +48,20 @@ function Root() {
     setTimeout(() => banner.remove(), 500);
   }, []);
 
+  /* Use mock auth provider in test mode (when window.__MOCK_AUTH__ is set)
+   * See: test/integration/__mocks__/auth-provider.tsx and test/integration/__fixtures__/index.ts
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AuthWrapper: React.ComponentType<any> = window.__MOCK_AUTH__
+    ? MockAuthProvider
+    : AuthProvider;
+
+  // Only pass oidcConfig if we're using the real AuthProvider
+  const authProps = window.__MOCK_AUTH__ ? {} : oidcConfig;
+
   return (
     <BrowserRouter>
-      <AuthProvider {...oidcConfig}>
+      <AuthWrapper {...authProps}>
         <ChakraProvider value={system}>
           <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
             <PyodideProvider>
@@ -56,7 +69,7 @@ function Root() {
             </PyodideProvider>
           </StacApiProvider>
         </ChakraProvider>
-      </AuthProvider>
+      </AuthWrapper>
     </BrowserRouter>
   );
 }
