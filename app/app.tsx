@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate
+} from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
 import { AppHeader } from '$components/layout/app-header';
@@ -12,6 +18,17 @@ export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const hasNavigated = useRef(false);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[ROUTE] Navigation occurred', {
+      pathname: location.pathname,
+      search: location.search,
+      timestamp: new Date().toISOString()
+    });
+  }, [location]);
 
   const isAuthCallback = useMemo(() => {
     const search = window.location.search;

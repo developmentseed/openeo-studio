@@ -15,11 +15,37 @@ export function AuthMonitor() {
   const hasWarnedAboutExpiredTokenRef = useRef(false);
 
   useEffect(() => {
-    prevAuthStateRef.current = {
-      isAuthenticated: auth.isAuthenticated,
-      isLoading: auth.isLoading,
-      error: auth.error
+    const prev = prevAuthStateRef.current;
+    const changed = {
+      isAuthenticated: prev.isAuthenticated !== auth.isAuthenticated,
+      isLoading: prev.isLoading !== auth.isLoading,
+      error: prev.error !== auth.error
     };
+
+    if (changed.isAuthenticated || changed.isLoading || changed.error) {
+      // eslint-disable-next-line no-console
+      console.log('[AUTH] State changed', {
+        timestamp: new Date().toISOString(),
+        changes: changed,
+        current: {
+          isAuthenticated: auth.isAuthenticated,
+          isLoading: auth.isLoading,
+          error: auth.error?.message,
+          user: auth.user?.profile?.email
+        },
+        previous: {
+          isAuthenticated: prev.isAuthenticated,
+          isLoading: prev.isLoading,
+          error: prev.error?.message
+        }
+      });
+
+      prevAuthStateRef.current = {
+        isAuthenticated: auth.isAuthenticated,
+        isLoading: auth.isLoading,
+        error: auth.error
+      };
+    }
   }, [auth.isAuthenticated, auth.isLoading, auth.error, auth.user]);
 
   // Monitor token expiration and force re-login if expired
@@ -36,6 +62,13 @@ export function AuthMonitor() {
       // Token is already expired - clear it immediately
       if (timeUntilExpiry < 0 && !hasWarnedAboutExpiredTokenRef.current) {
         hasWarnedAboutExpiredTokenRef.current = true;
+        // eslint-disable-next-line no-console
+        console.error('[AUTH] Token is expired!', {
+          expiredSecondsAgo: Math.abs(timeUntilExpiry),
+          expiresAt: new Date(expiresAt * 1000).toISOString(),
+          currentTime: new Date(now * 1000).toISOString(),
+          action: 'Clearing expired token to prevent reload loops'
+        });
 
         // Clear the expired token to prevent silent renewal loops
         auth.removeUser();
@@ -48,17 +81,35 @@ export function AuthMonitor() {
               ':' +
               auth.settings?.client_id
           );
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
-          // Ignore errors
+          // eslint-disable-next-line no-console
+          console.error(
+            '[AUTH] Error clearing expired token from localStorage',
+            {
+              error: e
+            }
+          );
         }
 
         return;
       }
 
-      // Token is still valid - no action needed
-      if (timeUntilExpiry <= 0) {
-        return;
+      // Only log if token is still valid
+      if (timeUntilExpiry > 0) {
+        // eslint-disable-next-line no-console
+        console.log('[AUTH] Token check', {
+          expiresAt: new Date(expiresAt * 1000).toISOString(),
+          timeUntilExpiry: `${timeUntilExpiry}s`,
+          willExpireSoon: timeUntilExpiry < 300 // Less than 5 minutes
+        });
+
+        if (timeUntilExpiry < 60) {
+          // eslint-disable-next-line no-console
+          console.warn('[AUTH] Token expiring soon!', {
+            secondsRemaining: timeUntilExpiry,
+            automaticSilentRenew: 'will attempt renewal'
+          });
+        }
       }
     };
 
@@ -72,6 +123,42 @@ export function AuthMonitor() {
 
     return () => clearInterval(interval);
   }, [auth.user, auth.settings?.client_id, auth.removeUser]);
+
+  // Monitor active navigator (for silent renewals)
+  useEffect(() => {
+    if (!auth.activeNavigator) return;
+
+    // eslint-disable-next-line no-console
+    console.log('[AUTH] Active navigator detected', {
+      timestamp: new Date().toISOString(),
+      type: auth.activeNavigator
+    });
+
+    return () => {
+      // eslint-disable-next-line no-console
+      console.log('[AUTH] Active navigator cleared', {
+        timestamp: new Date().toISOString()
+      });
+    };
+  }, [auth.activeNavigator]);
+
+  // Monitor auth errors (including silent renewal failures)
+  useEffect(() => {
+    if (!auth.error) return;
+
+    // eslint-disable-next-line no-console
+    console.error('[AUTH] Error occurred', {
+      timestamp: new Date().toISOString(),
+      error: auth.error.message,
+      errorDetails: {
+        name: auth.error.name,
+        message: auth.error.message,
+        source: (auth.error as any).source
+      },
+      userAuthenticated: auth.isAuthenticated,
+      action: 'Check if this error caused any navigation or reload'
+    });
+  }, [auth.error, auth.isAuthenticated]);
 
   return null;
 }

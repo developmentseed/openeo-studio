@@ -8,12 +8,18 @@ import { WebStorageStateStore } from 'oidc-client-ts';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$utils/auth-monitor';
+import { setupReloadDetector } from './utils/reload-detector';
+import { monitorSessionStorage } from './utils/storage-monitor';
 // Mock auth provider for Playwright tests - only used when window.__MOCK_AUTH__ is set
 import { MockAuthProvider } from '../test/integration/__mocks__/auth-provider';
 
 import system from './styles/theme';
 
 import App from './app';
+
+if (import.meta.env.DEV) {
+  setupReloadDetector();
+}
 
 const authAuthority = import.meta.env.VITE_AUTH_AUTHORITY || '';
 const authClientId = import.meta.env.VITE_AUTH_CLIENT_ID || '';
@@ -25,6 +31,14 @@ const oidcConfig: AuthProviderProps = {
   client_id: authClientId,
   redirect_uri: authRedirectUri,
   onSigninCallback: (user) => {
+    // eslint-disable-next-line no-console
+    console.log('[AUTH] onSigninCallback triggered', {
+      timestamp: new Date().toISOString(),
+      user: user?.profile?.email,
+      state: user?.state,
+      url: window.location.href
+    });
+
     // Mark that we are handling an auth callback so the app can avoid rendering
     // intermediate routes that cause a flash.
     window.sessionStorage.setItem('authInProgress', '1');
@@ -32,11 +46,20 @@ const oidcConfig: AuthProviderProps = {
     // Extract the return path from OIDC state
     const returnTo = (user?.state as { returnTo?: string })?.returnTo;
     if (returnTo && returnTo !== '/') {
-      // Store it so App can navigate after render
+      // eslint-disable-next-line no-console
+      console.log('[AUTH] Setting postAuthPath:', returnTo);
       window.sessionStorage.setItem('postAuthPath', returnTo);
     }
-    // Clean up URL (remove auth params)
+
+    // eslint-disable-next-line no-console
+    console.log('[AUTH] Cleaning up URL');
     window.history.replaceState({}, '', window.location.pathname);
+  },
+
+  // Add more logging hooks
+  onRemoveUser: () => {
+    // eslint-disable-next-line no-console
+    console.log('[AUTH] User removed', new Date().toISOString());
   },
 
   // Enable silent renew
@@ -45,6 +68,10 @@ const oidcConfig: AuthProviderProps = {
 
 // Root component.
 function Root() {
+  if (import.meta.env.DEV) {
+    monitorSessionStorage();
+  }
+
   useEffect(() => {
     // Hide the welcome banner.
     const banner = document.querySelector('#welcome-banner')!;
