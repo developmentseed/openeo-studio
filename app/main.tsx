@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router';
 import { WebStorageStateStore } from 'oidc-client-ts';
 
 import { PyodideProvider } from '$contexts/pyodide-context';
+import { AuthMonitor } from '$utils/auth-monitor';
 // Mock auth provider for Playwright tests - only used when window.__MOCK_AUTH__ is set
 import { MockAuthProvider } from '../test/integration/__mocks__/auth-provider';
 
@@ -36,7 +37,10 @@ const oidcConfig: AuthProviderProps = {
     }
     // Clean up URL (remove auth params)
     window.history.replaceState({}, '', window.location.pathname);
-  }
+  },
+
+  // Enable silent renew
+  automaticSilentRenew: true
 };
 
 // Root component.
@@ -62,6 +66,7 @@ function Root() {
   return (
     <BrowserRouter>
       <AuthWrapper {...authProps}>
+        {!window.__MOCK_AUTH__ && <AuthMonitor />}
         <ChakraProvider value={system}>
           <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
             <PyodideProvider>
