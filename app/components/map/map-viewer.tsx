@@ -30,9 +30,15 @@ interface MapViewerProps {
   bounds?: [number, number, number, number];
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
+  onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
 }
 
-export function MapViewer({ bounds, services, onToggleLayer }: MapViewerProps) {
+export function MapViewer({
+  bounds,
+  services,
+  onToggleLayer,
+  onBoundingBoxChange
+}: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
   const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
   const activeBaseLayer =
@@ -57,6 +63,17 @@ export function MapViewer({ bounds, services, onToggleLayer }: MapViewerProps) {
     <Map
       ref={mapRef}
       onLoad={applyFitBounds}
+      onMoveEnd={() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const bounds = map.getBounds();
+        onBoundingBoxChange([
+          bounds.getWest(),
+          bounds.getSouth(),
+          bounds.getEast(),
+          bounds.getNorth()
+        ]);
+      }}
       reuseMaps
       initialViewState={{
         longitude: 0,

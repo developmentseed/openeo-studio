@@ -29,14 +29,16 @@ export function EditorPage() {
         collectionId: 'sentinel-2-l2a',
         cloudCover: 50,
         temporalRange: ['', ''] as [string, string],
-        defaultBands: [] as string[]
+        defaultBands: [] as string[],
+        boundingBox: undefined
       };
     }
     return {
       collectionId: scene!.collectionId,
       cloudCover: scene!.cloudCover ?? 100,
       temporalRange: scene!.temporalRange,
-      defaultBands: scene!.defaultBands ?? []
+      defaultBands: scene!.defaultBands ?? [],
+      boundingBox: scene!.boundingBox
     };
   };
 
@@ -47,6 +49,7 @@ export function EditorPage() {
   const [temporalRange, setTemporalRange] = useState(defaults.temporalRange);
   const [cloudCover, setCloudCover] = useState(defaults.cloudCover);
   const [selectedBands, setSelectedBands] = useState(defaults.defaultBands);
+  const [boundingBox, setBoundingBox] = useState(defaults.boundingBox);
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
@@ -115,6 +118,13 @@ export function EditorPage() {
     setServices([]);
   };
 
+  // Handle bounding box changes - immediately updates state
+  const handleBoundingBoxChange = (
+    newBoundingBox: [number, number, number, number]
+  ) => {
+    setBoundingBox(newBoundingBox);
+  };
+
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
       <EditorHeader
@@ -138,7 +148,7 @@ export function EditorPage() {
               collectionId,
               selectedBands,
               temporalRange,
-              boundingBox: isBlankScene ? undefined : scene!.boundingBox,
+              boundingBox,
               cloudCover
             }}
             availableBands={bands}
@@ -163,6 +173,7 @@ export function EditorPage() {
             bounds={mapBounds}
             services={services}
             onToggleLayer={handleToggleLayer}
+            onBoundingBoxChange={handleBoundingBoxChange}
           />
         </Splitter.Panel>
       </Splitter.Root>

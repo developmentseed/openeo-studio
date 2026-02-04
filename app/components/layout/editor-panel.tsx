@@ -150,6 +150,7 @@ function EditorPanelContent({
             cloudCover={config.cloudCover || 100}
             selectedBands={config.selectedBands || []}
             availableBands={availableBands}
+            boundingBox={config.boundingBox}
             onTemporalRangeChange={onTemporalRangeChange}
             onCloudCoverChange={onCloudCoverChange}
             onSelectedBandsChange={onSelectedBandsChange}

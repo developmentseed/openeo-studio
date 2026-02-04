@@ -8,9 +8,15 @@ interface MapPanelProps {
   bounds?: [number, number, number, number];
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
+  onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
 }
 
-export function MapPanel({ bounds, services, onToggleLayer }: MapPanelProps) {
+export function MapPanel({
+  bounds,
+  services,
+  onToggleLayer,
+  onBoundingBoxChange
+}: MapPanelProps) {
   const { isAuthenticated } = useAuth();
 
   return (
@@ -24,6 +30,7 @@ export function MapPanel({ bounds, services, onToggleLayer }: MapPanelProps) {
           bounds={bounds}
           services={services}
           onToggleLayer={onToggleLayer}
+          onBoundingBoxChange={onBoundingBoxChange}
         />
       </Flex>
       <LoginDialog isOpen={!isAuthenticated} />
