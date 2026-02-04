@@ -1,12 +1,30 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { MapLayers } from './map-layers.js';
 import { LayerControl } from './layer-control';
+import { BaseLayerControl } from './base-layer-control.js';
 import type { ServiceInfo } from '$types';
+import { MAPTILER_KEY } from '$config/constants.js';
 
-const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
+const BASE_LAYERS = [
+  {
+    id: 'satellite',
+    label: 'Satellite',
+    styleUrl: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
+  },
+  {
+    id: 'streets',
+    label: 'Streets',
+    styleUrl: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
+  },
+  {
+    id: 'topographic',
+    label: 'Topographic',
+    styleUrl: `https://api.maptiler.com/maps/topo-v2/style.json?key=${MAPTILER_KEY}`
+  }
+];
 
 interface MapViewerProps {
   bounds?: [number, number, number, number];
@@ -16,6 +34,9 @@ interface MapViewerProps {
 
 export function MapViewer({ bounds, services, onToggleLayer }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
+  const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
+  const activeBaseLayer =
+    BASE_LAYERS.find((layer) => layer.id === baseLayerId) ?? BASE_LAYERS[0];
 
   const applyFitBounds = () => {
     const map = mapRef.current;
@@ -36,15 +57,21 @@ export function MapViewer({ bounds, services, onToggleLayer }: MapViewerProps) {
     <Map
       ref={mapRef}
       onLoad={applyFitBounds}
+      reuseMaps
       initialViewState={{
         longitude: 0,
         latitude: 0,
         zoom: 2
       }}
       style={{ flexGrow: 1 }}
-      mapStyle={MAP_STYLE}
+      mapStyle={activeBaseLayer.styleUrl}
     >
       <MapLayers services={services} />
+      <BaseLayerControl
+        options={BASE_LAYERS}
+        value={baseLayerId}
+        onChange={setBaseLayerId}
+      />
       <LayerControl services={services} onToggleLayer={onToggleLayer} />
     </Map>
   );
