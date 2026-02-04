@@ -21,6 +21,7 @@ async function initRuff() {
           'absolute', // from openeo.processes
           'and_', // from openeo.processes
           'if_', // from openeo.processes
+          'RUN_CONFIG', // defined in code-runner.ts
           'datacube', // defined in loader.py
           'reduced', // defined in loader.py
           'add_graph_to_map' // defined in loader.py
@@ -34,7 +35,6 @@ async function initRuff() {
           'extend-select': [],
           'extend-fixable': [],
           external: [],
-          ignore: [],
           select: ['F', 'E4', 'E7', 'E9']
         },
         format: {
@@ -49,9 +49,11 @@ async function initRuff() {
   return initPromise;
 }
 
-export function ruffLinter() {
+export function ruffLinter(options?: { ignoreCodes?: string[] }) {
   // Initialize Ruff asynchronously
   initRuff();
+
+  const ignoreCodes = options?.ignoreCodes || [];
 
   return linter((view) => {
     // Return empty diagnostics if Ruff is not yet initialized
@@ -60,11 +62,13 @@ export function ruffLinter() {
     const doc = view.state.doc;
     const res: RuffDiagnostic[] = ruffWorkspace.check(doc.toString());
 
-    return res.map<Diagnostic>((d) => ({
-      from: doc.line(d.start_location.row).from + d.start_location.column - 1,
-      to: doc.line(d.end_location.row).from + d.end_location.column - 1,
-      severity: d.code?.match(/^invalid/) ? 'error' : 'warning',
-      message: d.code ? d.code + ': ' + d.message : d.message
-    }));
+    return res
+      .filter((d) => !d.code || !ignoreCodes.includes(d.code))
+      .map<Diagnostic>((d) => ({
+        from: doc.line(d.start_location.row).from + d.start_location.column - 1,
+        to: doc.line(d.end_location.row).from + d.end_location.column - 1,
+        severity: d.code?.match(/^invalid/) ? 'error' : 'warning',
+        message: d.code ? d.code + ': ' + d.message : d.message
+      }));
   });
 }

@@ -161,7 +161,8 @@ function EditorPanelContent({
           flex={1}
           display='flex'
           flexDirection='column'
-          p={4}
+          px={4}
+          py={0}
           minHeight={0}
           overflow='hidden'
         >
