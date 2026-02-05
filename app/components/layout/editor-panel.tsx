@@ -6,6 +6,7 @@ import { useCodeExecution } from '$components/editor/use-code-execution';
 import { EditorToolbar } from '$components/editor/editor-toolbar';
 import { ConfigurationTab } from '$components/editor/configuration-tab';
 import { CodeTab } from '$components/editor/code-tab';
+import { ExecutionErrorAlert } from '$components/editor/execution-error-alert';
 import { AvailableVariables } from '$components/editor/available-variables';
 import { InfoIconButton } from '$components/editor/icon-buttons';
 import { usePyodide } from '$contexts/pyodide-context';
@@ -77,10 +78,12 @@ function EditorPanelContent({
     defaultTab
   );
   const [showAutoExecHint, setShowAutoExecHint] = useState(false);
+  const [isErrorDismissed, setIsErrorDismissed] = useState(false);
   const {
     executeCode,
     isExecuting,
-    isReady: isExecutionReady
+    isReady: isExecutionReady,
+    errorMessage
   } = useCodeExecution(setServices, editor, config);
 
   const hasAutoExecutedRef = useRef(false);
@@ -100,6 +103,12 @@ function EditorPanelContent({
     setActiveTab(defaultTab);
   }, [defaultTab]);
 
+  useEffect(() => {
+    if (errorMessage) {
+      setIsErrorDismissed(false);
+    }
+  }, [errorMessage]);
+
   return (
     <Flex flexDirection='column' height='100%'>
       <Tabs.Root
@@ -112,6 +121,7 @@ function EditorPanelContent({
         flex={1}
         flexDirection='column'
         minHeight={0}
+        position='relative'
       >
         <Tabs.List px='lg' py='sm'>
           <Tabs.Trigger value='configuration'>CONFIGURATION</Tabs.Trigger>
@@ -169,6 +179,13 @@ function EditorPanelContent({
         >
           <CodeTab isReady={isReady} />
         </Tabs.Content>
+
+        {errorMessage && !isErrorDismissed && (
+          <ExecutionErrorAlert
+            message={errorMessage}
+            onDismiss={() => setIsErrorDismissed(true)}
+          />
+        )}
       </Tabs.Root>
 
       {/* Toolbar outside tabs - accessible from any tab */}

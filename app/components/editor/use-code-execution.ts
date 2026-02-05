@@ -14,11 +14,13 @@ export function useCodeExecution(
   const { pyodide } = usePyodide();
   const { user } = useAuth();
   const [isExecuting, setIsExecuting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const executeCode = useCallback(async () => {
     if (!pyodide || !editor) return;
 
     setIsExecuting(true);
+    setErrorMessage(null);
     try {
       const content = editor.state.doc.toString();
       const services = await processScript(
@@ -30,6 +32,10 @@ export function useCodeExecution(
       if (services) {
         setServices(services);
       }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown execution error.';
+      setErrorMessage(message);
     } finally {
       setIsExecuting(false);
     }
@@ -38,6 +44,7 @@ export function useCodeExecution(
   return {
     executeCode,
     isExecuting,
-    isReady: !!pyodide && !!editor
+    isReady: !!pyodide && !!editor,
+    errorMessage
   };
 }

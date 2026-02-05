@@ -5,7 +5,8 @@ import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 import {
   type ExecutionConfig,
   type GraphResult,
-  type ServiceInfo
+  type ServiceInfo,
+  type ValidationError
 } from '$types';
 
 // Track active services for cleanup
@@ -110,6 +111,46 @@ async function createOpenEOService(
   return location;
 }
 
+function formatValidationErrors(errors: ValidationError[]): string {
+  if (errors.length === 0) return 'Unknown validation error.';
+
+  return errors
+    .map((error) => {
+      const code = error.code ? `${error.code}: ` : '';
+      const path = error.path ? ` (${error.path})` : '';
+      const message = error.message || 'Validation error.';
+      return `${code}${message}${path}`;
+    })
+    .join('\n');
+}
+
+async function validateProcessGraph(
+  graphResult: GraphResult,
+  authToken: string
+): Promise<ValidationError[]> {
+  const response = await fetch(`${OPENEO_API_URL}/validation`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${AUTH_PREFIX}${authToken}`
+    },
+    body: JSON.stringify({
+      process_graph: graphResult.process_graph,
+      parameters: graphResult.parameters
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Validation request failed (${response.status}): ${errorText}`
+    );
+  }
+
+  const payload = (await response.json()) as { errors?: ValidationError[] };
+  return Array.isArray(payload.errors) ? payload.errors : [];
+}
+
 /**
  * Deletes an OpenEO service.
  *
@@ -194,41 +235,46 @@ export async function processScript(
   script: string,
   config: ExecutionConfig
 ): Promise<ServiceInfo[] | undefined> {
-  try {
-    // Clean up previous services before creating new ones
-    await cleanupServices(authToken);
+  // Clean up previous services before creating new ones
+  await cleanupServices(authToken);
 
-    // Execute Python code and get map_graphs array
-    const result = await pyodide.runPythonAsync(getPythonCode(script, config));
-    const mapGraphs: GraphResult[] = JSON.parse(result);
+  // Execute Python code and get map_graphs array
+  const result = await pyodide.runPythonAsync(getPythonCode(script, config));
+  const mapGraphs: GraphResult[] = JSON.parse(result);
 
-    if (!Array.isArray(mapGraphs)) {
-      throw new Error('Expected map_graphs array from Python execution');
-    }
-
-    // Create services for each graph
-    const services: ServiceInfo[] = [];
-
-    for (const graphResult of mapGraphs) {
-      const serviceLocation = await createOpenEOService(graphResult, authToken);
-      const tileUrl = await getTileUrl(serviceLocation, authToken);
-
-      const serviceInfo: ServiceInfo = {
-        id: crypto.randomUUID(),
-        location: serviceLocation,
-        tileUrl,
-        graphResult,
-        visible: graphResult.visible
-      };
-
-      services.push(serviceInfo);
-      activeServices.push(serviceInfo);
-    }
-
-    return services;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error executing Python code:', error);
-    return undefined;
+  if (!Array.isArray(mapGraphs)) {
+    throw new Error('Expected map_graphs array from Python execution');
   }
+
+  // Validate all graphs before creating services
+  for (const [index, graphResult] of mapGraphs.entries()) {
+    const errors = await validateProcessGraph(graphResult, authToken);
+    if (errors.length > 0) {
+      const formattedErrors = formatValidationErrors(errors);
+      throw new Error(
+        `Validation failed for graph ${index + 1}:\n${formattedErrors}`
+      );
+    }
+  }
+
+  // Create services for each graph
+  const services: ServiceInfo[] = [];
+
+  for (const graphResult of mapGraphs) {
+    const serviceLocation = await createOpenEOService(graphResult, authToken);
+    const tileUrl = await getTileUrl(serviceLocation, authToken);
+
+    const serviceInfo: ServiceInfo = {
+      id: crypto.randomUUID(),
+      location: serviceLocation,
+      tileUrl,
+      graphResult,
+      visible: graphResult.visible
+    };
+
+    services.push(serviceInfo);
+    activeServices.push(serviceInfo);
+  }
+
+  return services;
 }

@@ -78,3 +78,12 @@ export interface ServiceInfo {
   graphResult: GraphResult;
   visible: boolean;
 }
+
+/**
+ * Validation error structure for capturing parameter validation issues.
+ */
+export interface ValidationError {
+  code?: string;
+  message?: string;
+  path?: string;
+}
