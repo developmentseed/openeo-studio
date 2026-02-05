@@ -5,6 +5,10 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapLayers } from './map-layers.js';
 import { LayerControl } from './layer-control';
 import { BaseLayerControl } from './base-layer-control.js';
+import {
+  useMapTileStatus,
+  type TileLoadStatus
+} from './use-map-tile-status.js';
 import type { ServiceInfo } from '$types';
 import { MAPTILER_KEY } from '$config/constants.js';
 
@@ -31,18 +35,21 @@ interface MapViewerProps {
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
   onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
+  onTileStatusChange?: (status: TileLoadStatus) => void;
 }
 
 export function MapViewer({
   bounds,
   services,
   onToggleLayer,
-  onBoundingBoxChange
+  onBoundingBoxChange,
+  onTileStatusChange
 }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
   const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
   const activeBaseLayer =
     BASE_LAYERS.find((layer) => layer.id === baseLayerId) ?? BASE_LAYERS[0];
+  const [isMapReady, setIsMapReady] = useState(false);
 
   const applyFitBounds = () => {
     const map = mapRef.current;
@@ -56,13 +63,24 @@ export function MapViewer({
 
   // Apply fitBounds when bounds changes (or is done loading)
   useEffect(() => {
+    if (!isMapReady) return;
     applyFitBounds();
-  }, [bounds]);
+  }, [bounds, isMapReady]);
+
+  useMapTileStatus({
+    mapRef,
+    isMapReady,
+    serviceCount: services.length,
+    onStatusChange: onTileStatusChange
+  });
 
   return (
     <Map
       ref={mapRef}
-      onLoad={applyFitBounds}
+      onLoad={() => {
+        applyFitBounds();
+        setIsMapReady(true);
+      }}
       onMoveEnd={() => {
         const map = mapRef.current;
         if (!map) return;
