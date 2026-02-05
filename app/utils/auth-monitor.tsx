@@ -153,7 +153,7 @@ export function AuthMonitor() {
       errorDetails: {
         name: auth.error.name,
         message: auth.error.message,
-        source: (auth.error as any).source
+        source: auth.error.source
       },
       userAuthenticated: auth.isAuthenticated,
       action: 'Check if this error caused any navigation or reload'
