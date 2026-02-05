@@ -6,13 +6,15 @@ interface EditorToolbarProps {
   isExecuting: boolean;
   isReady: boolean;
   showAutoExecHint?: boolean;
+  hasCodeChanged: boolean;
 }
 
 export function EditorToolbar({
   executeCode,
   isExecuting,
   isReady,
-  showAutoExecHint
+  showAutoExecHint,
+  hasCodeChanged
 }: EditorToolbarProps) {
   const { isAuthenticated } = useAuth();
 
@@ -33,7 +35,9 @@ export function EditorToolbar({
         <Button
           size='sm'
           variant='outline'
-          disabled={!isReady || isExecuting || !isAuthenticated}
+          disabled={
+            !isReady || isExecuting || !isAuthenticated || !hasCodeChanged
+          }
           onClick={executeCode}
           loading={isExecuting}
         >

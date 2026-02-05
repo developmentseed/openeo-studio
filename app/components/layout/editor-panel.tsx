@@ -83,7 +83,8 @@ function EditorPanelContent({
     executeCode,
     isExecuting,
     isReady: isExecutionReady,
-    errorMessage
+    errorMessage,
+    hasCodeChanged
   } = useCodeExecution(setServices, editor, config);
 
   const hasAutoExecutedRef = useRef(false);
@@ -194,6 +195,7 @@ function EditorPanelContent({
         isExecuting={isExecuting}
         executeCode={executeCode}
         showAutoExecHint={showAutoExecHint}
+        hasCodeChanged={hasCodeChanged}
       />
     </Flex>
   );

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { basicSetup } from 'codemirror';
-import { EditorView } from '@codemirror/view';
+import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
@@ -12,12 +12,21 @@ import { ruffLinter } from './ruff-linter';
 // Create a CodeEditor context.
 const CodeEditorContext = createContext<{
   editor: EditorView | null;
+  hasCodeChanged: boolean;
+  setHasCodeChanged: (changed: boolean) => void;
 }>({
-  editor: null
+  editor: null,
+  hasCodeChanged: false,
+  setHasCodeChanged: () => {}
 });
 
 export function useCodeEditor() {
   return useContext(CodeEditorContext).editor;
+}
+
+export function useHasCodeChanged() {
+  const { hasCodeChanged, setHasCodeChanged } = useContext(CodeEditorContext);
+  return { hasCodeChanged, setHasCodeChanged };
 }
 
 interface RootProps {
@@ -27,8 +36,20 @@ interface RootProps {
 
 function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
+  const [hasCodeChanged, setHasCodeChanged] = useState(false);
 
   useEffect(() => {
+    // Create update listener plugin to track changes
+    const updateListener = ViewPlugin.fromClass(
+      class {
+        update(update: ViewUpdate) {
+          if (update.docChanged) {
+            setHasCodeChanged(true);
+          }
+        }
+      }
+    );
+
     const view = new EditorView({
       doc: initialCode,
       extensions: [
@@ -50,7 +71,8 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
         closeBrackets(),
         autocompletion(),
         lintGutter(),
-        ruffLinter()
+        ruffLinter(),
+        updateListener
       ]
     });
     setEditor(view);
@@ -61,7 +83,11 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
     };
   }, []);
 
-  return <CodeEditorContext value={{ editor }}>{children}</CodeEditorContext>;
+  return (
+    <CodeEditorContext value={{ editor, hasCodeChanged, setHasCodeChanged }}>
+      {children}
+    </CodeEditorContext>
+  );
 }
 
 function View() {

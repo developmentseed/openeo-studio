@@ -5,6 +5,7 @@ import type { EditorView } from '@codemirror/view';
 import { usePyodide } from '$contexts/pyodide-context';
 import { processScript } from '$utils/code-runner';
 import type { ExecutionConfig, ServiceInfo } from '$types';
+import { useHasCodeChanged } from './code-editor';
 
 export function useCodeExecution(
   setServices: (services: ServiceInfo[]) => void,
@@ -13,6 +14,7 @@ export function useCodeExecution(
 ) {
   const { pyodide } = usePyodide();
   const { user } = useAuth();
+  const { hasCodeChanged, setHasCodeChanged } = useHasCodeChanged();
   const [isExecuting, setIsExecuting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -21,6 +23,7 @@ export function useCodeExecution(
 
     setIsExecuting(true);
     setErrorMessage(null);
+    setHasCodeChanged(false);
     try {
       const content = editor.state.doc.toString();
       const services = await processScript(
@@ -39,12 +42,20 @@ export function useCodeExecution(
     } finally {
       setIsExecuting(false);
     }
-  }, [pyodide, user?.access_token, editor, setServices, config]);
+  }, [
+    pyodide,
+    user?.access_token,
+    editor,
+    setServices,
+    config,
+    setHasCodeChanged
+  ]);
 
   return {
     executeCode,
     isExecuting,
     isReady: !!pyodide && !!editor,
-    errorMessage
+    errorMessage,
+    hasCodeChanged
   };
 }
