@@ -29,6 +29,8 @@ export function MapLayers({ services }: MapLayersProps) {
               paint={{
                 'raster-opacity': 0.8 - index * 0.1 // Slight transparency for overlays
               }}
+              minzoom={6} // Visible from zoom 6
+              maxzoom={15} // Hidden beyond zoom 15
             />
           </Source>
         ))}
