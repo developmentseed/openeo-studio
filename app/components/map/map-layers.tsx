@@ -22,6 +22,8 @@ export function MapLayers({ services }: MapLayersProps) {
             type='raster'
             tiles={[decodeURIComponent(service.tileUrl)]}
             tileSize={256}
+            minzoom={6} // Prevent fetching tiles below zoom 6
+            maxzoom={15} // Prevent fetching tiles above zoom 15
           >
             <Layer
               id={`layer-${service.id}`}
@@ -29,8 +31,6 @@ export function MapLayers({ services }: MapLayersProps) {
               paint={{
                 'raster-opacity': 0.8 - index * 0.1 // Slight transparency for overlays
               }}
-              minzoom={6} // Visible from zoom 6
-              maxzoom={15} // Hidden beyond zoom 15
             />
           </Source>
         ))}
