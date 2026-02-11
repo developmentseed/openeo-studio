@@ -23,7 +23,9 @@ const DEFAULT_SERVICE_CONFIG = {
   type: 'XYZ',
   enabled: true,
   configuration: {
-    scope: 'public'
+    scope: 'public',
+    minZoom: 6,
+    maxZoom: 15
   },
   plan: null,
   budget: null
