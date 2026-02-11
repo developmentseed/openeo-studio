@@ -90,18 +90,34 @@ test.describe('Authenticated UI', () => {
     await expect(logoutButton.locator('img')).toBeVisible();
   });
 
-  test('should enable Apply button in toolbar', async ({
+  test('should enable Apply button after code change', async ({
     authenticatedPage
   }) => {
     await authenticatedPage.goto('/editor');
 
-    // Apply button should be enabled
     const applyButton = authenticatedPage.getByRole('button', {
       name: /apply/i
     });
     await expect(
       applyButton,
-      'Apply button should be enabled when authenticated and ready'
-    ).toBeEnabled({ timeout: 15000 }); // wait for pyodide
+      'Apply button should be initally disabled'
+    ).toBeDisabled();
+
+    // Switch to code tab and change code to enable Apply
+    const codeTab = authenticatedPage.getByRole('tab', { name: /code/i });
+    await codeTab.click();
+    await expect(codeTab).toHaveAttribute('aria-selected', 'true');
+
+    const codeEditorContent = authenticatedPage.locator(
+      '.cm-content[contenteditable="true"]'
+    );
+    await expect(codeEditorContent.first()).toBeVisible({ timeout: 15000 });
+    await codeEditorContent.click();
+    await codeEditorContent.pressSequentially('\n# change', { delay: 10 });
+
+    await expect(
+      applyButton,
+      'Apply button should be enabled after code change when authenticated and ready'
+    ).toBeEnabled();
   });
 });
