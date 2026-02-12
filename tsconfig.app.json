@@ -17,14 +17,15 @@
     "paths": {
       /* Specify a set of entries that re-map imports to additional lookup locations. */
       "$components/*": ["./app/components/*"],
+      "$config/*": ["./app/config/*"],
       "$contexts/*": ["./app/contexts/*"],
-      "$utils/*": ["./app/utils/*"],
-      "$styles/*": ["./app/styles/*"],
       "$hooks/*": ["./app/hooks/*"],
       "$pages/*": ["./app/pages/*"],
+      "$stores/*": ["./app/stores/*"],
+      "$styles/*": ["./app/styles/*"],
       "$types": ["./app/types"],
       "$types/*": ["./app/types/*"],
-      "$config/*": ["./app/config/*"]
+      "$utils/*": ["./app/utils/*"]
     },
 
     /* Linting */
