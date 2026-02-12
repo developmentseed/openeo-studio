@@ -1,11 +1,19 @@
+import { useEffect } from 'react';
 import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { useNavigate } from 'react-router';
 
 import { SceneGrid } from '$components/landing/scene-grid';
 import { APP_TITLE } from '$config/constants';
+import { useEditorStore } from '../stores/editor-store';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const clearEditor = useEditorStore((state) => state.clearEditor);
+
+  // Clear editor state when navigating to landing to ensure fresh scene loads
+  useEffect(() => {
+    clearEditor();
+  }, [clearEditor]);
 
   return (
     <Box flex={1} overflowY='auto' px={8} py={8}>
