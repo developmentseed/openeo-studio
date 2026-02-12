@@ -19,6 +19,9 @@ test.describe('Persistence', () => {
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Test persistence comment');
 
+      // Wait for debounced store update (300ms + buffer)
+      await authenticatedPage.waitForTimeout(350);
+
       // Reload page
       await authenticatedPage.reload();
       await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
@@ -43,6 +46,9 @@ test.describe('Persistence', () => {
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Tab switch test');
+
+      // Wait for debounced store update (300ms + buffer)
+      await authenticatedPage.waitForTimeout(350);
 
       // Switch to configuration tab
       await authenticatedPage
@@ -72,6 +78,9 @@ test.describe('Persistence', () => {
       );
       await editor.click();
       await authenticatedPage.keyboard.type('# Blank editor test');
+
+      // Wait for debounced store update (300ms + buffer)
+      await authenticatedPage.waitForTimeout(350);
 
       // Reload
       await authenticatedPage.reload();
