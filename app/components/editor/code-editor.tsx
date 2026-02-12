@@ -39,13 +39,32 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
 
   useEffect(() => {
     const initialDoc = initialDocRef.current || '';
-    // Create update listener plugin to track changes
+    // Create update listener plugin to track changes with debouncing
     const updateListener = ViewPlugin.fromClass(
       class {
+        debounceTimer: NodeJS.Timeout | null = null;
+
         update(update: ViewUpdate) {
           if (update.docChanged) {
             const newCode = update.state.doc.toString();
-            setCode(newCode);
+
+            // Clear previous timer
+            if (this.debounceTimer) {
+              clearTimeout(this.debounceTimer);
+            }
+
+            // Debounce the setCode call (300ms)
+            this.debounceTimer = setTimeout(() => {
+              setCode(newCode);
+              this.debounceTimer = null;
+            }, 300);
+          }
+        }
+
+        destroy() {
+          // Clean up timer on plugin destroy
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
           }
         }
       }
