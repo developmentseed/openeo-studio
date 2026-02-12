@@ -49,8 +49,20 @@ Manual verification: refresh the page and confirm editor code and configuration 
 
 ### XState Store
 
-- Good: Strong modeling for complex workflows.
-- Bad: Higher complexity and bundle weight for simple editor state.
+XState Store (https://stately.ai/docs/xstate-store) is a lightweight state management library from the XState team, separate from the full XState state machine library. It provides stores with reducers, snapshots, and event-driven updates.
+
+- Good: Strong typing with TypeScript inference.
+- Good: Event-driven architecture encourages explicit state transitions.
+- Good: Built-in snapshot system for persistence use cases.
+- Good: Smaller than full XState (focused on state management, not state machines).
+- Good: Can integrate with XState actors if complex workflows emerge later.
+- Bad: Less mature ecosystem and fewer community resources than Zustand.
+- Bad: Event-driven model adds verbosity for simple setter patterns.
+- Bad: No built-in persistence middleware - requires custom snapshot/restore logic.
+- Bad: Larger bundle size (~4KB) compared to Zustand (~1KB core).
+- Bad: Steeper learning curve with store/event/reducer concepts vs. simple setters.
+
+**Why not chosen**: While XState Store's event-driven model is excellent for complex workflows with explicit state transitions, our editor state is primarily simple user input (code changes, slider adjustments, scene selection). The additional structure and verbosity of events/reducers doesn't justify the complexity for our use case. Zustand's direct setter approach is more ergonomic for UI state. If we need complex state machines later (e.g., multi-step data transformation pipelines with branching logic, complex form wizards with conditional steps), XState Store would be worth reconsidering.
 
 ### TanStack Query
 
