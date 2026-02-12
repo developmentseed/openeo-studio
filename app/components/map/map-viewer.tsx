@@ -32,6 +32,7 @@ const BASE_LAYERS = [
 
 interface MapViewerProps {
   bounds?: [number, number, number, number];
+  sceneId: string | null;
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
   onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
@@ -40,6 +41,7 @@ interface MapViewerProps {
 
 export function MapViewer({
   bounds,
+  sceneId,
   services,
   onToggleLayer,
   onBoundingBoxChange,
@@ -61,11 +63,11 @@ export function MapViewer({
     });
   };
 
-  // Apply fitBounds when bounds changes (or is done loading)
+  // Apply fitBounds only when scene changes, not on viewport updates
   useEffect(() => {
     if (!isMapReady) return;
     applyFitBounds();
-  }, [bounds, isMapReady]);
+  }, [sceneId, isMapReady]);
 
   useMapTileStatus({
     mapRef,
@@ -81,7 +83,10 @@ export function MapViewer({
         applyFitBounds();
         setIsMapReady(true);
       }}
-      onMoveEnd={() => {
+      onMoveEnd={(event) => {
+        // Skip if programmatic move
+        if (!event.originalEvent) return;
+
         const map = mapRef.current;
         if (!map) return;
         const bounds = map.getBounds();

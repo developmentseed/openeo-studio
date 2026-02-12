@@ -9,6 +9,7 @@ import type { ServiceInfo } from '$types';
 
 interface MapPanelProps {
   bounds?: [number, number, number, number];
+  sceneId: string | null;
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
   onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
@@ -16,6 +17,7 @@ interface MapPanelProps {
 
 export function MapPanel({
   bounds,
+  sceneId,
   services,
   onToggleLayer,
   onBoundingBoxChange
@@ -41,6 +43,7 @@ export function MapPanel({
       >
         <MapViewer
           bounds={bounds}
+          sceneId={sceneId}
           services={services}
           onToggleLayer={onToggleLayer}
           onBoundingBoxChange={onBoundingBoxChange}

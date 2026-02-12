@@ -7,26 +7,18 @@ import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { githubLight } from '@uiw/codemirror-theme-github';
 
 import { EXAMPLE_CODE } from '$utils/code-runner';
+import { useEditorStore } from '$stores/editor-store';
 import { ruffLinter } from './ruff-linter';
 
 // Create a CodeEditor context.
 const CodeEditorContext = createContext<{
   editor: EditorView | null;
-  hasCodeChanged: boolean;
-  setHasCodeChanged: (changed: boolean) => void;
 }>({
-  editor: null,
-  hasCodeChanged: false,
-  setHasCodeChanged: () => {}
+  editor: null
 });
 
 export function useCodeEditor() {
   return useContext(CodeEditorContext).editor;
-}
-
-export function useHasCodeChanged() {
-  const { hasCodeChanged, setHasCodeChanged } = useContext(CodeEditorContext);
-  return { hasCodeChanged, setHasCodeChanged };
 }
 
 interface RootProps {
@@ -36,22 +28,32 @@ interface RootProps {
 
 function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
-  const [hasCodeChanged, setHasCodeChanged] = useState(false);
+
+  const code = useEditorStore((state) => state.code);
+  const setCode = useEditorStore((state) => state.setCode);
+  const setHasCodeChanged = useEditorStore((state) => state.setHasCodeChanged);
+
+  const initialDocRef = useRef<string | null>(null);
+  if (initialDocRef.current === null) {
+    initialDocRef.current = code || initialCode;
+  }
 
   useEffect(() => {
+    const initialDoc = initialDocRef.current || '';
     // Create update listener plugin to track changes
     const updateListener = ViewPlugin.fromClass(
       class {
         update(update: ViewUpdate) {
           if (update.docChanged) {
-            setHasCodeChanged(true);
+            const newCode = update.state.doc.toString();
+            setCode(newCode);
           }
         }
       }
     );
 
     const view = new EditorView({
-      doc: initialCode,
+      doc: initialDoc,
       extensions: [
         basicSetup,
         EditorView.theme({
@@ -75,19 +77,35 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
         updateListener
       ]
     });
+
     setEditor(view);
+
+    if (!code && initialDoc) {
+      setCode(initialDoc);
+      setHasCodeChanged(false);
+    }
 
     return () => {
       view.destroy();
       setEditor(null);
     };
-  }, []);
+  }, [setCode, setHasCodeChanged]);
 
-  return (
-    <CodeEditorContext value={{ editor, hasCodeChanged, setHasCodeChanged }}>
-      {children}
-    </CodeEditorContext>
-  );
+  // Sync external code changes to editor (e.g. from scene hydration)
+  useEffect(() => {
+    if (!editor) return;
+    const currentCode = editor.state.doc.toString();
+    if (code === currentCode) return;
+    editor.dispatch({
+      changes: {
+        from: 0,
+        to: editor.state.doc.length,
+        insert: code
+      }
+    });
+  }, [code, editor]);
+
+  return <CodeEditorContext value={{ editor }}>{children}</CodeEditorContext>;
 }
 
 function View() {

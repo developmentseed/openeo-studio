@@ -30,14 +30,18 @@ type EditorActions = {
   clearServices: () => void;
   setSceneId: (id: string | null) => void;
   resetToDefaults: (defaults: Partial<EditorState>) => void;
-  hydrateFromScene: (scene: {
-    collectionId: string;
-    temporalRange: [string, string];
-    cloudCover: number;
-    defaultBands: string[];
-    boundingBox?: BoundingBox;
-    suggestedAlgorithm?: string;
-  }) => void;
+  clearEditor: () => void;
+  hydrateFromScene: (
+    sceneId: string,
+    scene: {
+      collectionId: string;
+      temporalRange: [string, string];
+      cloudCover: number;
+      defaultBands: string[];
+      boundingBox?: BoundingBox;
+      suggestedAlgorithm?: string;
+    }
+  ) => void;
 };
 
 type EditorStore = EditorState & EditorActions;
@@ -83,8 +87,10 @@ export const useEditorStore = create<EditorStore>()(
           hasCodeChanged: false,
           services: []
         }),
-      hydrateFromScene: (scene) =>
+      clearEditor: () => set({ ...initialState }),
+      hydrateFromScene: (sceneId, scene) =>
         set({
+          sceneId,
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
           cloudCover: scene.cloudCover,
