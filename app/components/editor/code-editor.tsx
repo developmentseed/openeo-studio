@@ -30,8 +30,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
 
   const code = useEditorStore((state) => state.code);
-  const setCode = useEditorStore((state) => state.setCode);
-  const setHasCodeChanged = useEditorStore((state) => state.setHasCodeChanged);
+  const { setCode, setHasCodeChanged } = useEditorStore();
 
   const initialDocRef = useRef<string | null>(null);
   if (initialDocRef.current === null) {

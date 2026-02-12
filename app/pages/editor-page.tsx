@@ -4,6 +4,7 @@ import { useCollection } from '@developmentseed/stac-react';
 import { useParams, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { StacCollection } from 'stac-ts';
+import { useShallow } from 'zustand/shallow';
 
 import { EditorHeader } from '$components/layout/editor-header';
 import { EditorPanel } from '$components/layout/editor-panel';
@@ -19,26 +20,17 @@ export function EditorPage() {
 
   const scene = getSceneById(sceneId!);
   const isBlankScene = !sceneId;
+  const { storedSceneId, collectionId, temporalRange } = useEditorStore(
+    useShallow((state) => ({
+      storedSceneId: state.sceneId,
+      collectionId: state.collectionId,
+      temporalRange: state.temporalRange
+    }))
+  );
 
-  const {
-    services,
-    setServices,
-    toggleServiceVisibility,
-    clearServices,
-    collectionId,
-    temporalRange,
-    cloudCover,
-    selectedBands,
-    boundingBox,
-    sceneId: storedSceneId,
-    setTemporalRange,
-    setCloudCover,
-    setSelectedBands,
-    setBoundingBox,
-    setSceneId,
-    resetToDefaults,
-    hydrateFromScene
-  } = useEditorStore();
+  // Actions don't cause re-renders
+  const { setSceneId, resetToDefaults, hydrateFromScene, setTemporalRange } =
+    useEditorStore();
 
   // Sync store with route changes (scene switches)
   useEffect(() => {
@@ -119,35 +111,9 @@ export function EditorPage() {
     return null;
   }
 
-  // Handle temporal range changes - immediately updates state and clears services
-  const handleTemporalRangeChange = (newTemporalRange: [string, string]) => {
-    setTemporalRange(newTemporalRange);
-    // Clear services when temporal range changes
-    clearServices();
-  };
-
-  // Handle cloud cover changes - immediately updates state and clears services
-  const handleCloudCoverChange = (newCloudCover: number) => {
-    setCloudCover(newCloudCover);
-    // Clear services when cloud cover changes
-    clearServices();
-  };
-
-  // Handle bounding box changes - immediately updates state
-  const handleBoundingBoxChange = (
-    newBoundingBox: [number, number, number, number]
-  ) => {
-    setBoundingBox(newBoundingBox);
-  };
-
   return (
     <Flex flexDirection='column' flex={1} minHeight={0}>
-      <EditorHeader
-        sceneName={isBlankScene ? '...' : scene!.name}
-        collectionId={collectionId}
-        temporalRange={temporalRange}
-        cloudCover={cloudCover}
-      />
+      <EditorHeader sceneName={isBlankScene ? '...' : scene!.name} />
 
       {/* Editor and Map panels */}
       <Splitter.Root
@@ -159,19 +125,8 @@ export function EditorPage() {
       >
         <Splitter.Panel id='editor'>
           <EditorPanel
-            config={{
-              collectionId,
-              selectedBands,
-              temporalRange,
-              boundingBox,
-              cloudCover
-            }}
             availableBands={bands}
             initialCode={scene?.suggestedAlgorithm || ''}
-            setServices={setServices}
-            onSelectedBandsChange={setSelectedBands}
-            onTemporalRangeChange={handleTemporalRangeChange}
-            onCloudCoverChange={handleCloudCoverChange}
             defaultTab={isBlankScene ? 'configuration' : 'code'}
             autoExecuteOnReady={
               isAuthenticated &&
@@ -184,13 +139,7 @@ export function EditorPage() {
         <Splitter.ResizeTrigger id='editor:map' />
 
         <Splitter.Panel id='map'>
-          <MapPanel
-            bounds={boundingBox}
-            sceneId={storedSceneId}
-            services={services}
-            onToggleLayer={toggleServiceVisibility}
-            onBoundingBoxChange={handleBoundingBoxChange}
-          />
+          <MapPanel />
         </Splitter.Panel>
       </Splitter.Root>
     </Flex>

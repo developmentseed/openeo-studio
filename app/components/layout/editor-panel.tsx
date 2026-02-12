@@ -1,5 +1,6 @@
 import { Flex, Popover, Portal, Tabs } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 
 import { CodeEditor, useCodeEditor } from '$components/editor/code-editor';
 import { useCodeExecution } from '$components/editor/use-code-execution';
@@ -10,28 +11,19 @@ import { ExecutionErrorAlert } from '$components/editor/execution-error-alert';
 import { AvailableVariables } from '$components/editor/available-variables';
 import { InfoIconButton } from '$components/editor/icon-buttons';
 import { usePyodide } from '$contexts/pyodide-context';
-import type { ExecutionConfig, ServiceInfo, BandVariable } from '$types';
+import { useEditorStore } from '$stores/editor-store';
+import type { BandVariable } from '$types';
 
 interface EditorPanelProps {
-  config: ExecutionConfig;
   availableBands?: BandVariable[];
   initialCode?: string;
-  setServices: (services: ServiceInfo[]) => void;
-  onSelectedBandsChange?: (bands: string[]) => void;
-  onTemporalRangeChange: (temporalRange: [string, string]) => void;
-  onCloudCoverChange: (cloudCover: number) => void;
   defaultTab?: 'configuration' | 'code';
   autoExecuteOnReady?: boolean;
 }
 
 export function EditorPanel({
-  config,
   availableBands,
   initialCode,
-  setServices,
-  onSelectedBandsChange,
-  onTemporalRangeChange,
-  onCloudCoverChange,
   defaultTab = 'configuration',
   autoExecuteOnReady = false
 }: EditorPanelProps) {
@@ -41,12 +33,7 @@ export function EditorPanel({
   return (
     <CodeEditor.Root initialCode={initialCode}>
       <EditorPanelContent
-        config={config}
         availableBands={availableBands}
-        setServices={setServices}
-        onSelectedBandsChange={onSelectedBandsChange}
-        onTemporalRangeChange={onTemporalRangeChange}
-        onCloudCoverChange={onCloudCoverChange}
         isReady={isReady}
         defaultTab={defaultTab}
         autoExecuteOnReady={autoExecuteOnReady}
@@ -59,12 +46,7 @@ export function EditorPanel({
  * Internal: Must be rendered inside CodeEditor.Root to access editor context
  */
 function EditorPanelContent({
-  config,
   availableBands,
-  setServices,
-  onSelectedBandsChange,
-  onTemporalRangeChange,
-  onCloudCoverChange,
   isReady,
   defaultTab = 'configuration',
   autoExecuteOnReady = false
@@ -73,7 +55,26 @@ function EditorPanelContent({
   defaultTab?: 'configuration' | 'code';
   autoExecuteOnReady?: boolean;
 }) {
+  const config = useEditorStore(
+    useShallow((state) => ({
+      collectionId: state.collectionId,
+      selectedBands: state.selectedBands,
+      temporalRange: state.temporalRange,
+      boundingBox: state.boundingBox,
+      cloudCover: state.cloudCover
+    }))
+  );
+
+  const {
+    setServices,
+    setSelectedBands,
+    setTemporalRange,
+    setCloudCover,
+    clearServices
+  } = useEditorStore();
+
   const editor = useCodeEditor();
+
   const [activeTab, setActiveTab] = useState<'configuration' | 'code'>(
     defaultTab
   );
@@ -86,6 +87,17 @@ function EditorPanelContent({
     errorMessage,
     hasCodeChanged
   } = useCodeExecution(setServices, editor, config);
+
+  // Handlers that clear services when config changes
+  const handleTemporalRangeChange = (newTemporalRange: [string, string]) => {
+    setTemporalRange(newTemporalRange);
+    clearServices();
+  };
+
+  const handleCloudCoverChange = (newCloudCover: number) => {
+    setCloudCover(newCloudCover);
+    clearServices();
+  };
 
   const hasAutoExecutedRef = useRef(false);
   useEffect(() => {
@@ -162,9 +174,9 @@ function EditorPanelContent({
             selectedBands={config.selectedBands || []}
             availableBands={availableBands}
             boundingBox={config.boundingBox}
-            onTemporalRangeChange={onTemporalRangeChange}
-            onCloudCoverChange={onCloudCoverChange}
-            onSelectedBandsChange={onSelectedBandsChange}
+            onTemporalRangeChange={handleTemporalRangeChange}
+            onCloudCoverChange={handleCloudCoverChange}
+            onSelectedBandsChange={setSelectedBands}
           />
         </Tabs.Content>
 

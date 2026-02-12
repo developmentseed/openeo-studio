@@ -15,8 +15,7 @@ export function useCodeExecution(
   const { pyodide } = usePyodide();
   const { user } = useAuth();
 
-  const hasCodeChanged = useEditorStore((state) => state.hasCodeChanged);
-  const setHasCodeChanged = useEditorStore((state) => state.setHasCodeChanged);
+  const { hasCodeChanged, setHasCodeChanged } = useEditorStore();
 
   const [isExecuting, setIsExecuting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

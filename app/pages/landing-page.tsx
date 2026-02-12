@@ -8,7 +8,7 @@ import { useEditorStore } from '../stores/editor-store';
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const clearEditor = useEditorStore((state) => state.clearEditor);
+  const { clearEditor } = useEditorStore();
 
   // Clear editor state when navigating to landing to ensure fresh scene loads
   useEffect(() => {
