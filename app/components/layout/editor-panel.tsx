@@ -65,13 +65,8 @@ function EditorPanelContent({
     }))
   );
 
-  const {
-    setServices,
-    setSelectedBands,
-    setTemporalRange,
-    setCloudCover,
-    clearServices
-  } = useEditorStore();
+  const { setServices, setSelectedBands, setTemporalRange, setCloudCover } =
+    useEditorStore();
 
   const editor = useCodeEditor();
 
@@ -87,17 +82,6 @@ function EditorPanelContent({
     errorMessage,
     hasCodeChanged
   } = useCodeExecution(setServices, editor, config);
-
-  // Handlers that clear services when config changes
-  const handleTemporalRangeChange = (newTemporalRange: [string, string]) => {
-    setTemporalRange(newTemporalRange);
-    clearServices();
-  };
-
-  const handleCloudCoverChange = (newCloudCover: number) => {
-    setCloudCover(newCloudCover);
-    clearServices();
-  };
 
   const hasAutoExecutedRef = useRef(false);
   useEffect(() => {
@@ -174,8 +158,8 @@ function EditorPanelContent({
             selectedBands={config.selectedBands || []}
             availableBands={availableBands}
             boundingBox={config.boundingBox}
-            onTemporalRangeChange={handleTemporalRangeChange}
-            onCloudCoverChange={handleCloudCoverChange}
+            onTemporalRangeChange={setTemporalRange}
+            onCloudCoverChange={setCloudCover}
             onSelectedBandsChange={setSelectedBands}
           />
         </Tabs.Content>
