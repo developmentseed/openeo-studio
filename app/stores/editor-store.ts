@@ -17,6 +17,15 @@ type EditorState = {
   sceneId: string | null;
 };
 
+type ResetDefaults = Pick<
+  EditorState,
+  | 'collectionId'
+  | 'cloudCover'
+  | 'temporalRange'
+  | 'selectedBands'
+  | 'boundingBox'
+>;
+
 type EditorActions = {
   setCode: (code: string) => void;
   setHasCodeChanged: (changed: boolean) => void;
@@ -29,7 +38,7 @@ type EditorActions = {
   toggleServiceVisibility: (serviceId: string) => void;
   clearServices: () => void;
   setSceneId: (id: string | null) => void;
-  resetToDefaults: (defaults: Partial<EditorState>) => void;
+  resetToDefaults: (defaults: ResetDefaults) => void;
   clearEditor: () => void;
   hydrateFromScene: (
     sceneId: string,
