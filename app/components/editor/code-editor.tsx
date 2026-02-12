@@ -43,25 +43,29 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
     const updateListener = ViewPlugin.fromClass(
       class {
         debounceTimer: NodeJS.Timeout | null = null;
+        destroyed = false;
 
         update(update: ViewUpdate) {
-          if (update.docChanged) {
-            const newCode = update.state.doc.toString();
+          if (this.destroyed || !update.docChanged) return;
 
-            // Clear previous timer
-            if (this.debounceTimer) {
-              clearTimeout(this.debounceTimer);
-            }
+          const newCode = update.state.doc.toString();
 
-            // Debounce the setCode call (300ms)
-            this.debounceTimer = setTimeout(() => {
-              setCode(newCode);
-              this.debounceTimer = null;
-            }, 300);
+          // Clear previous timer
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
           }
+
+          // Debounce the setCode call (300ms)
+          this.debounceTimer = setTimeout(() => {
+            if (!this.destroyed) {
+              setCode(newCode);
+            }
+            this.debounceTimer = null;
+          }, 300);
         }
 
         destroy() {
+          this.destroyed = true;
           // Clean up timer on plugin destroy
           if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
