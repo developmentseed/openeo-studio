@@ -1,19 +1,21 @@
 import { Flex, IconButton } from '@chakra-ui/react';
+import { memo } from 'react';
+import { useShallow } from 'zustand/shallow';
 import SmartLink from '$utils/smart-link';
+import { useEditorStore } from '$stores/editor-store';
 
 interface EditorHeaderProps {
   sceneName: string;
-  collectionId: string;
-  temporalRange: [string, string];
-  cloudCover: number;
 }
 
-export function EditorHeader({
-  sceneName,
-  collectionId,
-  temporalRange,
-  cloudCover
-}: EditorHeaderProps) {
+function EditorHeaderComponent({ sceneName }: EditorHeaderProps) {
+  const { collectionId, temporalRange, cloudCover } = useEditorStore(
+    useShallow((state) => ({
+      collectionId: state.collectionId,
+      temporalRange: state.temporalRange,
+      cloudCover: state.cloudCover
+    }))
+  );
   return (
     <Flex
       alignItems='center'
@@ -49,3 +51,5 @@ export function EditorHeader({
     </Flex>
   );
 }
+
+export const EditorHeader = memo(EditorHeaderComponent);

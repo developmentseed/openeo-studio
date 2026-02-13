@@ -1,25 +1,23 @@
 import { Flex } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { useAuth } from 'react-oidc-context';
+import { useShallow } from 'zustand/shallow';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
 import { LoginDialog } from '$components/auth/login-dialog';
-import type { ServiceInfo } from '$types';
+import { useEditorStore } from '$stores/editor-store';
 
-interface MapPanelProps {
-  bounds?: [number, number, number, number];
-  services: ServiceInfo[];
-  onToggleLayer: (serviceId: string) => void;
-  onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
-}
+function MapPanelComponent() {
+  const { bounds, sceneId, services } = useEditorStore(
+    useShallow((state) => ({
+      bounds: state.boundingBox,
+      sceneId: state.sceneId,
+      services: state.services
+    }))
+  );
+  const { toggleServiceVisibility, setBoundingBox } = useEditorStore();
 
-export function MapPanel({
-  bounds,
-  services,
-  onToggleLayer,
-  onBoundingBoxChange
-}: MapPanelProps) {
   const { isAuthenticated } = useAuth();
   const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
     pending: 0,
@@ -41,9 +39,10 @@ export function MapPanel({
       >
         <MapViewer
           bounds={bounds}
+          sceneId={sceneId}
           services={services}
-          onToggleLayer={onToggleLayer}
-          onBoundingBoxChange={onBoundingBoxChange}
+          onToggleLayer={toggleServiceVisibility}
+          onBoundingBoxChange={setBoundingBox}
           onTileStatusChange={setTileStatus}
         />
       </Flex>
@@ -52,3 +51,5 @@ export function MapPanel({
     </Flex>
   );
 }
+
+export const MapPanel = memo(MapPanelComponent);
