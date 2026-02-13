@@ -79,15 +79,17 @@ export function EditorPage() {
     if (isBlankScene && collection?.extent?.temporal?.interval) {
       const intervals = collection.extent.temporal.interval;
       if (intervals.length > 0 && intervals[0].length >= 2) {
-        const [start, end] = intervals[0];
+        const [, end] = intervals[0];
+        if (end) {
+          // Convert ISO datetime to date-only format (YYYY-MM-DD)
+          const endDate = new Date(end);
+          // Set start date to one month before end date
+          const startDate = new Date(endDate);
+          startDate.setMonth(startDate.getMonth() - 1);
 
-        if (start) {
-          const startDate = new Date(start);
-          const endDate = end ? new Date(end) : new Date();
-
-          if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-            const startDateStr = startDate.toISOString().split('T')[0];
-            const endDateStr = endDate.toISOString().split('T')[0];
+          const startDateStr = startDate.toISOString().split('T')[0];
+          const endDateStr = endDate.toISOString().split('T')[0];
+          if (!temporalRange[0] && !temporalRange[1]) {
             setTemporalRange([startDateStr, endDateStr]);
           }
         }
