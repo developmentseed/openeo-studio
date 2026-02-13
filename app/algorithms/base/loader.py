@@ -10,7 +10,7 @@ import json
 from openeo.internal.graph_building import PGNode
 from openeo.rest.datacube import DataCube
 from openeo.rest.result import SaveResult
-from openeo.processes import array_create, absolute, and_, if_
+from openeo.processes import array_create, absolute, and_, if_, linear_scale_range, process
 from openeo.api.process import Parameter
 
 # Initialize parameters with run configuration
