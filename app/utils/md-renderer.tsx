@@ -67,9 +67,7 @@ const mdComponents: Components = {
             right={2}
             zIndex={1}
             variant='surface'
-            onClick={(event) =>
-              copyCodeToClipboard(event.currentTarget, code)
-            }
+            onClick={(event) => copyCodeToClipboard(event.currentTarget, code)}
           >
             Copy
           </Button>
@@ -88,9 +86,7 @@ const mdComponents: Components = {
             right={2}
             zIndex={1}
             variant='surface'
-            onClick={(event) =>
-              copyCodeToClipboard(event.currentTarget, code)
-            }
+            onClick={(event) => copyCodeToClipboard(event.currentTarget, code)}
           >
             Copy
           </Button>
@@ -138,7 +134,11 @@ const mdComponents: Components = {
 export function MarkdownRenderer(props: React.ComponentProps<typeof Markdown>) {
   return (
     <Box width='100%' fontSize='md' color='foreground.700'>
-      <Markdown remarkPlugins={mdPlugins} components={mdComponents} {...props} />
+      <Markdown
+        remarkPlugins={mdPlugins}
+        components={mdComponents}
+        {...props}
+      />
     </Box>
   );
 }
