@@ -16,13 +16,8 @@ export function TemporalRangePicker({
 
   // Sync local state with props when they change externally
   useEffect(() => {
-    if (
-      localTemporalRange[0] !== temporalRange[0] ||
-      localTemporalRange[1] !== temporalRange[1]
-    ) {
-      setLocalTemporalRange(temporalRange);
-    }
-  }, [temporalRange, localTemporalRange]);
+    setLocalTemporalRange(temporalRange);
+  }, [temporalRange]);
 
   // Validation helpers
   const isStartDateValid = () => {
