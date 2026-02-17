@@ -2,6 +2,22 @@
 
 Applying openEO processes for visual data exploration
 
+Earth Observation (EO) data processing becomes accessible and powerful with Python-based openEO workflows. openEO Python allows data analysis to formulate their workflows
+in a familiar language and leave the data loading and workflow execution to interoperable backends.
+
+openEO Studio adds another layer of convenience by providing a browser-based workflow development and execution environment where the openEO Python algorithm and a map 
+to view the result are the only elements an analyst needs to deal with - no installation or execution. Log in, select your data, define the workflow, and view the result
+right away on a map, computed on-the-fly and only at the level of detail required.
+
+
+## How openEO Studio works
+
+- React JS frontend application
+- Integration with third-party authentication and authorisation
+- Client-side openEO Python code execution with [Pyodide](https://pyodide.org/)
+- Tile-based openEO data processing [titiler-openeo](https://github.com/sentinel-hub/titiler-openeo)
+
+
 ## Installation and Usage
 
 The steps below will walk you through setting up the project locally.
