@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no' />
+
+  <link rel="icon" href="https://studio.explorer.eopf.copernicus.eu/meta/favicon.png" type='image/png' sizes="32x32">
+  <link rel="icon" href="https://studio.explorer.eopf.copernicus.eu/meta/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="https://studio.explorer.eopf.copernicus.eu/meta/apple-touch-icon.png">
+
+  <meta property="og:image" content='https://studio.explorer.eopf.copernicus.eu/meta/meta-image.png'>
+  <meta name="twitter:image" content='https://studio.explorer.eopf.copernicus.eu/meta/meta-image.png'>
+  <meta property='og:url' content='https://studio.explorer.eopf.copernicus.eu/'>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&family=Fira+Code:wght@300..700&display=swap"
+    rel="stylesheet">
+
+  <title>openEO Studio</title>
+  <meta name='title' content='openEO Studio'>
+  <meta name='description' content='Interactive code editor for openEO satellite imagery processing'>
+
+  <!-- GitHub Pages SPA redirect handler -->
+  <script>
+    // Check if we're being redirected from 404.html
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('p');
+      if (redirect) {
+        // Remove the 'p' parameter and navigate to the actual path
+        const path = redirect.startsWith('/') ? redirect : '/' + redirect;
+        window.history.replaceState(null, '', path);
+      }
+    })();
+  </script>
+
+  <style>
+    #welcome-banner {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: #fff;
+      z-index: 100;
+      padding: 1rem;
+      transition: opacity 320ms ease-in-out;
+      pointer-events: none;
+      font-family: sans-serif !important;
+      text-align: center;
+    }
+
+    #welcome-banner p {
+      line-height: 1.5;
+      margin: 1rem 0 0 0;
+    }
+
+    #welcome-banner.dismissed {
+      opacity: 0;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-B8KM5V-n.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-kWVbv8B-.css">
+</head>
+
+<body>
+  <!-- Welcome banner gets hidden by React -->
+  <div id='welcome-banner'>
+    <img src="/assets/ds-logo-pos-B0zBcew_.svg" alt="Development Seed logotype" width="188" height="32" />
+    <p>In the beginning the Universe was created.</p>
+    <p>This has made a lot of people very angry and been widely regarded as a bad move.</p>
+  </div>
+
+  <div id='app-container'>
+    <!-- Content rendered here via React -->
+  </div>
+
+  <script>
+    // https://stackoverflow.com/a/9851769/728583
+
+    // internet explorer 6-11
+    var isIE = /*@cc_on!@*/ false || !!document.documentMode;
+
+    if (isIE) {
+      document.body.innerHTML =
+        'Unfortunately, your browser is not currently supported.<br />Recommended browsers: Edge, Firefox, Safari, Chrome';
+    }
+  </script>
+
+  <script>
+    // Fade the banner when the app signals readiness; no timeouts, no React DOM poking
+    addEventListener("app-ready", () => {
+      const el = document.getElementById("welcome-banner");
+      if (!el) return;
+      el.addEventListener("transitionend", () => el.remove(), { once: true });
+      el.classList.add("dismissed");
+    });
+  </script>
+
+</body>
+
+</html>
