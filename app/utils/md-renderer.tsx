@@ -51,7 +51,7 @@ const mdComponents: Components = {
     const match = /language-(\w+)/.exec(className || '');
     const code = String(children).replace(/\n$/, '');
 
-    if (match?.[1] === 'python') {
+    if (match) {
       return (
         <Box
           mb={4}
@@ -71,35 +71,20 @@ const mdComponents: Components = {
           >
             Copy
           </Button>
-          <ReadOnlyCodeEditor code={code} autoHeight showLint={false} />
-        </Box>
-      );
-    }
-
-    if (match) {
-      return (
-        <Box mb={4} position='relative'>
-          <Button
-            size='xs'
-            position='absolute'
-            top={2}
-            right={2}
-            zIndex={1}
-            variant='surface'
-            onClick={(event) => copyCodeToClipboard(event.currentTarget, code)}
-          >
-            Copy
-          </Button>
-          <chakra.pre
-            p={4}
-            overflow='auto'
-            borderRadius='md'
-            bg='bg.subtle'
-            fontSize='sm'
-            whiteSpace='pre'
-          >
-            {code}
-          </chakra.pre>
+          {match[1] === 'python' ? (
+            <ReadOnlyCodeEditor code={code} />
+          ) : (
+            <chakra.pre
+              p={4}
+              overflow='auto'
+              borderRadius='md'
+              fontSize='13px'
+              whiteSpace='pre'
+              fontFamily='Fira Code, monospace'
+            >
+              {code}
+            </chakra.pre>
+          )}
         </Box>
       );
     }
