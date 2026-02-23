@@ -11,9 +11,9 @@ interface EditorHeaderProps {
 function EditorHeaderComponent({ sceneName }: EditorHeaderProps) {
   const { collectionId, temporalRange, cloudCover } = useEditorStore(
     useShallow((state) => ({
-      collectionId: state.collectionId,
-      temporalRange: state.temporalRange,
-      cloudCover: state.cloudCover
+      collectionId: state.selectedConfig.collectionId,
+      temporalRange: state.selectedConfig.temporalRange,
+      cloudCover: state.selectedConfig.cloudCover
     }))
   );
   return (
