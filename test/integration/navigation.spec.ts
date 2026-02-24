@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { test } from './__fixtures__';
+import { gotoSceneOrFail, SCENE_IDS, sceneEditorPath } from './support/scenes';
 
 test.describe('Navigation', () => {
   test.describe('Page Loading', () => {
@@ -69,24 +70,28 @@ test.describe('Navigation', () => {
       await authenticatedPage.goto('/');
 
       // Click on first scene card
-      const sceneCard = authenticatedPage.getByRole('link').filter({
-        hasText: /sentinel|apa|ndvi/i
-      });
-      if (await sceneCard.count()) {
-        const firstCard = sceneCard.first();
-        const href = await firstCard.getAttribute('href');
-        await firstCard.click();
+      const sceneCards = authenticatedPage.locator('a[href^="/editor/"]');
+      await expect(
+        sceneCards.first(),
+        'Expected at least one scene card linking to /editor/:sceneId'
+      ).toBeVisible();
 
-        // Verify navigated to editor with scene
-        if (href) {
-          await expect(authenticatedPage).toHaveURL(href);
-        }
+      const firstCard = sceneCards.first();
+      const href = await firstCard.getAttribute('href');
+      expect(
+        href,
+        'Expected first scene card to include a valid /editor/:sceneId href'
+      ).toMatch(/^\/editor\/.+/);
 
-        // Verify editor is loaded
-        await expect(
-          authenticatedPage.getByRole('tab', { name: /code/i, selected: true })
-        ).toBeVisible();
-      }
+      await firstCard.click();
+
+      // Verify navigated to editor with scene
+      await expect(authenticatedPage).toHaveURL(href!);
+
+      // Verify editor is loaded
+      await expect(
+        authenticatedPage.getByRole('tab', { name: /code/i, selected: true })
+      ).toBeVisible();
     });
 
     test('back button returns to landing page from editor', async ({
@@ -176,12 +181,12 @@ test.describe('Navigation', () => {
     test('selected scene persists after reload', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      const scenePath = sceneEditorPath(SCENE_IDS.CUMBRE_VIEJA);
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.CUMBRE_VIEJA);
       const urlBefore = authenticatedPage.url();
 
       await authenticatedPage.reload();
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await authenticatedPage.waitForURL(scenePath);
 
       expect(authenticatedPage.url()).toBe(urlBefore);
     });
