@@ -19,14 +19,14 @@ export const SAMPLE_SCENES: SampleScene[] = [
   },
   {
     id: 'sentinel-2-cumbre-vieja',
-    name: 'Short-Wave Infra-Red (SWIR) lava visualisation',
+    name: 'Short-Wave Infra-Red (SWIR) lava visualization',
     description:
       'Sentinel-2 SWIR band combination make the hot lava of the Cumbre Vieja eruption in fall 2021 visible.',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: swirAlgorithm,
-    defaultBands: ['reflectance|b04', 'reflectance|b11', 'reflectance|b12'], // Bands useful for SWIR visualisation
+    defaultBands: ['reflectance|b04', 'reflectance|b11', 'reflectance|b12'], // Bands useful for SWIR visualization
     temporalRange: ['2021-09-15', '2021-10-31'],
-    boundingBox: [-17.9614, 28.5395, -17.8219, 28.6611], // west, south, east, north for Venice area
+    boundingBox: [-17.9614, 28.5395, -17.8219, 28.6611], // west, south, east, north for Cumbre Vieja area
     cloudCover: 40 // Max cloud cover percentage
   },
   {
