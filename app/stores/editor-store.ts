@@ -5,26 +5,24 @@ import type { ServiceInfo } from '$types';
 
 type BoundingBox = [number, number, number, number];
 
-type EditorState = {
-  code: string;
-  hasCodeChanged: boolean;
+type ConfigValues = {
   collectionId: string;
   temporalRange: [string, string];
   cloudCover: number;
   selectedBands: string[];
   boundingBox?: BoundingBox;
+};
+
+type EditorState = {
+  code: string;
+  hasCodeChanged: boolean;
+  selectedConfig: ConfigValues;
+  previousConfig: ConfigValues;
   services: ServiceInfo[];
   sceneId: string | null;
 };
 
-type ResetDefaults = Pick<
-  EditorState,
-  | 'collectionId'
-  | 'cloudCover'
-  | 'temporalRange'
-  | 'selectedBands'
-  | 'boundingBox'
->;
+type ResetDefaults = Partial<ConfigValues>;
 
 type EditorActions = {
   setCode: (code: string) => void;
@@ -55,29 +53,52 @@ type EditorActions = {
 
 type EditorStore = EditorState & EditorActions;
 
-const initialState: EditorState = {
-  code: '',
-  hasCodeChanged: false,
+// Helper to create initial config with defaults
+const createInitialConfig = (
+  overrides: Partial<ConfigValues> = {}
+): ConfigValues => ({
   collectionId: 'sentinel-2-l2a',
   temporalRange: ['', ''],
   cloudCover: 50,
   selectedBands: [],
   boundingBox: undefined,
-  services: [],
-  sceneId: null
-};
+  ...overrides
+});
 
 export const useEditorStore = create<EditorStore>()(
   persist(
     (set) => ({
-      ...initialState,
+      code: '',
+      hasCodeChanged: false,
+      selectedConfig: createInitialConfig(),
+      previousConfig: createInitialConfig(),
+      services: [],
+      sceneId: null,
       setCode: (code) => set({ code, hasCodeChanged: true }),
       setHasCodeChanged: (changed) => set({ hasCodeChanged: changed }),
-      setCollectionId: (collectionId) => set({ collectionId, services: [] }),
-      setTemporalRange: (temporalRange) => set({ temporalRange, services: [] }),
-      setCloudCover: (cloudCover) => set({ cloudCover, services: [] }),
-      setSelectedBands: (selectedBands) => set({ selectedBands }),
-      setBoundingBox: (boundingBox) => set({ boundingBox }),
+      setCollectionId: (collectionId) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, collectionId },
+          services: []
+        })),
+      setTemporalRange: (temporalRange) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, temporalRange },
+          services: []
+        })),
+      setCloudCover: (cloudCover) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, cloudCover },
+          services: []
+        })),
+      setSelectedBands: (selectedBands) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, selectedBands }
+        })),
+      setBoundingBox: (boundingBox) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, boundingBox }
+        })),
       setServices: (services) => set({ services, hasCodeChanged: false }),
       toggleServiceVisibility: (serviceId) =>
         set((state) => ({
@@ -89,37 +110,52 @@ export const useEditorStore = create<EditorStore>()(
         })),
       clearServices: () => set({ services: [] }),
       setSceneId: (sceneId) => set({ sceneId }),
-      resetToDefaults: (defaults) =>
+      resetToDefaults: (defaults) => {
+        const newConfig = createInitialConfig(defaults);
         set({
-          ...initialState,
-          ...defaults,
+          code: '',
           hasCodeChanged: false,
+          selectedConfig: newConfig,
+          previousConfig: newConfig,
           services: []
-        }),
-      clearEditor: () => set({ ...initialState }),
-      hydrateFromScene: (sceneId, scene) =>
+        });
+      },
+      clearEditor: () => {
+        const initialConfig = createInitialConfig();
         set({
-          sceneId,
+          code: '',
+          hasCodeChanged: false,
+          selectedConfig: initialConfig,
+          previousConfig: initialConfig,
+          services: [],
+          sceneId: null
+        });
+      },
+      hydrateFromScene: (sceneId, scene) => {
+        const sceneConfig = createInitialConfig({
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
           cloudCover: scene.cloudCover,
           selectedBands: scene.defaultBands,
-          boundingBox: scene.boundingBox,
+          boundingBox: scene.boundingBox
+        });
+        set({
+          sceneId,
+          selectedConfig: sceneConfig,
+          previousConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
           hasCodeChanged: false,
           services: []
-        })
+        });
+      }
     }),
     {
       name: 'openeo-editor-storage',
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         code: state.code,
-        collectionId: state.collectionId,
-        temporalRange: state.temporalRange,
-        cloudCover: state.cloudCover,
-        selectedBands: state.selectedBands,
-        boundingBox: state.boundingBox,
+        selectedConfig: state.selectedConfig,
+        previousConfig: state.previousConfig,
         sceneId: state.sceneId
       })
     }

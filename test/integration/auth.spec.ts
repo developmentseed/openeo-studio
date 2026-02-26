@@ -100,7 +100,7 @@ test.describe('Authenticated UI', () => {
     });
     await expect(
       applyButton,
-      'Apply button should be initally disabled'
+      'Apply button should be initially disabled'
     ).toBeDisabled();
 
     // Switch to code tab and change code to enable Apply
@@ -118,6 +118,43 @@ test.describe('Authenticated UI', () => {
     await expect(
       applyButton,
       'Apply button should be enabled after code change when authenticated and ready'
+    ).toBeEnabled();
+  });
+
+  test('should enable Apply button after config change', async ({
+    authenticatedPage
+  }) => {
+    await authenticatedPage.goto('/editor/sentinel-2-apa');
+
+    const applyButton = authenticatedPage.getByRole('button', {
+      name: /apply/i
+    });
+    await expect(
+      applyButton,
+      'Apply button should be initially disabled'
+    ).toBeDisabled();
+
+    // Switch to configuration tab and change cloud cover
+    const configTab = authenticatedPage.getByRole('tab', {
+      name: /configuration/i
+    });
+    await configTab.click();
+    await expect(configTab).toHaveAttribute('aria-selected', 'true');
+
+    // Change the temporal range
+    const startDateInput = authenticatedPage
+      .locator('input[type="date"]')
+      .first();
+    await expect(startDateInput).toBeVisible({ timeout: 10000 });
+    await startDateInput.fill('2025-05-02');
+    // Manually dispatch change event to ensure React onChange fires
+    await startDateInput.evaluate((el: HTMLInputElement) => {
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    await expect(
+      applyButton,
+      'Apply button should be enabled after config change when authenticated'
     ).toBeEnabled();
   });
 });

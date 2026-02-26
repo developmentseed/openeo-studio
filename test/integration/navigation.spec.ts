@@ -59,7 +59,7 @@ test.describe('Navigation', () => {
       await page.waitForURL('/docs');
 
       // Navigate home
-      await page.getByRole('link', { name: 'Home' }).click();
+      await page.getByRole('link', { name: 'Home', exact: true }).click();
       await expect(page).toHaveURL('/');
     });
 

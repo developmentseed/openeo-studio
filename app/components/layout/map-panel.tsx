@@ -11,7 +11,7 @@ import { useEditorStore } from '$stores/editor-store';
 function MapPanelComponent() {
   const { bounds, sceneId, services } = useEditorStore(
     useShallow((state) => ({
-      bounds: state.boundingBox,
+      bounds: state.selectedConfig.boundingBox,
       sceneId: state.sceneId,
       services: state.services
     }))

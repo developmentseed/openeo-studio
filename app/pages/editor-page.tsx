@@ -23,8 +23,8 @@ export function EditorPage() {
   const { storedSceneId, collectionId, temporalRange } = useEditorStore(
     useShallow((state) => ({
       storedSceneId: state.sceneId,
-      collectionId: state.collectionId,
-      temporalRange: state.temporalRange
+      collectionId: state.selectedConfig.collectionId,
+      temporalRange: state.selectedConfig.temporalRange
     }))
   );
 

@@ -55,15 +55,23 @@ function EditorPanelContent({
   defaultTab?: 'configuration' | 'code';
   autoExecuteOnReady?: boolean;
 }) {
-  const config = useEditorStore(
-    useShallow((state) => ({
-      collectionId: state.collectionId,
-      selectedBands: state.selectedBands,
-      temporalRange: state.temporalRange,
-      boundingBox: state.boundingBox,
-      cloudCover: state.cloudCover
-    }))
+  const selectedConfig = useEditorStore(
+    useShallow((state) => state.selectedConfig)
   );
+
+  const previousConfig = useEditorStore(
+    useShallow((state) => state.previousConfig)
+  );
+
+  const hasConfigChanged =
+    selectedConfig.collectionId !== previousConfig.collectionId ||
+    selectedConfig.cloudCover !== previousConfig.cloudCover ||
+    JSON.stringify(selectedConfig.temporalRange) !==
+      JSON.stringify(previousConfig.temporalRange) ||
+    JSON.stringify(selectedConfig.selectedBands) !==
+      JSON.stringify(previousConfig.selectedBands) ||
+    JSON.stringify(selectedConfig.boundingBox) !==
+      JSON.stringify(previousConfig.boundingBox);
 
   const { setServices, setSelectedBands, setTemporalRange, setCloudCover } =
     useEditorStore();
@@ -81,7 +89,7 @@ function EditorPanelContent({
     isReady: isExecutionReady,
     errorMessage,
     hasCodeChanged
-  } = useCodeExecution(setServices, editor, config);
+  } = useCodeExecution(setServices, editor, selectedConfig);
 
   const hasAutoExecutedRef = useRef(false);
   useEffect(() => {
@@ -139,7 +147,7 @@ function EditorPanelContent({
                           Available Variables
                         </Popover.Title>
                         <AvailableVariables
-                          selectedBands={config.selectedBands || []}
+                          selectedBands={selectedConfig.selectedBands || []}
                         />
                       </Popover.Body>
                     </Popover.Content>
@@ -152,12 +160,12 @@ function EditorPanelContent({
 
         <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
           <ConfigurationTab
-            collectionId={config.collectionId}
-            temporalRange={config.temporalRange}
-            cloudCover={config.cloudCover || 100}
-            selectedBands={config.selectedBands || []}
+            collectionId={selectedConfig.collectionId}
+            temporalRange={selectedConfig.temporalRange}
+            cloudCover={selectedConfig.cloudCover || 100}
+            selectedBands={selectedConfig.selectedBands || []}
             availableBands={availableBands}
-            boundingBox={config.boundingBox}
+            boundingBox={selectedConfig.boundingBox}
             onTemporalRangeChange={setTemporalRange}
             onCloudCoverChange={setCloudCover}
             onSelectedBandsChange={setSelectedBands}
@@ -192,6 +200,7 @@ function EditorPanelContent({
         executeCode={executeCode}
         showAutoExecHint={showAutoExecHint}
         hasCodeChanged={hasCodeChanged}
+        hasConfigChanged={hasConfigChanged}
       />
     </Flex>
   );
