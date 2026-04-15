@@ -6,8 +6,11 @@ import {
   type ExecutionConfig,
   type GraphResult,
   type ServiceInfo,
-  type ValidationError
+  type ValidationError,
+  type BackendService
 } from '$types';
+
+import { getInstanceId } from './instance-id';
 
 // Track active services for cleanup
 const activeServices: ServiceInfo[] = [];
@@ -17,8 +20,20 @@ export const EXAMPLE_CODE = trueColorAlgorithm;
 // OpenEO API constants
 const OPENEO_API_URL = 'https://api.explorer.eopf.copernicus.eu/openeo';
 const AUTH_PREFIX = 'Bearer oidc/oidc/';
+
+// Service title conventions for backend-side discovery
+const EPHEMERAL_TITLE_PREFIX = 'openeo-studio:ephemeral:';
+const PERMANENT_TITLE_PREFIX = 'openeo-studio:permanent:';
+
+/**
+ * Returns the management URL for a service given its type and id.
+ * The openEO API uses the path structure: /services/{type}/{id}
+ */
+export function getServiceUrl(serviceId: string, serviceType = 'xyz'): string {
+  return `${OPENEO_API_URL}/services/${serviceType}/${serviceId}`;
+}
+
 const DEFAULT_SERVICE_CONFIG = {
-  title: 'OpenEO Studio Ephemeral Service',
   description: null,
   type: 'XYZ',
   enabled: true,
@@ -77,12 +92,16 @@ json.dumps(map_graphs)
  *
  * @param graphResult - The process graph and parameters from map_graphs
  * @param authToken - Authentication token
+ * @param options - Service creation options (title, scope)
  * @returns The service location URL from the response header
  */
 async function createOpenEOService(
   graphResult: GraphResult,
-  authToken: string
+  authToken: string,
+  options: { title: string; scope?: 'public' | 'private' }
 ): Promise<string> {
+  const { title, scope = 'public' } = options;
+
   const response = await fetch(`${OPENEO_API_URL}/services`, {
     method: 'POST',
     headers: {
@@ -91,6 +110,11 @@ async function createOpenEOService(
     },
     body: JSON.stringify({
       ...DEFAULT_SERVICE_CONFIG,
+      title,
+      configuration: {
+        ...DEFAULT_SERVICE_CONFIG.configuration,
+        scope
+      },
       process: {
         process_graph: graphResult.process_graph,
         parameters: graphResult.parameters
@@ -159,7 +183,7 @@ async function validateProcessGraph(
  * @param serviceLocation - The service location URL
  * @param authToken - Authentication token
  */
-async function deleteOpenEOService(
+export async function deleteOpenEOService(
   serviceLocation: string,
   authToken: string
 ): Promise<void> {
@@ -195,6 +219,104 @@ export async function cleanupServices(authToken: string): Promise<void> {
 
   await Promise.allSettled(deletePromises);
   activeServices.length = 0; // Clear the array
+}
+
+/**
+ * Lists all services owned by the authenticated user from the openEO backend.
+ *
+ * @param authToken - Authentication token
+ * @returns Array of backend service records
+ */
+export async function listOpenEOServices(
+  authToken: string
+): Promise<BackendService[]> {
+  const response = await fetch(`${OPENEO_API_URL}/services`, {
+    headers: {
+      Authorization: `${AUTH_PREFIX}${authToken}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to list services (${response.status})`);
+  }
+
+  const payload = (await response.json()) as { services: BackendService[] };
+  return payload.services ?? [];
+}
+
+/**
+ * Discovers and deletes orphaned ephemeral services from previous sessions
+ * belonging to this studio instance. Errors are logged but never block execution.
+ *
+ * @param authToken - Authentication token
+ * @param instanceId - The studio instance UUID (from getInstanceId())
+ */
+export async function cleanupOrphanedServices(
+  authToken: string,
+  instanceId: string
+): Promise<void> {
+  try {
+    const services = await listOpenEOServices(authToken);
+    const prefix = `${EPHEMERAL_TITLE_PREFIX}${instanceId}`;
+    const orphans = services.filter((s) => s.title === prefix);
+
+    const deletePromises = orphans.map((s) =>
+      deleteOpenEOService(getServiceUrl(s.id), authToken)
+    );
+    await Promise.allSettled(deletePromises);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Error cleaning up orphaned services:', error);
+  }
+}
+
+/**
+ * Creates a permanent (never auto-cleaned) XYZ service from a process graph.
+ *
+ * @param graphResult - The process graph and parameters
+ * @param authToken - Authentication token
+ * @param scope - Service visibility scope ('public' or 'private')
+ * @returns The created service record from the backend
+ */
+export async function createPermanentService(
+  graphResult: GraphResult,
+  authToken: string,
+  scope: 'public' | 'private' = 'public'
+): Promise<BackendService> {
+  const serviceUUID = crypto.randomUUID();
+  const title = `${PERMANENT_TITLE_PREFIX}${serviceUUID}`;
+  const location = await createOpenEOService(graphResult, authToken, {
+    title,
+    scope
+  });
+
+  // Fetch the full service record from the backend
+  const response = await fetch(location, {
+    headers: {
+      Authorization: `${AUTH_PREFIX}${authToken}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch created permanent service (${response.status})`
+    );
+  }
+
+  return (await response.json()) as BackendService;
+}
+
+/**
+ * Lists all permanent services created by openEO Studio for the authenticated user.
+ *
+ * @param authToken - Authentication token
+ * @returns Array of backend service records matching the permanent title prefix
+ */
+export async function listPermanentServices(
+  authToken: string
+): Promise<BackendService[]> {
+  const services = await listOpenEOServices(authToken);
+  return services.filter((s) => s.title?.startsWith(PERMANENT_TITLE_PREFIX));
 }
 
 /**
@@ -240,6 +362,10 @@ export async function processScript(
   // Clean up previous services before creating new ones
   await cleanupServices(authToken);
 
+  // Also clean up any orphaned services from previous sessions (safety net)
+  const instanceId = getInstanceId();
+  await cleanupOrphanedServices(authToken, instanceId);
+
   // Execute Python code and get map_graphs array
   const result = await pyodide.runPythonAsync(getPythonCode(script, config));
   const mapGraphs: GraphResult[] = JSON.parse(result);
@@ -260,10 +386,13 @@ export async function processScript(
   }
 
   // Create services for each graph
+  const ephemeralTitle = `${EPHEMERAL_TITLE_PREFIX}${instanceId}`;
   const services: ServiceInfo[] = [];
 
   for (const graphResult of mapGraphs) {
-    const serviceLocation = await createOpenEOService(graphResult, authToken);
+    const serviceLocation = await createOpenEOService(graphResult, authToken, {
+      title: ephemeralTitle
+    });
     const tileUrl = await getTileUrl(serviceLocation, authToken);
 
     const serviceInfo: ServiceInfo = {
