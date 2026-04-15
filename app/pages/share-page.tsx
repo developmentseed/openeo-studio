@@ -63,7 +63,7 @@ export function SharePage() {
 
         const details = (await response.json()) as ServiceDetails;
         setService(details);
-        setTileUrl(details.url);
+        setTileUrl(decodeURIComponent(details.url));
       } catch {
         setError('Unable to connect to the service.');
       } finally {
@@ -114,7 +114,7 @@ export function SharePage() {
           initialViewState={{
             longitude: 0,
             latitude: 0,
-            zoom: 2
+            zoom: 6
           }}
           style={{ flexGrow: 1 }}
           mapStyle={BASE_STYLE}

@@ -26,11 +26,11 @@ const EPHEMERAL_TITLE_PREFIX = 'openeo-studio:ephemeral:';
 const PERMANENT_TITLE_PREFIX = 'openeo-studio:permanent:';
 
 /**
- * Returns the management URL for a service given its type and id.
- * The openEO API uses the path structure: /services/{type}/{id}
+ * Returns the management URL for a service given its id.
+ * The openEO API uses the path structure: /services/{id}
  */
-export function getServiceUrl(serviceId: string, serviceType = 'xyz'): string {
-  return `${OPENEO_API_URL}/services/${serviceType}/${serviceId}`;
+export function getServiceUrl(serviceId: string): string {
+  return `${OPENEO_API_URL}/services/${serviceId}`;
 }
 
 const DEFAULT_SERVICE_CONFIG = {
