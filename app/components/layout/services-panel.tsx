@@ -165,18 +165,35 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
                           Created: {new Date(service.created).toLocaleString()}
                         </Text>
                       )}
-                      {scope === 'public' && (
-                        <Clipboard.Root value={shareUrl}>
-                          <Clipboard.Control>
-                            <Clipboard.Input readOnly fontSize='xs' />
+                      <Flex gap={2} wrap='wrap'>
+                        <Clipboard.Root value={service.url}>
+                          <Clipboard.Trigger asChild>
+                            <Button variant='outline' size='xs'>
+                              Copy XYZ URL
+                            </Button>
+                          </Clipboard.Trigger>
+                        </Clipboard.Root>
+                        {scope === 'public' && (
+                          <Clipboard.Root value={shareUrl}>
                             <Clipboard.Trigger asChild>
                               <Button variant='outline' size='xs'>
-                                Copy Link
+                                Copy Share Link
                               </Button>
                             </Clipboard.Trigger>
-                          </Clipboard.Control>
-                        </Clipboard.Root>
-                      )}
+                          </Clipboard.Root>
+                        )}
+                        {scope === 'public' && (
+                          <Button variant='outline' size='xs' asChild>
+                            <a
+                              href={shareUrl}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                            >
+                              Open
+                            </a>
+                          </Button>
+                        )}
+                      </Flex>
                     </Box>
                   );
                 })}
