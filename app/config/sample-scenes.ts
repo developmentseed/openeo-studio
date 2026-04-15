@@ -6,15 +6,14 @@ import type { SampleScene } from '$types';
 
 export const SAMPLE_SCENES: SampleScene[] = [
   {
-    id: 'sentinel-2-adriatic',
-    name: 'Sunny November day with Sentinel-2 L2A',
-    description:
-      'Sentinel-2 coverage with nice cloud-free scenes over Italy, for example Venice.',
+    id: 'sentinel-2-rgb',
+    name: 'Sunny January day with Sentinel-2 L2A',
+    description: 'Sentinel-2 coverage with nice cloud-free scenes over Italy',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: trueColorAlgorithm,
-    defaultBands: ['reflectance|b02', 'reflectance|b03', 'reflectance|b04'], // Blue, Green, Red for true color
-    temporalRange: ['2025-05-12', '2025-05-13'],
-    boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
+    defaultBands: ['reflectance|b04', 'reflectance|b03', 'reflectance|b02'], // Red, Green, Blue for true color
+    temporalRange: ['2025-11-01', '2026-02-28'],
+    boundingBox: [14.11, 40.75, 14.34, 40.85], // west, south, east, north for Naples area
     cloudCover: 20 // Max cloud cover percentage
   },
   {
