@@ -98,9 +98,14 @@ json.dumps(map_graphs)
 async function createOpenEOService(
   graphResult: GraphResult,
   authToken: string,
-  options: { title: string; scope?: 'public' | 'private' }
+  options: {
+    title: string;
+    scope?: 'public' | 'private';
+    extent?: [number, number, number, number];
+    layerName?: string;
+  }
 ): Promise<string> {
-  const { title, scope = 'public' } = options;
+  const { title, scope = 'public', extent, layerName } = options;
 
   const response = await fetch(`${OPENEO_API_URL}/services`, {
     method: 'POST',
@@ -113,7 +118,9 @@ async function createOpenEOService(
       title,
       configuration: {
         ...DEFAULT_SERVICE_CONFIG.configuration,
-        scope
+        scope,
+        ...(extent ? { extent } : {}),
+        ...(layerName ? { layerName } : {})
       },
       process: {
         process_graph: graphResult.process_graph,
@@ -281,13 +288,16 @@ export async function cleanupOrphanedServices(
 export async function createPermanentService(
   graphResult: GraphResult,
   authToken: string,
-  scope: 'public' | 'private' = 'public'
+  scope: 'public' | 'private' = 'public',
+  extent?: [number, number, number, number]
 ): Promise<BackendService> {
   const serviceUUID = crypto.randomUUID();
   const title = `${PERMANENT_TITLE_PREFIX}${serviceUUID}`;
   const location = await createOpenEOService(graphResult, authToken, {
     title,
-    scope
+    scope,
+    extent,
+    layerName: graphResult.name
   });
 
   // Fetch the full service record from the backend

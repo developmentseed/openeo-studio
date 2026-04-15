@@ -55,6 +55,7 @@ function MapPanelComponent() {
       {shareService && (
         <ShareDialog
           service={shareService}
+          bounds={bounds}
           onClose={() => setShareService(null)}
         />
       )}

@@ -137,7 +137,8 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
                       <Flex align='center' justify='space-between' mb={2}>
                         <Flex align='center' gap={2}>
                           <Text fontSize='sm' fontWeight='medium'>
-                            {service.title}
+                            {(service.configuration?.layerName as string) ||
+                              service.title}
                           </Text>
                           <Badge
                             size='sm'

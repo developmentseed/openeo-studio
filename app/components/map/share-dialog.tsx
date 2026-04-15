@@ -18,10 +18,11 @@ import type { BackendService, ServiceInfo } from '$types';
 
 interface ShareDialogProps {
   service: ServiceInfo;
+  bounds?: [number, number, number, number];
   onClose: () => void;
 }
 
-export function ShareDialog({ service, onClose }: ShareDialogProps) {
+export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   const { user } = useAuth();
   const [scope, setScope] = useState<'public' | 'private'>('public');
   const [isCreating, setIsCreating] = useState(false);
@@ -38,7 +39,8 @@ export function ShareDialog({ service, onClose }: ShareDialogProps) {
       const result = await createPermanentService(
         service.graphResult,
         user.access_token,
-        scope
+        scope,
+        bounds
       );
       setCreated(result);
     } catch (err) {
