@@ -99,5 +99,5 @@ export interface BackendService {
   type: string;
   enabled: boolean;
   configuration: Record<string, unknown>;
-  created: string;
+  created?: string;
 }

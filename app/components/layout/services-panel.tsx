@@ -160,9 +160,11 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
                           {isDeleting ? <Spinner size='xs' /> : <TrashIcon />}
                         </IconButton>
                       </Flex>
-                      <Text fontSize='xs' color='gray.500' mb={2}>
-                        Created: {new Date(service.created).toLocaleString()}
-                      </Text>
+                      {service.created && (
+                        <Text fontSize='xs' color='gray.500' mb={2}>
+                          Created: {new Date(service.created).toLocaleString()}
+                        </Text>
+                      )}
                       {scope === 'public' && (
                         <Clipboard.Root value={shareUrl}>
                           <Clipboard.Control>
