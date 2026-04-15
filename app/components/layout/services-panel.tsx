@@ -115,8 +115,8 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
 
             {!isLoading && !error && services.length === 0 && (
               <Text fontSize='sm' color='gray.500'>
-                No permanent services found. Use the share button on a map layer
-                to create one.
+                No permanent services found. Use the export button on a map
+                layer to create one.
               </Text>
             )}
 
