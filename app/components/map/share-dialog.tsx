@@ -54,8 +54,14 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
     ? `${window.location.origin}/share/${created.id}`
     : '';
 
-  // The backend url field is already the full XYZ tile URL template
-  const tileUrl = created?.url ?? '';
+  // The backend url field is already the full XYZ tile URL template.
+  // Decode it so curly-brace tile placeholders ({z}/{x}/{y}) are not shown as %7B…%7D.
+  let tileUrl = created?.url ?? '';
+  try {
+    tileUrl = decodeURIComponent(tileUrl);
+  } catch {
+    /* keep encoded */
+  }
 
   return (
     <Dialog.Root
@@ -138,14 +144,19 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                     XYZ Tile URL
                   </Text>
                   <Clipboard.Root value={tileUrl}>
-                    <Clipboard.Control>
-                      <Clipboard.Input readOnly fontSize='xs' />
+                    <Flex align='center' gap={2}>
+                      <Clipboard.Input
+                        readOnly
+                        fontSize='xs'
+                        flex={1}
+                        minW={0}
+                      />
                       <Clipboard.Trigger asChild>
-                        <Button variant='outline' size='xs'>
+                        <Button variant='outline' size='xs' flexShrink={0}>
                           Copy
                         </Button>
                       </Clipboard.Trigger>
-                    </Clipboard.Control>
+                    </Flex>
                   </Clipboard.Root>
                 </Box>
 
@@ -155,14 +166,19 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                       Shareable Link
                     </Text>
                     <Clipboard.Root value={shareUrl}>
-                      <Clipboard.Control>
-                        <Clipboard.Input readOnly fontSize='xs' />
+                      <Flex align='center' gap={2}>
+                        <Clipboard.Input
+                          readOnly
+                          fontSize='xs'
+                          flex={1}
+                          minW={0}
+                        />
                         <Clipboard.Trigger asChild>
-                          <Button variant='outline' size='xs'>
+                          <Button variant='outline' size='xs' flexShrink={0}>
                             Copy
                           </Button>
                         </Clipboard.Trigger>
-                      </Clipboard.Control>
+                      </Flex>
                     </Clipboard.Root>
                   </Box>
                 )}

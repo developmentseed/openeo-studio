@@ -127,6 +127,13 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
                   const shareUrl = `${window.location.origin}/share/${service.id}`;
                   const isDeleting = deletingIds.has(service.id);
 
+                  let serviceUrl = service.url;
+                  try {
+                    serviceUrl = decodeURIComponent(serviceUrl);
+                  } catch {
+                    /* keep encoded */
+                  }
+
                   return (
                     <Box
                       key={service.id}
@@ -166,7 +173,7 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
                         </Text>
                       )}
                       <Flex gap={2} wrap='wrap'>
-                        <Clipboard.Root value={service.url}>
+                        <Clipboard.Root value={serviceUrl}>
                           <Clipboard.Trigger asChild>
                             <Button variant='outline' size='xs'>
                               Copy XYZ URL
