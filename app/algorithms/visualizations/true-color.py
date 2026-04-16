@@ -3,30 +3,14 @@ True Color Visualization Algorithm for Sentinel-2 imagery.
 Combines RGB bands (B04, B03, B02) to create a natural color visualization.
 """
 
-
-def viz(data):
-    """Apply true color transformation to spectral bands."""
-    B02, B03, B04 = (
-        data[0],
-        data[1],
-        data[2],
-    )
-    # True color for land (enhanced)
-    true_color_b = B02 * 3
-    true_color_g = B03 * 3
-    true_color_r = B04 * 3
-    return array_create([true_color_r, true_color_g, true_color_b])
-
-
-# Apply the visualization function
-map_viz = reduced.apply_dimension(dimension="spectral", process=viz)
-
-# Scale values to 0-255 range for PNG output
-map_viz = map_viz.linear_scale_range(
+rgb = reduced.linear_scale_range( 
     input_min=0, input_max=1, output_min=0, output_max=255
+).apply("trunc")
+color = rgb.process(
+    "color_formula",
+    data=rgb,
+    formula="Gamma RGB 1.5 Sigmoidal RGB 8 0.15 Saturation 1.2",
 )
-
-# Save as PNG and return JSON representation
-map_viz = map_viz.save_result("PNG")
+map_viz = color.save_result("PNG")
 
 add_graph_to_map(map_viz, "True Color")
