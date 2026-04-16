@@ -15,7 +15,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     temporalRange: ['2025-11-01', '2026-02-28'],
     boundingBox: [14.11, 40.75, 14.34, 40.85], // west, south, east, north for Naples area
     cloudCover: 20, // Max cloud cover percentage
-    thumbnail: './app/media/scenes/sentinel-2-sunny-naples.png' // Local thumbnail image for the scene
+    thumbnail: './media/scenes/sentinel-2-sunny-naples.png' // Local thumbnail image for the scene
   },
   {
     id: 'sentinel-2-apa',
