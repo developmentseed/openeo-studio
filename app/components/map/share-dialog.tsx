@@ -14,6 +14,8 @@ import {
 import { useAuth } from 'react-oidc-context';
 
 import { createPermanentService } from '../../utils/code-runner';
+import { buildNarrativeMarkdown } from '../../utils/narrative-export';
+import { ENABLE_NARRATIVE_EXPORT } from '$config/constants';
 import type { BackendService, ServiceInfo } from '$types';
 
 interface ShareDialogProps {
@@ -62,6 +64,27 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   } catch {
     /* keep encoded */
   }
+
+  const narrativeMarkdown =
+    ENABLE_NARRATIVE_EXPORT && created
+      ? (() => {
+          const extent = bounds;
+          const center: [number, number] = extent
+            ? [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2]
+            : [0, 0];
+          const zoom = extent
+            ? Math.round(
+                Math.log2(360 / Math.max(extent[2] - extent[0], 0.001)) + 1
+              )
+            : 6;
+          return buildNarrativeMarkdown({
+            tileUrl,
+            center,
+            zoom,
+            layerName: service.graphResult.name
+          });
+        })()
+      : '';
 
   return (
     <Dialog.Root
@@ -166,6 +189,29 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                       Shareable Link
                     </Text>
                     <Clipboard.Root value={shareUrl}>
+                      <Flex align='center' gap={2}>
+                        <Clipboard.Input
+                          readOnly
+                          fontSize='xs'
+                          flex={1}
+                          minW={0}
+                        />
+                        <Clipboard.Trigger asChild>
+                          <Button variant='outline' size='xs' flexShrink={0}>
+                            Copy
+                          </Button>
+                        </Clipboard.Trigger>
+                      </Flex>
+                    </Clipboard.Root>
+                  </Box>
+                )}
+
+                {ENABLE_NARRATIVE_EXPORT && narrativeMarkdown && (
+                  <Box>
+                    <Text fontSize='sm' fontWeight='medium' mb={1}>
+                      Narrative Embed
+                    </Text>
+                    <Clipboard.Root value={narrativeMarkdown}>
                       <Flex align='center' gap={2}>
                         <Clipboard.Input
                           readOnly

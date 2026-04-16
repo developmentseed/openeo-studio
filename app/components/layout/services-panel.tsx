@@ -19,6 +19,8 @@ import {
   getServiceUrl,
   listPermanentServices
 } from '../../utils/code-runner';
+import { buildNarrativeMarkdown } from '../../utils/narrative-export';
+import { ENABLE_NARRATIVE_EXPORT } from '$config/constants';
 import type { BackendService } from '$types';
 
 function TrashIcon() {
@@ -84,6 +86,29 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
   const getScope = (service: BackendService): string => {
     const config = service.configuration;
     return typeof config?.scope === 'string' ? config.scope : 'public';
+  };
+
+  const getNarrativeMarkdown = (service: BackendService): string => {
+    let url = service.url;
+    try {
+      url = decodeURIComponent(url);
+    } catch {
+      /* keep encoded */
+    }
+
+    const extent = service.configuration?.extent as
+      | [number, number, number, number]
+      | undefined;
+    const center: [number, number] = extent
+      ? [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2]
+      : [0, 0];
+    const zoom = extent
+      ? Math.round(Math.log2(360 / Math.max(extent[2] - extent[0], 0.001)) + 1)
+      : 6;
+
+    const layerName = (service.configuration?.layerName as string) || '';
+
+    return buildNarrativeMarkdown({ tileUrl: url, center, zoom, layerName });
   };
 
   return (
@@ -199,6 +224,15 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
                               Open
                             </a>
                           </Button>
+                        )}
+                        {ENABLE_NARRATIVE_EXPORT && (
+                          <Clipboard.Root value={getNarrativeMarkdown(service)}>
+                            <Clipboard.Trigger asChild>
+                              <Button variant='outline' size='xs'>
+                                Copy as Narrative
+                              </Button>
+                            </Clipboard.Trigger>
+                          </Clipboard.Root>
                         )}
                       </Flex>
                     </Box>
