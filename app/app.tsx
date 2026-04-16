@@ -13,6 +13,8 @@ import { AppHeader } from '$components/layout/app-header';
 import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
 import { DocsPage } from '$pages/docs-page';
+import { SharePage } from '$pages/share-page';
+import { useServiceCleanup } from './hooks/use-service-cleanup';
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -20,6 +22,9 @@ export default function App() {
   const hasNavigated = useRef(false);
 
   const location = useLocation();
+
+  // Clean up orphaned ephemeral services from previous sessions on startup
+  useServiceCleanup();
 
   useEffect(() => {
     // eslint-disable-next-line no-console
@@ -91,6 +96,7 @@ export default function App() {
         <Route path='/docs' element={<DocsPage />} />
         <Route path='/editor' element={<EditorPage />} />
         <Route path='/editor/:sceneId' element={<EditorPage />} />
+        <Route path='/share/:serviceId' element={<SharePage />} />
         <Route path='*' element={<Navigate to='/' replace />} />
       </Routes>
     </Flex>

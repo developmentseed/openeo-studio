@@ -48,6 +48,7 @@ jobs:
           VITE_AUTH_AUTHORITY: ${{ vars.VITE_AUTH_AUTHORITY }}
           VITE_AUTH_CLIENT_ID: ${{ vars.VITE_AUTH_CLIENT_ID }}
           VITE_AUTH_REDIRECT_URI: ${{ vars.VITE_AUTH_REDIRECT_URI }}
+          VITE_ENABLE_NARRATIVE_EXPORT: ${{ vars.VITE_ENABLE_NARRATIVE_EXPORT }}
         run: pnpm build
 
   deploy:

@@ -5,8 +5,10 @@ import { useShallow } from 'zustand/shallow';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
+import { ShareDialog } from '$components/map/share-dialog';
 import { LoginDialog } from '$components/auth/login-dialog';
 import { useEditorStore } from '$stores/editor-store';
+import type { ServiceInfo } from '$types';
 
 function MapPanelComponent() {
   const { bounds, sceneId, services } = useEditorStore(
@@ -23,6 +25,7 @@ function MapPanelComponent() {
     pending: 0,
     status: 'idle'
   });
+  const [shareService, setShareService] = useState<ServiceInfo | null>(null);
 
   useEffect(() => {
     if (services.length === 0 && tileStatus.status !== 'idle') {
@@ -44,10 +47,18 @@ function MapPanelComponent() {
           onToggleLayer={toggleServiceVisibility}
           onBoundingBoxChange={setBoundingBox}
           onTileStatusChange={setTileStatus}
+          onShareService={isAuthenticated ? setShareService : undefined}
         />
       </Flex>
       {services.length > 0 && <TileStatusAlert status={tileStatus} />}
       <LoginDialog isOpen={!isAuthenticated} />
+      {shareService && (
+        <ShareDialog
+          service={shareService}
+          bounds={bounds}
+          onClose={() => setShareService(null)}
+        />
+      )}
     </Flex>
   );
 }

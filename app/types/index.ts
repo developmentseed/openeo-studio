@@ -87,3 +87,17 @@ export interface ValidationError {
   message?: string;
   path?: string;
 }
+
+/**
+ * Service record as returned by the openEO backend GET /services endpoint.
+ * Used for both ephemeral cleanup and permanent service management.
+ */
+export interface BackendService {
+  id: string;
+  url: string;
+  title: string;
+  type: string;
+  enabled: boolean;
+  configuration: Record<string, unknown>;
+  created?: string;
+}

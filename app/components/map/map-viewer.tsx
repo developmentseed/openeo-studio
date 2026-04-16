@@ -37,6 +37,7 @@ interface MapViewerProps {
   onToggleLayer: (serviceId: string) => void;
   onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
   onTileStatusChange?: (status: TileLoadStatus) => void;
+  onShareService?: (service: ServiceInfo) => void;
 }
 
 export function MapViewer({
@@ -45,7 +46,8 @@ export function MapViewer({
   services,
   onToggleLayer,
   onBoundingBoxChange,
-  onTileStatusChange
+  onTileStatusChange,
+  onShareService
 }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
   const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
@@ -112,7 +114,11 @@ export function MapViewer({
         value={baseLayerId}
         onChange={setBaseLayerId}
       />
-      <LayerControl services={services} onToggleLayer={onToggleLayer} />
+      <LayerControl
+        services={services}
+        onToggleLayer={onToggleLayer}
+        onShareService={onShareService}
+      />
     </Map>
   );
 }
