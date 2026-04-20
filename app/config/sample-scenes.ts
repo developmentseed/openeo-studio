@@ -3,6 +3,7 @@ import apaAlgorithm from '../algorithms/visualizations/apa.py?raw';
 import ndciAlgorithm from '../algorithms/visualizations/ndci.py?raw';
 import lavaAlgorithm from '../algorithms/visualizations/lava.py?raw';
 import bais2Algorithm from '../algorithms/visualizations/bais2.py?raw';
+import cloudDetectionAlgorithm from '../algorithms/visualizations/cloud-detection.py?raw';
 
 import type { SampleScene } from '$types';
 
@@ -100,6 +101,24 @@ export const SAMPLE_SCENES: SampleScene[] = [
     boundingBox: [-7.8, 40.1, -7.0, 40.9], // west, south, east, north for Beiras e Serra da Estrela, Portugal
     cloudCover: 20, // Max cloud cover percentage
     thumbnail: './media/scenes/bais2.png'
+  },
+  {
+    id: 'sentinel-2-cloud-detection',
+    name: 'Cloud Detection with Sentinel-2 L2A',
+    description:
+      'Braaten-Cohen-Yang cloud detector highlighting thick and thin clouds using SWIR and green band thresholds over London, UK.',
+    collectionId: 'sentinel-2-l2a',
+    suggestedAlgorithm: cloudDetectionAlgorithm,
+    defaultBands: [
+      'reflectance|b02',
+      'reflectance|b03',
+      'reflectance|b04',
+      'reflectance|b11'
+    ],
+    temporalRange: ['2026-02-16', '2026-02-21'],
+    boundingBox: [-0.5, 51.27, 0.34, 51.7], // London, UK
+    cloudCover: 100, // We want clouds for this scene
+    thumbnail: './media/scenes/cloud_detection_cby.png'
   }
 ];
 
