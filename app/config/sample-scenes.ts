@@ -81,6 +81,8 @@ export const SAMPLE_SCENES: SampleScene[] = [
     boundingBox: [-17.94, 28.58, -17.86, 28.64], // west, south, east, north for Cumbre Vieja, La Palma
     cloudCover: 20, // Max cloud cover percentage
     thumbnail: './media/scenes/lava.png'
+  },
+  {
     id: 'sentinel-2-bais2',
     name: 'Burned Area Detection with Sentinel-2 L2A',
     description:
