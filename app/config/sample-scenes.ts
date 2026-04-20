@@ -1,6 +1,7 @@
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 import apaAlgorithm from '../algorithms/visualizations/apa.py?raw';
 import ndciAlgorithm from '../algorithms/visualizations/ndci.py?raw';
+import lavaAlgorithm from '../algorithms/visualizations/lava.py?raw';
 import bais2Algorithm from '../algorithms/visualizations/bais2.py?raw';
 
 import type { SampleScene } from '$types';
@@ -62,6 +63,24 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'https://github.com/EOPF-Explorer/eodash-assets/blob/main/narratives/NDCI/hero.png?raw=true'
   },
   {
+    id: 'sentinel-2-lava',
+    name: 'Lava Flow Visualization with Sentinel-2 L2A',
+    description:
+      'Sentinel-2 SWIR-based lava flow mapping during the 2021 Cumbre Vieja eruption on La Palma, Canary Islands, Spain (GDACS VO-1000031).',
+    collectionId: 'sentinel-2-l2a',
+    suggestedAlgorithm: lavaAlgorithm,
+    defaultBands: [
+      'reflectance|b02',
+      'reflectance|b03',
+      'reflectance|b04',
+      'reflectance|b08',
+      'reflectance|b11',
+      'reflectance|b12'
+    ], // Blue, Green, Red, NIR, SWIR-1, SWIR-2 for lava visualization
+    temporalRange: ['2021-10-10', '2021-10-11'],
+    boundingBox: [-17.94, 28.58, -17.86, 28.64], // west, south, east, north for Cumbre Vieja, La Palma
+    cloudCover: 20, // Max cloud cover percentage
+    thumbnail: './media/scenes/lava.png'
     id: 'sentinel-2-bais2',
     name: 'Burned Area Detection with Sentinel-2 L2A',
     description:
