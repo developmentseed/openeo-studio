@@ -1,6 +1,7 @@
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 import apaAlgorithm from '../algorithms/visualizations/apa.py?raw';
 import ndciAlgorithm from '../algorithms/visualizations/ndci.py?raw';
+import bais2Algorithm from '../algorithms/visualizations/bais2.py?raw';
 
 import type { SampleScene } from '$types';
 
@@ -59,6 +60,25 @@ export const SAMPLE_SCENES: SampleScene[] = [
     cloudCover: 20, // Max cloud cover percentage
     thumbnail:
       'https://github.com/EOPF-Explorer/eodash-assets/blob/main/narratives/NDCI/hero.png?raw=true'
+  },
+  {
+    id: 'sentinel-2-bais2',
+    name: 'Burned Area Detection with Sentinel-2 L2A',
+    description:
+      'Sentinel-2 burned area mapping using BAIS2 over the 2025 Portugal wildfires in the Beiras e Serra da Estrela region.',
+    collectionId: 'sentinel-2-l2a',
+    suggestedAlgorithm: bais2Algorithm,
+    defaultBands: [
+      'reflectance|b04',
+      'reflectance|b06',
+      'reflectance|b07',
+      'reflectance|b8a',
+      'reflectance|b12'
+    ], // Red, Red Edge, Red Edge, Narrow NIR, SWIR for BAIS2
+    temporalRange: ['2025-08-10', '2025-08-17'],
+    boundingBox: [-7.8, 40.1, -7.0, 40.9], // west, south, east, north for Beiras e Serra da Estrela, Portugal
+    cloudCover: 20, // Max cloud cover percentage
+    thumbnail: './media/scenes/bais2.png'
   }
 ];
 
