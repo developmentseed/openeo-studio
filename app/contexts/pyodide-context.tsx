@@ -47,11 +47,14 @@ async function initializePyodide(
   });
   onLog(createLogEntry('Pyodide loaded successfully', 'success'));
 
-  // Install OpenEO package
+  // Install OpenEO package.
+  // Pinned to <0.50 because openeo 0.50.0 added geopandas as a hard
+  // runtime dependency, which currently fails to resolve in Pyodide.
+  // See https://github.com/developmentseed/openeo-studio/issues/70
   onLog(createLogEntry('Installing openeo package...'));
   await pyodideInstance.loadPackage('micropip');
   const micropip = pyodideInstance.pyimport('micropip');
-  await micropip.install('openeo');
+  await micropip.install('openeo<0.50');
   onLog(createLogEntry('openeo package installed', 'success'));
 
   // Initialize Ruff linter
