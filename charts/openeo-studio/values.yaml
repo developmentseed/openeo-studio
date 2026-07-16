@@ -1,0 +1,44 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/developmentseed/openeo-studio
+  # Defaults to Chart.appVersion when empty
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: openeo-studio.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources: {}
+
+env:
+  OPENEO_API_URL: https://api.explorer.eopf.copernicus.eu/openeo
+  BASE_URL: ""
+  PATH_PREFIX: ""
+  APP_TITLE: openEO Studio
+  APP_DESCRIPTION: Interactive code editor for openEO satellite imagery processing
+  MAPTILER_KEY: ""
+  AUTH_AUTHORITY: ""
+  AUTH_CLIENT_ID: ""
+  AUTH_REDIRECT_URI: ""
+  ENABLE_NARRATIVE_EXPORT: "false"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
