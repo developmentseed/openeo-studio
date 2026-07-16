@@ -6,6 +6,7 @@ import { StacApiProvider } from '@developmentseed/stac-react';
 import { BrowserRouter } from 'react-router';
 import { WebStorageStateStore } from 'oidc-client-ts';
 
+import { appConfig } from '$config/runtime';
 import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$utils/auth-monitor';
 import { setupReloadDetector } from './utils/reload-detector';
@@ -21,15 +22,11 @@ if (import.meta.env.DEV) {
   setupReloadDetector();
 }
 
-const authAuthority = import.meta.env.VITE_AUTH_AUTHORITY || '';
-const authClientId = import.meta.env.VITE_AUTH_CLIENT_ID || '';
-const authRedirectUri = import.meta.env.VITE_AUTH_REDIRECT_URI || '';
-
 const oidcConfig: AuthProviderProps = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
-  authority: authAuthority,
-  client_id: authClientId,
-  redirect_uri: authRedirectUri,
+  authority: appConfig.authAuthority,
+  client_id: appConfig.authClientId,
+  redirect_uri: appConfig.authRedirectUri,
   onSigninCallback: (user) => {
     // eslint-disable-next-line no-console
     console.log('[AUTH] onSigninCallback triggered', {
@@ -91,11 +88,11 @@ function Root() {
   const authProps = window.__MOCK_AUTH__ ? {} : oidcConfig;
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={appConfig.pathPrefix || undefined}>
       <AuthWrapper {...authProps}>
         {!window.__MOCK_AUTH__ && <AuthMonitor />}
         <ChakraProvider value={system}>
-          <StacApiProvider apiUrl='https://api.explorer.eopf.copernicus.eu/openeo'>
+          <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
             <PyodideProvider>
               <App />
             </PyodideProvider>

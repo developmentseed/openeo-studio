@@ -16,6 +16,7 @@ const alias = Object.entries(pkg.alias).reduce((acc, [key, value]) => {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [react()],
   define: {
     APP_VERSION: JSON.stringify(pkg.version)
