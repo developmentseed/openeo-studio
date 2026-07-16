@@ -129,28 +129,27 @@ test.describe('Authenticated UI', () => {
     const applyButton = authenticatedPage.getByRole('button', {
       name: /apply/i
     });
+
+    // Wait for sample-scene auto-exec to finish (Apply is disabled while running).
+    await expect(
+      authenticatedPage.getByRole('button', { name: /execution failed/i })
+    ).toBeVisible({ timeout: 180_000 });
+
     await expect(
       applyButton,
-      'Apply button should be initially disabled'
+      'Apply button should be disabled before config changes'
     ).toBeDisabled();
 
-    // Switch to configuration tab and change cloud cover
+    // Switch to configuration tab and change the temporal range
     const configTab = authenticatedPage.getByRole('tab', {
       name: /configuration/i
     });
     await configTab.click();
     await expect(configTab).toHaveAttribute('aria-selected', 'true');
 
-    // Change the temporal range
-    const startDateInput = authenticatedPage
-      .locator('input[type="date"]')
-      .first();
-    await expect(startDateInput).toBeVisible({ timeout: 10000 });
+    const startDateInput = authenticatedPage.getByLabel('Start Date');
+    await expect(startDateInput).toBeVisible({ timeout: 10_000 });
     await startDateInput.fill('2025-05-02');
-    // Manually dispatch change event to ensure React onChange fires
-    await startDateInput.evaluate((el: HTMLInputElement) => {
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
 
     await expect(
       applyButton,
