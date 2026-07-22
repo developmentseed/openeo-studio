@@ -2,6 +2,8 @@
  * Runtime config: window.__APP_CONFIG__ (Docker) with VITE_* fallbacks (local).
  */
 
+import { pathPrefixFromUrl } from '$config/baseUrl';
+
 export interface AppConfig {
   openeoApiUrl: string;
   pathPrefix: string;
@@ -43,7 +45,7 @@ export const appConfig: AppConfig = {
     'https://api.explorer.eopf.copernicus.eu/openeo'
   ),
   pathPrefix: normalizePathPrefix(
-    pick(runtime.pathPrefix, import.meta.env.VITE_PATH_PREFIX)
+    pick(runtime.pathPrefix, pathPrefixFromUrl(import.meta.env.VITE_BASE_URL))
   ),
   appTitle: pick(runtime.appTitle, import.meta.env.VITE_APP_TITLE),
   appDescription: pick(

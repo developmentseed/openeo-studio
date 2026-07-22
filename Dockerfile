@@ -22,13 +22,12 @@ FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 COPY docker/default.conf.template /etc/nginx/templates/default.conf.template
-COPY docker/90-app-config.sh /docker-entrypoint.d/90-app-config.sh
+COPY docker/90-app-config.sh docker/lib.sh /docker-entrypoint.d/
 RUN chmod +x /docker-entrypoint.d/90-app-config.sh \
     && touch /etc/nginx/conf.d/path-prefix.inc
 
 ENV OPENEO_API_URL=https://api.explorer.eopf.copernicus.eu/openeo \
     BASE_URL= \
-    PATH_PREFIX= \
     APP_TITLE="openEO Studio" \
     APP_DESCRIPTION="Interactive code editor for openEO satellite imagery processing" \
     MAPTILER_KEY= \
