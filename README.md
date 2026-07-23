@@ -54,6 +54,15 @@ To configure the application:
 2. Modify the `.env` file with your specific configuration values
 3. Never modify `.env.example` directly as it serves as documentation
 
+#### Where the app is mounted: `VITE_BASE_URL`
+
+`VITE_BASE_URL` is the one variable that controls where the app is served from — set it once to the full URL (including any path prefix) and everything else follows automatically: Vite's built asset paths, the client-side router's mount point, Docker's nginx rewrite rules, and the GitHub Pages 404 redirect.
+
+- **Local dev** (`pnpm dev`): leave it as the dev server's own URL, e.g. `http://localhost:9000` (no path prefix).
+- **`pnpm build` + serving locally under a prefix**: set it to the full URL you'll serve from, e.g. `http://localhost:8888/subpath`, then serve `dist/` so it's reachable at that path (e.g. behind a reverse proxy). The build's asset URLs and router will match automatically.
+- **GitHub Pages**: set the `VITE_BASE_URL` repository variable to the site's full deployed URL, e.g. `https://developmentseed.github.io/openeo-studio` for a project page, or your custom domain root if one is configured.
+- **Docker**: set the `BASE_URL` environment variable at `docker run` time (see below) — no rebuild needed to change it.
+
 ### Starting the app
 
 ```sh
@@ -78,7 +87,13 @@ or
 pnpm stage
 ```
 
-This will package the app and place all the contents in the `dist` directory.
-The app can then be run by any web server.
+This will package the app and place all the contents in the `dist` directory, with asset URLs already baked to match whatever `VITE_BASE_URL` was set to at build time. The app can then be run by any web server capable of serving a single-page app (falling back to `index.html` for unknown paths).
 
-**When building the site for deployment provide the base url trough the `VITE_BASE_URL` environment variable. Omit the leading slash. (E.g. <https://example.com>)**
+### Docker
+
+```sh
+docker build -t openeo-studio .
+docker run -p 8888:80 -e BASE_URL=http://localhost:8888/subpath openeo-studio
+```
+
+The image is built once with a relative asset base and configured per-container via environment variables (`BASE_URL`, `OPENEO_API_URL`, `APP_TITLE`, etc. — see `Dockerfile` for the full list). The entrypoint script derives the mount path from `BASE_URL` and writes it into nginx's rewrite rules, the page's `<base>` tag, and `window.__APP_CONFIG__` at container start — so the same image can be redeployed under a different `BASE_URL` without rebuilding.

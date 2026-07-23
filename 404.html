@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages SPA redirect.
+      // Encodes the current path into a query param and redirects to the
+      // app's mount point, which decodes it (see index.html) and calls
+      // history.replaceState. The mount point is parsed from VITE_BASE_URL
+      // (baked in at build time by Vite) so it always matches wherever the
+      // app is actually deployed — Docker/nginx never serves this file,
+      // since it has real server-side rewrites instead.
+      (function () {
+        var prefix = (function () {
+          try {
+            return new URL('%VITE_BASE_URL%').pathname.replace(/\/+$/, '');
+          } catch (e) {
+            return '';
+          }
+        })();
+        var l = window.location;
+        if (
+          prefix &&
+          l.pathname.indexOf(prefix + '/') !== 0 &&
+          l.pathname !== prefix
+        ) {
+          l.replace(l.protocol + '//' + l.host + '/');
+          return;
+        }
+        var rest = l.pathname.slice(prefix.length + 1);
+        l.replace(
+          l.protocol +
+            '//' +
+            l.host +
+            prefix +
+            '/?/' +
+            rest.replace(/&/g, '~and~') +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash
+        );
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
