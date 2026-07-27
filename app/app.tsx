@@ -89,7 +89,7 @@ export default function App() {
   }
 
   return (
-    <Flex flexDirection='column' height='100vh'>
+    <Flex minH='100vh' p='2'>
       <AppHeader />
       <Routes>
         <Route path='/' element={<LandingPage />} />
