@@ -24,6 +24,7 @@
     "lint": "pnpm lint:scripts",
     "lint:scripts": "eslint app/",
     "ts-check": "npx tsc --noEmit --skipLibCheck",
+    "theme": "npx @chakra-ui/cli typegen app/styles/theme.ts",
     "test": "jest",
     "test:integration": "playwright test",
     "test:integration:ui": "playwright test --ui",
