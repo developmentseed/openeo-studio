@@ -9,12 +9,14 @@ import {
 } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
+import { useServiceCleanup } from './hooks/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
 import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
 import { DocsPage } from '$pages/docs-page';
 import { SharePage } from '$pages/share-page';
-import { useServiceCleanup } from './hooks/use-service-cleanup';
+import { ProjectsPage } from '$pages/projects';
+import { ProjectsSamplesPage } from '$pages/projects/samples';
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -72,7 +74,7 @@ export default function App() {
   // Show loading during auth callback processing to prevent landing-page flash
   if (isAuthCallback && !hasNavigated.current) {
     return (
-      <Flex flexDirection='column' height='100vh'>
+      <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
         <AppHeader />
         <VStack
           as='main'
@@ -89,10 +91,12 @@ export default function App() {
   }
 
   return (
-    <Flex minH='100vh' p='2'>
+    <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
       <AppHeader />
       <Routes>
         <Route path='/' element={<LandingPage />} />
+        <Route path='/projects' element={<ProjectsPage />} />
+        <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
         <Route path='/docs' element={<DocsPage />} />
         <Route path='/editor' element={<EditorPage />} />
         <Route path='/editor/:sceneId' element={<EditorPage />} />

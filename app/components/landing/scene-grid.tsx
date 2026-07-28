@@ -6,7 +6,7 @@ import { BlankCard } from './blank-card';
 
 export function SceneGrid() {
   return (
-    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
       {SAMPLE_SCENES.map((scene) => (
         <SceneCard key={scene.id} scene={scene} />
       ))}

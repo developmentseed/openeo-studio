@@ -1,36 +1,21 @@
-import { useNavigate } from 'react-router';
-import { Box, Text, VStack, Icon } from '@chakra-ui/react';
-
-const PlusIcon = () => (
-  <svg
-    version='1.1'
-    xmlns='http://www.w3.org/2000/svg'
-    width='48'
-    height='48'
-    viewBox='0 0 16 16'
-  >
-    <rect width='16' height='16' id='icon-bound' fill='none' />
-    <polygon points='15,7 9,7 9,1 7,1 7,7 1,7 1,9 7,9 7,15 9,15 9,9 15,9' />
-  </svg>
-);
+import SmartLink from '$utils/smart-link';
+import { Box, Text, VStack } from '@chakra-ui/react';
+import { LuPlus } from 'react-icons/lu';
 
 export function BlankCard() {
-  const navigate = useNavigate();
   return (
     <Box
-      as='button'
-      onClick={() => navigate('/editor')}
       borderWidth='2px'
       borderStyle='dashed'
-      borderColor='gray.300'
+      borderColor='neutral.300'
       borderRadius='lg'
       p={6}
       transition='all 0.2s'
       _hover={{
-        borderColor: 'blue.400',
-        backgroundColor: 'gray.50',
-        transform: 'translateY(-2px)',
-        shadow: 'md'
+        borderColor: 'primary.400',
+        backgroundColor: 'white',
+        transform: 'translateY(-4px)',
+        shadow: 'lg'
       }}
       _active={{
         transform: 'translateY(0)'
@@ -38,18 +23,21 @@ export function BlankCard() {
       cursor='pointer'
       height='100%'
       minHeight='200px'
+      asChild
     >
-      <VStack gap={4} justify='center' height='100%'>
-        <Icon as={PlusIcon} boxSize={12} color='gray.400' />
-        <VStack gap={1}>
-          <Text fontWeight='semibold' fontSize='lg' color='gray.700'>
-            Start from Scratch
-          </Text>
-          <Text fontSize='sm' color='gray.500' textAlign='center'>
-            Configure your own data source and create a custom analysis
-          </Text>
+      <SmartLink to='/editor' unstyled>
+        <VStack gap={2} justify='center' height='100%'>
+          <LuPlus size='4rem' />
+          <VStack gap={2}>
+            <Text fontWeight='semibold' fontSize='lg'>
+              Start from Scratch
+            </Text>
+            <Text fontSize='sm' textAlign='center'>
+              Configure your own data source and create a custom analysis
+            </Text>
+          </VStack>
         </VStack>
-      </VStack>
+      </SmartLink>
     </Box>
   );
 }
