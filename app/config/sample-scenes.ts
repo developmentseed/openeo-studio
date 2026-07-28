@@ -5,6 +5,11 @@ import lavaAlgorithm from '../algorithms/visualizations/lava.py?raw';
 import bais2Algorithm from '../algorithms/visualizations/bais2.py?raw';
 import cloudDetectionAlgorithm from '../algorithms/visualizations/cloud-detection.py?raw';
 
+import thumbS2RGB from '../media/scenes/sentinel-2-sunny-naples.png';
+import thumbS2Lava from '../media/scenes/lava.png';
+import thumbS2Bais2 from '../media/scenes/bais2.png';
+import thumbS2Cloud from '../media/scenes/cloud_detection_cby.png';
+
 import type { SampleScene } from '$types';
 
 export const SAMPLE_SCENES: SampleScene[] = [
@@ -18,7 +23,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     temporalRange: ['2025-11-01', '2026-02-28'],
     boundingBox: [14.11, 40.75, 14.34, 40.85], // west, south, east, north for Naples area
     cloudCover: 20, // Max cloud cover percentage
-    thumbnail: './media/scenes/sentinel-2-sunny-naples.png' // Local thumbnail image for the scene
+    thumbnail: thumbS2RGB
   },
   {
     id: 'sentinel-2-apa',
@@ -81,7 +86,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     temporalRange: ['2021-10-10', '2021-10-11'],
     boundingBox: [-17.94, 28.58, -17.86, 28.64], // west, south, east, north for Cumbre Vieja, La Palma
     cloudCover: 20, // Max cloud cover percentage
-    thumbnail: './media/scenes/lava.png'
+    thumbnail: thumbS2Lava
   },
   {
     id: 'sentinel-2-bais2',
@@ -100,7 +105,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     temporalRange: ['2025-08-10', '2025-08-17'],
     boundingBox: [-7.8, 40.1, -7.0, 40.9], // west, south, east, north for Beiras e Serra da Estrela, Portugal
     cloudCover: 20, // Max cloud cover percentage
-    thumbnail: './media/scenes/bais2.png'
+    thumbnail: thumbS2Bais2
   },
   {
     id: 'sentinel-2-cloud-detection',
@@ -118,7 +123,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     temporalRange: ['2026-02-16', '2026-02-21'],
     boundingBox: [-0.5, 51.27, 0.34, 51.7], // London, UK
     cloudCover: 100, // We want clouds for this scene
-    thumbnail: './media/scenes/cloud_detection_cby.png'
+    thumbnail: thumbS2Cloud
   }
 ];
 
