@@ -45,14 +45,13 @@ export function UserInfo(props: LoginButtonProps) {
     <Tooltip.Root positioning={{ placement: 'right' }} openDelay={100}>
       <Tooltip.Trigger asChild>
         <IconButton
+          variant='plain'
           size='sm'
           onClick={(e) => {
             e.preventDefault();
             removeUser();
           }}
-          rounded='md'
           overflow='hidden'
-          bg='none'
         >
           <Image
             boxSize='100%'

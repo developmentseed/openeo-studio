@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Box, Heading, IconButton, Separator, Stack } from '@chakra-ui/react';
+import { IconButton, Image, Separator, Stack } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { LuCircleHelp, LuFolder, LuPlus, LuServer } from 'react-icons/lu';
 
-import { APP_TITLE } from '$config/constants';
 import { UserInfo } from '$components/auth/user-info';
 import { ServicesPanel } from '$components/layout/services-panel';
 import SmartLink from '$utils/smart-link';
+
+import logoImg from '../../media/openeo_navbar_logo.png';
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
@@ -17,15 +18,17 @@ export function AppHeader() {
       p={2}
       borderWidth='1px'
       borderColor='gray.200'
-      borderRadius='md'
-      position='fixed'
+      borderRadius='uni'
+      position='sticky'
       h='calc(100vh -  1rem)'
-      gap={8}
+      alignItems='center'
+      top={2}
+      gap={4}
+      bg='white'
     >
       <SmartLink
         to='/'
-        paddingInline='3.5'
-        height='9'
+        height='1.5rem'
         aria-label='Home'
         _hover={{ textDecoration: 'none' }}
         _focus={{ outline: 'none' }}
@@ -34,20 +37,20 @@ export function AppHeader() {
           outlineOffset: '2px',
           outlineStyle: 'solid',
           outlineColor: 'colorPalette.focusRing',
-          borderRadius: 'l2'
+          borderRadius: 'uni'
         }}
       >
-        <Heading size='md'>L</Heading>
+        <Image src={logoImg} h='100%' />
       </SmartLink>
-      <Stack ml='auto' alignItems='center' gap={2}>
+      <Stack as='nav' gap={2} alignItems='center'>
         {isAuthenticated && (
-          <IconButton variant='ghost' size='sm' rounded='md' asChild>
+          <IconButton variant='ghost' size='sm' asChild>
             <SmartLink to='/'>
               <LuFolder />
             </SmartLink>
           </IconButton>
         )}
-        <IconButton variant='ghost' size='sm' rounded='md' asChild>
+        <IconButton variant='ghost' size='sm' asChild>
           <SmartLink to='/docs'>
             <LuCircleHelp />
           </SmartLink>
@@ -55,7 +58,7 @@ export function AppHeader() {
         {isAuthenticated && (
           <>
             <Separator orientation='horizontal' w='4' />
-            <IconButton variant='outline' size='sm' rounded='md' asChild>
+            <IconButton variant='outline' size='sm' asChild>
               <SmartLink to='/docs'>
                 <LuPlus />
               </SmartLink>
@@ -80,9 +83,9 @@ export function AppHeader() {
         )}
       </Stack>
 
-      <Box mt='auto'>
+      <Stack mt='auto'>
         <UserInfo compact />
-      </Box>
+      </Stack>
     </Stack>
   );
 }
