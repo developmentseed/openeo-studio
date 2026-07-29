@@ -45,7 +45,7 @@ export function AppHeader() {
       <Stack as='nav' gap={2} alignItems='center'>
         {isAuthenticated && (
           <IconButton variant='ghost' size='sm' asChild>
-            <SmartLink to='/'>
+            <SmartLink to='/projects'>
               <LuFolder />
             </SmartLink>
           </IconButton>

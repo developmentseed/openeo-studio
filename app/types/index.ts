@@ -89,6 +89,23 @@ export interface ValidationError {
 }
 
 /**
+ * User-defined process (saved project) as returned by the openEO backend
+ * GET /process_graphs endpoint.
+ */
+export interface ProcessGraphSummary {
+  id: string;
+  summary?: string;
+  description?: string;
+}
+
+/**
+ * Response payload for GET /process_graphs.
+ */
+export interface ProcessGraphsResponse {
+  processes: ProcessGraphSummary[];
+}
+
+/**
  * Service record as returned by the openEO backend GET /services endpoint.
  * Used for both ephemeral cleanup and permanent service management.
  */
