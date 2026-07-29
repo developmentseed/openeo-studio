@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate
-} from 'react-router';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
 import { useServiceCleanup } from './hooks/use-service-cleanup';
@@ -17,6 +11,7 @@ import { DocsPage } from '$pages/docs-page';
 import { SharePage } from '$pages/share-page';
 import { ProjectsPage } from '$pages/projects';
 import { ProjectsSamplesPage } from '$pages/projects/samples';
+import UhOh404 from '$pages/uhoh/404';
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -101,7 +96,7 @@ export default function App() {
         <Route path='/editor' element={<EditorPage />} />
         <Route path='/editor/:sceneId' element={<EditorPage />} />
         <Route path='/share/:serviceId' element={<SharePage />} />
-        <Route path='*' element={<Navigate to='/' replace />} />
+        <Route path='*' element={<UhOh404 />} />
       </Routes>
     </Flex>
   );
