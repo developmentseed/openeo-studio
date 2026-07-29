@@ -6,6 +6,8 @@ import { StacApiProvider } from '@developmentseed/stac-react';
 import { BrowserRouter } from 'react-router';
 import { WebStorageStateStore } from 'oidc-client-ts';
 
+import ErrorBoundary from '$pages/uhoh/boundary';
+
 import { appConfig } from '$config/runtime';
 import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$utils/auth-monitor';
@@ -89,16 +91,18 @@ function Root() {
 
   return (
     <BrowserRouter basename={appConfig.pathPrefix || undefined}>
-      <AuthWrapper {...authProps}>
-        {!window.__MOCK_AUTH__ && <AuthMonitor />}
-        <ChakraProvider value={system}>
-          <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
-            <PyodideProvider>
-              <App />
-            </PyodideProvider>
-          </StacApiProvider>
-        </ChakraProvider>
-      </AuthWrapper>
+      <ErrorBoundary>
+        <AuthWrapper {...authProps}>
+          {!window.__MOCK_AUTH__ && <AuthMonitor />}
+          <ChakraProvider value={system}>
+            <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
+              <PyodideProvider>
+                <App />
+              </PyodideProvider>
+            </StacApiProvider>
+          </ChakraProvider>
+        </AuthWrapper>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

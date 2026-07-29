@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Flex, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
@@ -11,10 +11,10 @@ import { MapPanel } from '$components/layout/map-panel';
 import { CodeEditor } from '$components/editor/code-editor';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
+import { NotFound } from '$pages/uhoh/error';
 
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();
-  const navigate = useNavigate();
   const { isLoading, isAuthenticated } = useAuth();
 
   const scene = getSceneById(sceneId!);
@@ -103,9 +103,7 @@ export function EditorPage() {
   }
 
   if (!scene && !isBlankScene) {
-    // Scene not found and not blank scene - navigate back
-    navigate('/', { replace: true });
-    return null;
+    throw new NotFound(`Scene not found: ${sceneId}`);
   }
 
   return (
