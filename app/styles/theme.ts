@@ -2,8 +2,10 @@ import {
   createSystem,
   defaultConfig,
   defineConfig,
-  defineGlobalStyles
+  defineGlobalStyles,
+  defineSlotRecipe
 } from '@chakra-ui/react';
+import { tabsAnatomy } from '@ark-ui/react';
 
 import { colors, semanticColors } from './colors';
 
@@ -98,6 +100,25 @@ export const config = defineConfig({
           fontWeight: 'bold'
         }
       }
+    },
+    slotRecipes: {
+      tabs: defineSlotRecipe({
+        slots: tabsAnatomy.keys(),
+        base: {
+          root: {
+            '--tabs-trigger-radius': 'radii.uni'
+          }
+        },
+        variants: {
+          variant: {
+            subtle: {
+              trigger: {
+                fontWeight: 'semibold'
+              }
+            }
+          }
+        }
+      })
     }
   }
 });

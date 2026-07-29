@@ -47,17 +47,6 @@ export const useProjectsStore = create<ProjectsState & ProjectsActions>(
 );
 
 export function useProjects() {
-  return {
-    projects: [
-      {
-        id: 'huehm-aea-sdfe',
-        summary: 'something something dark side',
-        description: 'blabber'
-      }
-    ],
-    isLoading: false,
-    error: null
-  };
   const { user } = useAuth();
   const { projects, isLoading, error, fetchProjects } = useProjectsStore();
 

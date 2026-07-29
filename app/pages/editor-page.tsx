@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Flex, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { useParams, useNavigate } from 'react-router';
@@ -6,10 +6,9 @@ import { useAuth } from 'react-oidc-context';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
-import { EditorHeader } from '$components/layout/editor-header';
-import { EditorPanel } from '$components/layout/editor-panel';
+import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { MapPanel } from '$components/layout/map-panel';
-import { extractBandsFromStac } from '$utils/stac-band-parser';
+import { CodeEditor } from '$components/editor/code-editor';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 
@@ -53,6 +52,7 @@ export function EditorPage() {
     // Only hydrate when switching to a different scene
     if (storedSceneId !== sceneId) {
       hydrateFromScene(sceneId!, {
+        name: scene.name,
         collectionId: scene.collectionId,
         temporalRange: scene.temporalRange,
         cloudCover: scene.cloudCover ?? 100,
@@ -97,9 +97,6 @@ export function EditorPage() {
     }
   }, [isBlankScene, collection, temporalRange, setTemporalRange]);
 
-  // Extract band metadata from STAC item
-  const bands = useMemo(() => extractBandsFromStac(collection), [collection]);
-
   // Early return
   if (isLoading) {
     return null; // Still loading auth state
@@ -112,33 +109,45 @@ export function EditorPage() {
   }
 
   return (
-    <Flex flexDirection='column' flex={1} minHeight={0}>
-      <EditorHeader sceneName={isBlankScene ? '...' : scene!.name} />
-
-      {/* Editor and Map panels */}
+    <Flex flexDirection='column' flex={1} maxH='calc(100vh - 1rem)'>
       <Splitter.Root
         defaultSize={[50, 50]}
         panels={[
           { id: 'editor', minSize: 20 },
           { id: 'map', minSize: 20 }
         ]}
+        gap={2}
       >
-        <Splitter.Panel id='editor'>
-          <EditorPanel
-            availableBands={bands}
-            initialCode={scene?.suggestedAlgorithm || ''}
-            defaultTab={isBlankScene ? 'configuration' : 'code'}
-            autoExecuteOnReady={
-              isAuthenticated &&
-              !isBlankScene &&
-              !!scene?.suggestedAlgorithm?.trim()
-            } // Auto-execute only if user is logged in AND this is a sample scene AND it has a non-empty suggested algorithm.
-          />
+        <Splitter.Panel
+          id='editor'
+          borderWidth='1px'
+          borderColor='neutral.200'
+          borderRadius='uni'
+          display='flex'
+        >
+          <CodeEditor.Root initialCode={scene?.suggestedAlgorithm || ''}>
+            <EditorWorkspace
+              defaultTab={isBlankScene ? 'configuration' : 'code'}
+              // Auto-execute only if user is logged in AND this is a sample
+              // scene AND it has a non-empty suggested algorithm.
+              autoExecuteOnReady={
+                isAuthenticated &&
+                !isBlankScene &&
+                !!scene?.suggestedAlgorithm?.trim()
+              }
+            />
+          </CodeEditor.Root>
         </Splitter.Panel>
 
         <Splitter.ResizeTrigger id='editor:map' />
 
-        <Splitter.Panel id='map'>
+        <Splitter.Panel
+          id='map'
+          borderWidth='1px'
+          borderColor='neutral.200'
+          borderRadius='uni'
+          overflow='hidden'
+        >
           <MapPanel />
         </Splitter.Panel>
       </Splitter.Root>
