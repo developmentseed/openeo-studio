@@ -64,6 +64,7 @@
     "vite": "^7.2.2"
   },
   "dependencies": {
+    "@ark-ui/react": "^5.37.2",
     "@astral-sh/ruff-wasm-web": "^0.14.5",
     "@chakra-ui/react": "^3.30.0",
     "@codemirror/autocomplete": "^6.19.1",

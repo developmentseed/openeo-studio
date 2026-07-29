@@ -17,7 +17,7 @@ export function AppHeader() {
     <Stack
       p={2}
       borderWidth='1px'
-      borderColor='gray.200'
+      borderColor='neutral.200'
       borderRadius='uni'
       position='sticky'
       h='calc(100vh -  1rem)'

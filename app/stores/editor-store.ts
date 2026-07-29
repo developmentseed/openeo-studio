@@ -13,6 +13,8 @@ type ConfigValues = {
   boundingBox?: BoundingBox;
 };
 
+const DEFAULT_SCENE_NAME = 'New Project';
+
 type EditorState = {
   code: string;
   hasCodeChanged: boolean;
@@ -20,6 +22,7 @@ type EditorState = {
   previousConfig: ConfigValues;
   services: ServiceInfo[];
   sceneId: string | null;
+  sceneName: string;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
@@ -36,11 +39,13 @@ type EditorActions = {
   toggleServiceVisibility: (serviceId: string) => void;
   clearServices: () => void;
   setSceneId: (id: string | null) => void;
+  setSceneName: (name: string) => void;
   resetToDefaults: (defaults: ResetDefaults) => void;
   clearEditor: () => void;
   hydrateFromScene: (
     sceneId: string,
     scene: {
+      name: string;
       collectionId: string;
       temporalRange: [string, string];
       cloudCover: number;
@@ -74,6 +79,7 @@ export const useEditorStore = create<EditorStore>()(
       previousConfig: createInitialConfig(),
       services: [],
       sceneId: null,
+      sceneName: DEFAULT_SCENE_NAME,
       setCode: (code) => set({ code, hasCodeChanged: true }),
       setHasCodeChanged: (changed) => set({ hasCodeChanged: changed }),
       setCollectionId: (collectionId) =>
@@ -99,7 +105,12 @@ export const useEditorStore = create<EditorStore>()(
         set((state) => ({
           selectedConfig: { ...state.selectedConfig, boundingBox }
         })),
-      setServices: (services) => set({ services, hasCodeChanged: false }),
+      setServices: (services) =>
+        set((state) => ({
+          services,
+          hasCodeChanged: false,
+          previousConfig: state.selectedConfig
+        })),
       toggleServiceVisibility: (serviceId) =>
         set((state) => ({
           services: state.services.map((service) =>
@@ -110,6 +121,7 @@ export const useEditorStore = create<EditorStore>()(
         })),
       clearServices: () => set({ services: [] }),
       setSceneId: (sceneId) => set({ sceneId }),
+      setSceneName: (sceneName) => set({ sceneName }),
       resetToDefaults: (defaults) => {
         const newConfig = createInitialConfig(defaults);
         set({
@@ -117,7 +129,8 @@ export const useEditorStore = create<EditorStore>()(
           hasCodeChanged: false,
           selectedConfig: newConfig,
           previousConfig: newConfig,
-          services: []
+          services: [],
+          sceneName: DEFAULT_SCENE_NAME
         });
       },
       clearEditor: () => {
@@ -128,7 +141,8 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: initialConfig,
           previousConfig: initialConfig,
           services: [],
-          sceneId: null
+          sceneId: null,
+          sceneName: DEFAULT_SCENE_NAME
         });
       },
       hydrateFromScene: (sceneId, scene) => {
@@ -141,6 +155,7 @@ export const useEditorStore = create<EditorStore>()(
         });
         set({
           sceneId,
+          sceneName: scene.name,
           selectedConfig: sceneConfig,
           previousConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
@@ -156,7 +171,8 @@ export const useEditorStore = create<EditorStore>()(
         code: state.code,
         selectedConfig: state.selectedConfig,
         previousConfig: state.previousConfig,
-        sceneId: state.sceneId
+        sceneId: state.sceneId,
+        sceneName: state.sceneName
       })
     }
   )
