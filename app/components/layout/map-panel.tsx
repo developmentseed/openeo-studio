@@ -50,7 +50,7 @@ function MapPanelComponent() {
           onToggleLayer={toggleServiceVisibility}
           onBoundingBoxChange={setBoundingBox}
           onTileStatusChange={setTileStatus}
-          onShareService={setShareService}
+          onServicePublish={setShareService}
         />
       </Flex>
       {services.length > 0 && <TileStatusAlert status={tileStatus} />}

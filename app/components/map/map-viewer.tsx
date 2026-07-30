@@ -3,8 +3,7 @@ import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { MapLayers } from './map-layers.js';
-import { LayerControl } from './layer-control';
-import { BaseLayerControl } from './base-layer-control.js';
+import { MapLayerSelector } from './map-layer-selector';
 import {
   useMapTileStatus,
   type TileLoadStatus
@@ -37,7 +36,7 @@ interface MapViewerProps {
   onToggleLayer: (serviceId: string) => void;
   onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
   onTileStatusChange?: (status: TileLoadStatus) => void;
-  onShareService?: (service: ServiceInfo) => void;
+  onServicePublish?: (service: ServiceInfo) => void;
 }
 
 export function MapViewer({
@@ -47,7 +46,7 @@ export function MapViewer({
   onToggleLayer,
   onBoundingBoxChange,
   onTileStatusChange,
-  onShareService
+  onServicePublish
 }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
   const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
@@ -109,15 +108,13 @@ export function MapViewer({
       mapStyle={activeBaseLayer.styleUrl}
     >
       <MapLayers services={services} />
-      <BaseLayerControl
-        options={BASE_LAYERS}
-        value={baseLayerId}
-        onChange={setBaseLayerId}
-      />
-      <LayerControl
+      <MapLayerSelector
         services={services}
         onToggleLayer={onToggleLayer}
-        onShareService={onShareService}
+        onServicePublish={onServicePublish}
+        baseOptions={BASE_LAYERS}
+        baseValue={baseLayerId}
+        onBaseChange={setBaseLayerId}
       />
     </Map>
   );
