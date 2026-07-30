@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
+import { Flex, Heading, Spinner, Stack, VStack } from '@chakra-ui/react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
 import { useServiceCleanup } from './hooks/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
+import { RequireAuth } from '$components/auth/require-auth';
 import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
 import { DocsPage } from '$pages/docs-page';
@@ -71,16 +72,11 @@ export default function App() {
     return (
       <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
         <AppHeader />
-        <VStack
-          as='main'
-          h='100%'
-          gap={4}
-          alignItems='center'
-          justifyContent='center'
-        >
-          <Heading size='xl'>Signing you in…</Heading>
+
+        <Stack flex={1} alignItems='center' justifyContent='center'>
           <Spinner size='lg' />
-        </VStack>
+          <Heading size='xl'>Signing you in…</Heading>
+        </Stack>
       </Flex>
     );
   }
@@ -90,12 +86,14 @@ export default function App() {
       <AppHeader />
       <Routes>
         <Route path='/' element={<LandingPage />} />
-        <Route path='/projects' element={<ProjectsPage />} />
-        <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
         <Route path='/docs' element={<DocsPage />} />
-        <Route path='/editor' element={<EditorPage />} />
-        <Route path='/editor/:sceneId' element={<EditorPage />} />
-        <Route path='/share/:serviceId' element={<SharePage />} />
+        <Route element={<RequireAuth />}>
+          <Route path='/projects' element={<ProjectsPage />} />
+          <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
+          <Route path='/editor' element={<EditorPage />} />
+          <Route path='/editor/:sceneId' element={<EditorPage />} />
+          <Route path='/share/:serviceId' element={<SharePage />} />
+        </Route>
         <Route path='*' element={<UhOh404 />} />
       </Routes>
     </Flex>

@@ -9,7 +9,13 @@ export interface LoginButtonProps extends ButtonProps {
 }
 
 export function LoginButton(props: LoginButtonProps) {
-  const { size = 'sm', compact, hideIfAuthenticated, ...rest } = props;
+  const {
+    size = 'sm',
+    variant = 'outline',
+    compact,
+    hideIfAuthenticated,
+    ...rest
+  } = props;
   const { signinRedirect, isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
 
@@ -30,6 +36,7 @@ export function LoginButton(props: LoginButtonProps) {
     return (
       <IconButton
         size={size}
+        variant={variant}
         {...rest}
         onClick={handleLogin}
         disabled={isLoading}
@@ -40,7 +47,13 @@ export function LoginButton(props: LoginButtonProps) {
   }
 
   return (
-    <Button size={size} {...rest} onClick={handleLogin} disabled={isLoading}>
+    <Button
+      size={size}
+      variant={variant}
+      {...rest}
+      onClick={handleLogin}
+      disabled={isLoading}
+    >
       Login
       <LuLogIn />
     </Button>

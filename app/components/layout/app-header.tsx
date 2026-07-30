@@ -59,7 +59,7 @@ export function AppHeader() {
           <>
             <Separator orientation='horizontal' w='4' />
             <IconButton variant='outline' size='sm' asChild>
-              <SmartLink to='/docs'>
+              <SmartLink to='/editor'>
                 <LuPlus />
               </SmartLink>
             </IconButton>

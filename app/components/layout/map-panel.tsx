@@ -1,12 +1,10 @@
 import { Flex } from '@chakra-ui/react';
 import { useEffect, useState, memo } from 'react';
-import { useAuth } from 'react-oidc-context';
 import { useShallow } from 'zustand/shallow';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
 import { ShareDialog } from '$components/map/share-dialog';
-import { LoginDialog } from '$components/auth/login-dialog';
 import { useEditorStore } from '$stores/editor-store';
 import type { ServiceInfo } from '$types';
 
@@ -20,7 +18,6 @@ function MapPanelComponent() {
   );
   const { toggleServiceVisibility, setBoundingBox } = useEditorStore();
 
-  const { isAuthenticated } = useAuth();
   const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
     pending: 0,
     status: 'idle'
@@ -37,8 +34,14 @@ function MapPanelComponent() {
     <Flex flexGrow={1} h='100%' position='relative'>
       <Flex
         flexGrow={1}
-        filter={!isAuthenticated ? 'blur(16px)' : undefined}
-        pointerEvents={!isAuthenticated ? 'none' : 'auto'}
+        css={{
+          '& .maplibregl-canvas-container': {
+            position: 'relative',
+            h: '100%',
+            borderRadius: 'uni',
+            overflow: 'hidden'
+          }
+        }}
       >
         <MapViewer
           bounds={bounds}
@@ -47,11 +50,10 @@ function MapPanelComponent() {
           onToggleLayer={toggleServiceVisibility}
           onBoundingBoxChange={setBoundingBox}
           onTileStatusChange={setTileStatus}
-          onShareService={isAuthenticated ? setShareService : undefined}
+          onShareService={setShareService}
         />
       </Flex>
       {services.length > 0 && <TileStatusAlert status={tileStatus} />}
-      <LoginDialog isOpen={!isAuthenticated} />
       {shareService && (
         <ShareDialog
           service={shareService}

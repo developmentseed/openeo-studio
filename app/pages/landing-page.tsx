@@ -9,12 +9,12 @@ import {
   Text
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router';
+import { LuArrowRight } from 'react-icons/lu';
 
 import { APP_TITLE } from '$config/constants';
-import { useEditorStore } from '$stores/editor-store';
-import { LuArrowRight } from 'react-icons/lu';
-import { LoginButton } from '$components/auth/login-button';
 import { SAMPLE_SCENES } from '$config/sample-scenes';
+import { useEditorStore } from '$stores/editor-store';
+import { LoginButton } from '$components/auth/login-button';
 import { SceneCard } from '$components/landing/scene-card';
 
 export function LandingPage() {
@@ -37,7 +37,7 @@ export function LandingPage() {
         >
           <Heading size='md'>Welcome to {APP_TITLE}</Heading>
           <Flex gap={2}>
-            <LoginButton variant='outline' hideIfAuthenticated />
+            <LoginButton hideIfAuthenticated />
           </Flex>
         </Flex>
         <Stack p={4} gap={12}>
@@ -112,7 +112,7 @@ export function LandingPage() {
                 once you create an account and login
               </Text>
 
-              <LoginButton size='md' variant='outline' hideIfAuthenticated />
+              <LoginButton size='md' hideIfAuthenticated />
             </Stack>
 
             <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='8 / span 5' />
