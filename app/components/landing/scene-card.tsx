@@ -5,17 +5,19 @@ import {
   Heading,
   Text,
   Image,
-  Spinner
+  Spinner,
+  CardRootProps
 } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { SampleScene } from '$types';
 import SmartLink from '$utils/smart-link';
 
-interface SceneCardProps {
+interface SceneCardProps extends CardRootProps {
   scene: SampleScene;
 }
 
-export function SceneCard({ scene }: SceneCardProps) {
+export function SceneCard(props: SceneCardProps) {
+  const { scene, ...rest } = props;
   const { collection, isLoading } = useCollection(scene.collectionId);
 
   // Extract thumbnail from STAC item assets
@@ -31,6 +33,7 @@ export function SceneCard({ scene }: SceneCardProps) {
         transform: 'translateY(-4px)',
         shadow: 'lg'
       }}
+      {...rest}
     >
       <SmartLink to={`/editor/${scene.id}`} unstyled>
         <Card.Body gap={4} p={8}>
