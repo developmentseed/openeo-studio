@@ -7,13 +7,13 @@ export function BlankCard() {
     <Box
       borderWidth='2px'
       borderStyle='dashed'
-      borderColor='neutral.300'
-      borderRadius='lg'
+      borderColor='border'
+      borderRadius='uni'
       p={6}
       transition='all 0.2s'
       _hover={{
-        borderColor: 'primary.400',
-        backgroundColor: 'white',
+        borderColor: 'border.emphasized',
+        backgroundColor: 'bg',
         transform: 'translateY(-4px)',
         shadow: 'lg'
       }}

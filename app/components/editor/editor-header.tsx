@@ -43,7 +43,7 @@ export function EditorHeader({
       p={4}
       bg='bg'
       borderBottomWidth='1px'
-      borderColor='neutral.200'
+      borderColor='border'
       overflowX='auto'
     >
       <Heading size='md' minW='5rem' truncate>

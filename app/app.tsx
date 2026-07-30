@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Flex, Heading, Spinner, Stack, VStack } from '@chakra-ui/react';
+import { Flex, Heading, Spinner, Stack } from '@chakra-ui/react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 

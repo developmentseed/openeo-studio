@@ -14,6 +14,7 @@ import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$utils/auth-monitor';
 import { setupReloadDetector } from '$utils/reload-detector';
 import { monitorSessionStorage } from '$utils/storage-monitor';
+import { ColorModeProvider } from '$utils/color-mode';
 // Mock auth provider for Playwright tests - only used when window.__MOCK_AUTH__ is set
 import { MockAuthProvider } from '../test/integration/__mocks__/auth-provider';
 
@@ -95,14 +96,16 @@ function Root() {
       <ErrorBoundary>
         <AuthWrapper {...authProps}>
           {!window.__MOCK_AUTH__ && <AuthMonitor />}
-          <ChakraProvider value={system}>
-            <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
-              <PyodideProvider>
-                <App />
-              </PyodideProvider>
-            </StacApiProvider>
-            <Toaster />
-          </ChakraProvider>
+          <ColorModeProvider>
+            <ChakraProvider value={system}>
+              <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
+                <PyodideProvider>
+                  <App />
+                </PyodideProvider>
+              </StacApiProvider>
+              <Toaster />
+            </ChakraProvider>
+          </ColorModeProvider>
         </AuthWrapper>
       </ErrorBoundary>
     </BrowserRouter>

@@ -233,7 +233,7 @@ export const semanticColors = {
       value: { _light: '{colors.neutral.700}', _dark: '{colors.neutral.200}' }
     },
     subtle: {
-      value: { _light: '{colors.neutral.100}', _dark: '{colors.neutral.900}' }
+      value: { _light: '{colors.neutral.100}', _dark: '{colors.neutral.800}' }
     },
     muted: {
       value: { _light: '{colors.neutral.200}', _dark: '{colors.neutral.800}' }

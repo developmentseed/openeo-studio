@@ -129,7 +129,7 @@ export function EditorPage() {
         <Splitter.Panel
           id='editor'
           borderWidth='1px'
-          borderColor='neutral.200'
+          borderColor='border'
           borderRadius='uni'
           display='flex'
         >
@@ -152,7 +152,7 @@ export function EditorPage() {
         <Splitter.Panel
           id='map'
           borderWidth='1px'
-          borderColor='neutral.200'
+          borderColor='border'
           borderRadius='uni'
         >
           <MapPanel />
