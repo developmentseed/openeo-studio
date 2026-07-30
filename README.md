@@ -16,7 +16,7 @@ Write your algorithm in Python, point it at your data, and see the output on a m
 * **[openEO Web Editor](https://editor.openeo.org/)** is the general-purpose reference client for the ecosystem: it lets users connect to different backends, browse collections, and build and execute workflows with a visual process graph editor as well as a simple code editor.  
 * **openEO Studio** trades that power and flexibility for a simpler, code-first, single-purpose tool: each deployment is wired to one backend and the emphasis is on fast map feedback while iterating on that code.
 
-If you need to browse multiple backends or run long-running processes, the Web Editor is the better fit. If you want a lightweight, embeddable, code-driven map exploration tool, that's what this project is for.
+When to choose which: If you need to execute long-running processing of EO data, the Web Editor is the better fit. If you want to do exploratory processing with on-the-fly map visualisation and rapid iteration on algorithm development, that's what this project is for.
 
 ## Installation and Usage
 
