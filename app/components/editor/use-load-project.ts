@@ -19,21 +19,21 @@ const FALLBACK_CONFIG = {
 interface UseLoadProjectResult {
   isLoading: boolean;
   notFound: boolean;
-  authRequired: boolean;
 }
 
 /**
  * Loads a saved project into the editor store when the route points at an
  * id that isn't a static sample scene and isn't already the active project.
  * No-ops for blank scenes, static samples (EditorPage's existing effect
- * handles those), and ids that are already hydrated.
+ * handles those), and ids that are already hydrated. Assumes the caller is
+ * authenticated (EditorPage is only reachable behind RequireAuth).
  */
 export function useLoadProject(
   sceneId: string | undefined,
   scene: SampleScene | undefined,
   isBlankScene: boolean
 ): UseLoadProjectResult {
-  const { isLoading: isAuthLoading, isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const storedSceneId = useEditorStore((state) => state.sceneId);
   const hydrateFromScene = useEditorStore((state) => state.hydrateFromScene);
   const loadProject = useProjectsStore((state) => state.loadProject);
@@ -46,9 +46,6 @@ export function useLoadProject(
   useEffect(() => {
     if (!needsLoad) {
       setNotFound(false);
-      return;
-    }
-    if (isAuthLoading || !isAuthenticated) {
       return;
     }
 
@@ -81,19 +78,10 @@ export function useLoadProject(
     return () => {
       cancelled = true;
     };
-  }, [
-    needsLoad,
-    isAuthLoading,
-    isAuthenticated,
-    user?.access_token,
-    sceneId,
-    loadProject,
-    hydrateFromScene
-  ]);
+  }, [needsLoad, user?.access_token, sceneId, loadProject, hydrateFromScene]);
 
   return {
-    isLoading: needsLoad && (isAuthLoading || isFetching),
-    notFound: needsLoad && notFound,
-    authRequired: needsLoad && !isAuthLoading && !isAuthenticated
+    isLoading: needsLoad && isFetching,
+    notFound: needsLoad && notFound
   };
 }

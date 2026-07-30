@@ -30,7 +30,7 @@ interface ServiceDetails {
 
 export function SharePage() {
   const { serviceId } = useParams<{ serviceId: string }>();
-  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { user } = useAuth();
   const mapRef = useRef<MapRef>(null);
   const [service, setService] = useState<ServiceDetails | null>(null);
   const [tileUrl, setTileUrl] = useState<string | null>(null);
@@ -39,14 +39,6 @@ export function SharePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!isAuthenticated || !user?.access_token) {
-      setError('You must be signed in to view shared services.');
-      setIsLoading(false);
-      return;
-    }
-
     if (!serviceId) {
       setError('No service ID provided.');
       setIsLoading(false);
@@ -57,7 +49,7 @@ export function SharePage() {
       try {
         const response = await fetch(getServiceUrl(serviceId), {
           headers: {
-            Authorization: `${AUTH_PREFIX}${user.access_token}`
+            Authorization: `${AUTH_PREFIX}${user?.access_token}`
           }
         });
 
@@ -82,7 +74,7 @@ export function SharePage() {
     };
 
     fetchService();
-  }, [serviceId, authLoading, isAuthenticated, user]);
+  }, [serviceId, user]);
 
   const onMapLoad = useCallback(() => {
     const extent = service?.configuration?.extent;
@@ -97,7 +89,7 @@ export function SharePage() {
     }
   }, [service]);
 
-  if (authLoading || isLoading) {
+  if (isLoading) {
     return (
       <Flex h='100%' align='center' justify='center'>
         <VStack gap={4}>

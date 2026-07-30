@@ -2,39 +2,31 @@ import { expect } from '@playwright/test';
 import { test } from './__fixtures__';
 
 test.describe('Unauthenticated UI', () => {
-  test('should show login dialog on editor page', async ({ page }) => {
+  test('should show restricted page on editor route', async ({ page }) => {
     await page.goto('/editor');
 
-    // Login dialog should be visible
+    // Restricted page should be visible
     await expect(
-      page.getByRole('heading', { name: 'Authentication Required' })
+      page.getByRole('heading', { name: 'Restricted' })
     ).toBeVisible();
     await expect(
       page.getByText('Sign in to your account to analyze satellite data')
     ).toBeVisible();
 
-    // Login button in dialog should be present and enabled
-    const loginButton = page
-      .getByRole('dialog')
-      .getByRole('button', { name: /login/i });
+    // Sign-in button should be present and enabled
+    const loginButton = page.getByRole('button', { name: /login/i });
     await expect(loginButton).toBeVisible();
     await expect(loginButton).toBeEnabled();
   });
 
-  test('should blur map when unauthenticated', async ({ page }) => {
-    await page.goto('/editor');
-
-    // Wait for map to load
-    await page.waitForTimeout(1000);
-
-    // Check that map container has blur filter
-    const mapContainer = page.locator('[class*="maplibregl-map"]').first();
-    if (await mapContainer.count()) {
-      const parent = mapContainer.locator('..');
-      const filter = await parent.evaluate(
-        (el) => window.getComputedStyle(el).filter
-      );
-      expect(filter).toContain('blur');
+  test('should show restricted page on other gated routes', async ({
+    page
+  }) => {
+    for (const path of ['/projects', '/projects/samples', '/docs']) {
+      await page.goto(path);
+      await expect(
+        page.getByRole('heading', { name: 'Restricted' })
+      ).toBeVisible();
     }
   });
 
@@ -45,32 +37,16 @@ test.describe('Unauthenticated UI', () => {
     const loginButton = page.getByRole('button', { name: /login/i });
     await expect(loginButton).toBeVisible();
   });
-
-  test('should disable Apply button in toolbar', async ({ page }) => {
-    await page.goto('/editor');
-
-    // Apply button should be disabled
-    const applyButton = page.getByRole('button', { name: /apply/i });
-    await expect(applyButton).toBeDisabled();
-  });
-
-  test('should not show login hint in editor toolbar', async ({ page }) => {
-    await page.goto('/editor');
-
-    // Hint text should not be visible
-    const hintText = page.getByText('Log in to run analysis');
-    await expect(hintText).not.toBeVisible();
-  });
 });
 
 test.describe('Authenticated UI', () => {
-  test('should hide login dialog', async ({ authenticatedPage }) => {
+  test('should hide restricted page', async ({ authenticatedPage }) => {
     await authenticatedPage.goto('/editor');
 
-    // Login dialog should not be visible when authenticated
+    // Restricted page should not be visible when authenticated
     await expect(
       authenticatedPage.getByRole('heading', {
-        name: 'Authentication Required'
+        name: 'Restricted'
       })
     ).not.toBeVisible();
   });

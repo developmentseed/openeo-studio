@@ -29,23 +29,33 @@ test.describe('Navigation', () => {
         authenticatedPage.getByRole('tab', { name: /code/i, selected: false })
       ).toBeVisible();
 
-      // Verify no auth modal is shown
+      // Verify no restricted-page gate is shown
       await expect(
         authenticatedPage.getByRole('heading', {
-          name: /authentication required/i
+          name: 'Restricted'
         })
       ).not.toBeVisible();
     });
 
-    test('docs page loads and displays content', async ({ page }) => {
-      await page.goto('/docs');
+    test('docs page loads and displays content', async ({
+      authenticatedPage
+    }) => {
+      await authenticatedPage.goto('/docs');
 
       // Verify documentation content is rendered
       await expect(
-        page.getByRole('heading', { name: /documentation/i })
+        authenticatedPage.getByRole('heading', { name: /documentation/i })
       ).toBeVisible();
 
-      await expect(page.locator('p')).toBeTruthy();
+      await expect(authenticatedPage.locator('p')).toBeTruthy();
+    });
+
+    test('docs route requires sign-in when logged out', async ({ page }) => {
+      await page.goto('/docs');
+
+      await expect(
+        page.getByRole('heading', { name: 'Restricted' })
+      ).toBeVisible();
     });
   });
 
@@ -135,7 +145,9 @@ test.describe('Navigation', () => {
       await expect(page).toHaveURL('/editor');
     });
 
-    test('back/forward preserves scroll position', async ({ page }) => {
+    test('back/forward preserves scroll position', async ({
+      authenticatedPage: page
+    }) => {
       await page.goto('/docs');
 
       // Scroll down to specific position
@@ -196,10 +208,10 @@ test.describe('Navigation', () => {
       // Reload page (F5 or ctrl+R)
       await authenticatedPage.reload();
 
-      // Verify still authenticated (login dialog not visible)
+      // Verify still authenticated (restricted-page gate not visible)
       await expect(
         authenticatedPage.getByRole('heading', {
-          name: /authentication required/i
+          name: 'Restricted'
         })
       ).not.toBeVisible();
 
@@ -240,17 +252,28 @@ test.describe('Navigation', () => {
   });
 
   test.describe('URL Integrity', () => {
-    test('direct URL navigation works', async ({ page }) => {
+    test('direct URL navigation works when authenticated', async ({
+      authenticatedPage
+    }) => {
       // Navigate directly to /editor
-      await page.goto('/editor');
+      await authenticatedPage.goto('/editor');
       await expect(
-        page.getByRole('tab', { name: /configuration/i })
+        authenticatedPage.getByRole('tab', { name: /configuration/i })
       ).toBeVisible();
 
       // Navigate directly to /docs
-      await page.goto('/docs');
+      await authenticatedPage.goto('/docs');
       await expect(
-        page.getByRole('heading', { name: /documentation/i })
+        authenticatedPage.getByRole('heading', { name: /documentation/i })
+      ).toBeVisible();
+    });
+
+    test('direct URL navigation to gated route requires sign-in when logged out', async ({
+      page
+    }) => {
+      await page.goto('/editor');
+      await expect(
+        page.getByRole('heading', { name: 'Restricted' })
       ).toBeVisible();
     });
   });

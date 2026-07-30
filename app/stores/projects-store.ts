@@ -114,9 +114,7 @@ export function useProjects() {
   const { projects, isLoading, error, fetchProjects } = useProjectsStore();
 
   useEffect(() => {
-    if (user?.access_token) {
-      fetchProjects(user.access_token);
-    }
+    fetchProjects(user?.access_token ?? '');
   }, [user?.access_token, fetchProjects]);
 
   return {
