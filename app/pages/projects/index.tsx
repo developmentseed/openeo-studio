@@ -67,7 +67,7 @@ function NoProjects() {
     <Box
       borderWidth='2px'
       borderStyle='dashed'
-      borderColor='neutral.300'
+      borderColor='border'
       borderRadius='lg'
       bg='white'
       p={6}
@@ -107,7 +107,7 @@ function ErrorProjects({ error }: { error: Error }) {
     <Box
       borderWidth='2px'
       borderStyle='dashed'
-      borderColor='error.200'
+      borderColor='border.error'
       borderRadius='lg'
       bg='white'
       p={6}

@@ -1,20 +1,26 @@
 import { useEffect, useRef } from 'react';
 import { basicSetup } from 'codemirror';
+import { Compartment } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
-import { githubLight } from '@uiw/codemirror-theme-github';
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
 import { ruffLinter } from './ruff-linter';
+import { useColorModeValue } from '$utils/color-mode';
 
 interface ReadOnlyCodeEditorProps {
   code: string;
 }
 
+const themeCompartment = new Compartment();
+
 export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorViewRef = useRef<EditorView | null>(null);
+
+  const themeColorMode = useColorModeValue(githubLight, githubDark);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -41,7 +47,7 @@ export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
           }
         }),
         EditorView.lineWrapping,
-        githubLight,
+        themeCompartment.of(themeColorMode),
         python(),
         closeBrackets(),
         autocompletion(),
@@ -61,6 +67,15 @@ export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
       editorViewRef.current = null;
     };
   }, [code]);
+
+  // Sync editor theme with color mode changes
+  useEffect(() => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: themeCompartment.reconfigure(themeColorMode)
+    });
+  }, [themeColorMode]);
 
   return (
     <div

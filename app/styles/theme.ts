@@ -49,7 +49,8 @@ export const config = defineConfig({
       button: {
         base: {
           borderRadius: 'uni',
-          fontWeight: 'semibold'
+          fontWeight: 'semibold',
+          colorPalette: 'neutral'
         },
         variants: {
           // React router adds an active class to the links but buttons do not

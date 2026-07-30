@@ -6,8 +6,10 @@ import { LuCircleHelp, LuFolder, LuPlus, LuServer } from 'react-icons/lu';
 import { UserInfo } from '$components/auth/user-info';
 import { ServicesPanel } from '$components/layout/services-panel';
 import SmartLink from '$utils/smart-link';
+import { ColorModeButton } from '$utils/color-mode';
 
 import logoImg from '../../media/openeo_navbar_logo.png';
+import { NavLink } from 'react-router';
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
@@ -16,8 +18,9 @@ export function AppHeader() {
   return (
     <Stack
       p={2}
+      pt={3}
       borderWidth='1px'
-      borderColor='neutral.200'
+      borderColor='border'
       borderRadius='uni'
       position='sticky'
       h='calc(100vh -  1rem)'
@@ -45,15 +48,15 @@ export function AppHeader() {
       <Stack as='nav' gap={2} alignItems='center'>
         {isAuthenticated && (
           <IconButton variant='ghost' size='sm' asChild>
-            <SmartLink to='/projects'>
+            <NavLink to='/projects'>
               <LuFolder />
-            </SmartLink>
+            </NavLink>
           </IconButton>
         )}
         <IconButton variant='ghost' size='sm' asChild>
-          <SmartLink to='/docs'>
+          <NavLink to='/docs'>
             <LuCircleHelp />
-          </SmartLink>
+          </NavLink>
         </IconButton>
         {isAuthenticated && (
           <>
@@ -84,6 +87,7 @@ export function AppHeader() {
       </Stack>
 
       <Stack mt='auto'>
+        <ColorModeButton />
         <UserInfo variant='outline' compact />
       </Stack>
     </Stack>

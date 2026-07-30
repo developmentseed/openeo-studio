@@ -44,7 +44,14 @@ const mdComponents: Components = {
   ol: (props) => <List.Root as='ol' pl={6} mb={4} {...props} />,
   li: List.Item,
   a: (props) => (
-    <Link color='primary.600' textDecoration='underline' {...props} />
+    <Link
+      color={{
+        _light: 'primary.600',
+        _dark: 'primary.400'
+      }}
+      textDecoration='underline'
+      {...props}
+    />
   ),
   pre: ({ children }) => <>{children}</>,
   code: ({ className, children, ...props }) => {
@@ -66,7 +73,7 @@ const mdComponents: Components = {
             top={2}
             right={2}
             zIndex={1}
-            variant='surface'
+            variant='outline'
             onClick={(event) => copyCodeToClipboard(event.currentTarget, code)}
           >
             Copy
@@ -91,10 +98,10 @@ const mdComponents: Components = {
 
     return (
       <chakra.code
-        bg='gray.100'
+        bg='bg.emphasized'
         px={1.5}
         py={0.5}
-        borderRadius='sm'
+        borderRadius='uni'
         fontSize='sm'
         {...props}
       >
