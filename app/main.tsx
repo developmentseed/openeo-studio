@@ -8,6 +8,7 @@ import { WebStorageStateStore } from 'oidc-client-ts';
 
 import ErrorBoundary from '$pages/uhoh/boundary';
 
+import { Toaster } from '$components/layout/toaster';
 import { appConfig } from '$config/runtime';
 import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$utils/auth-monitor';
@@ -100,6 +101,7 @@ function Root() {
                 <App />
               </PyodideProvider>
             </StacApiProvider>
+            <Toaster />
           </ChakraProvider>
         </AuthWrapper>
       </ErrorBoundary>
