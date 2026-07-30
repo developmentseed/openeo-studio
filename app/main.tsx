@@ -74,10 +74,7 @@ function Root() {
   }
 
   useEffect(() => {
-    // Hide the welcome banner.
-    const banner = document.querySelector('#welcome-banner')!;
-    banner.classList.add('dismissed');
-    setTimeout(() => banner.remove(), 500);
+    dispatchEvent(new Event('app-ready'));
   }, []);
 
   /* Use mock auth provider in test mode (when window.__MOCK_AUTH__ is set)
