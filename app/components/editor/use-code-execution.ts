@@ -6,6 +6,10 @@ import type { EditorView } from '@codemirror/view';
 
 import { usePyodide } from '$contexts/pyodide-context';
 import { processScript } from '$utils/code-runner';
+import {
+  mergeProcessGraphs,
+  resolveSharedParameters
+} from '$utils/process-graphs';
 import type { ExecutionConfig, ServiceInfo } from '$types';
 import { useEditorStore } from '$stores/editor-store';
 import { useProjectsStore } from '$stores/projects-store';
@@ -45,16 +49,24 @@ export function useCodeExecution(
       }
 
       // Save (or update) the project as a UDP once execution succeeds.
+      // Every add_graph_to_map() call produces its own GraphResult (all of
+      // them still become ephemeral /services for map preview); all of them
+      // get combined into one process graph here so none are dropped.
       if (services && services.length > 0) {
-        const { graphResult } = services[0];
         const id = kebabCase(sceneName);
+        const processGraph = mergeProcessGraphs(
+          services.map((service) => service.graphResult.process_graph)
+        );
+        const parameters = resolveSharedParameters(
+          services.map((service) => service.graphResult.parameters)
+        );
 
         await saveProject(user?.access_token ?? '', {
           id,
           summary: sceneName,
           code: content,
-          processGraph: graphResult.process_graph,
-          parameters: graphResult.parameters
+          processGraph,
+          parameters
         });
 
         // First save of a blank scene: reflect the new project in the URL.

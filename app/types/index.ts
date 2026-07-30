@@ -99,7 +99,7 @@ export interface ValidationError {
  * GET /process_graphs endpoint, and as sent to PUT /process_graphs/{id} to
  * save a project (process_graph/parameters included in the latter case).
  */
-type UserDefinedProcess = OpenEOProcess;
+export type UserDefinedProcess = OpenEOProcess;
 
 /**
  * Response payload for GET /process_graphs.
