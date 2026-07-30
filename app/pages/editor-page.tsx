@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
-import { Flex, Splitter } from '@chakra-ui/react';
+import { Flex, Spinner, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { useParams } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
-import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { MapPanel } from '$components/layout/map-panel';
+import { EditorWorkspace } from '$components/editor/editor-workspace';
+import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
+import { LoginDialog } from '$components/auth/login-dialog';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 import { NotFound } from '$pages/uhoh/error';
@@ -19,11 +21,12 @@ export function EditorPage() {
 
   const scene = getSceneById(sceneId!);
   const isBlankScene = !sceneId;
-  const { storedSceneId, collectionId, temporalRange } = useEditorStore(
+  const { storedSceneId, collectionId, temporalRange, code } = useEditorStore(
     useShallow((state) => ({
       storedSceneId: state.sceneId,
       collectionId: state.selectedConfig.collectionId,
-      temporalRange: state.selectedConfig.temporalRange
+      temporalRange: state.selectedConfig.temporalRange,
+      code: state.code
     }))
   );
 
@@ -97,15 +100,35 @@ export function EditorPage() {
     }
   }, [isBlankScene, collection, temporalRange, setTemporalRange]);
 
+  const {
+    isLoading: isLoadingProject,
+    notFound,
+    authRequired
+  } = useLoadProject(sceneId, scene, isBlankScene);
+
   // Early return
-  if (isLoading) {
-    return null; // Still loading auth state
+  if (isLoading || isLoadingProject) {
+    return (
+      <Flex flex={1} alignItems='center' justifyContent='center'>
+        <Spinner size='lg' />
+      </Flex>
+    );
   }
 
-  // A sceneId that isn't a static sample scene is still valid if it's the
-  // project currently active in the store (e.g. one just saved from a
-  // blank scene) - only 404 on truly unknown ids.
-  if (!scene && !isBlankScene && storedSceneId !== sceneId) {
+  if (authRequired) {
+    return (
+      <Flex
+        flexDirection='column'
+        flex={1}
+        maxH='calc(100vh - 1rem)'
+        position='relative'
+      >
+        <LoginDialog isOpen />
+      </Flex>
+    );
+  }
+
+  if (notFound) {
     throw new NotFound(`Scene not found: ${sceneId}`);
   }
 
@@ -129,12 +152,14 @@ export function EditorPage() {
           <CodeEditor.Root initialCode={scene?.suggestedAlgorithm || ''}>
             <EditorWorkspace
               defaultTab={isBlankScene ? 'configuration' : 'code'}
-              // Auto-execute only if user is logged in AND this is a sample
-              // scene AND it has a non-empty suggested algorithm.
+              // Auto-execute only if logged in and not a blank scene.
+              // store.code covers both static sample scenes (hydrated
+              // synchronously enough before pyodide finishes loading) and
+              // loaded projects (hydrated async by useLoadProject) - by
+              // the time isExecutionReady flips true, code always reflects
+              // whichever source hydrated this session.
               autoExecuteOnReady={
-                isAuthenticated &&
-                !isBlankScene &&
-                !!scene?.suggestedAlgorithm?.trim()
+                isAuthenticated && !isBlankScene && !!code.trim()
               }
             />
           </CodeEditor.Root>

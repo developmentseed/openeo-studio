@@ -4,6 +4,7 @@ import { appConfig } from '$config/runtime';
 import { APIError, fetchJson } from '$utils/api';
 import { upsertUserDefinedProcess } from '$utils/process-graphs';
 import type { UserDefinedProcess, ProcessGraphsResponse } from '$types';
+import type { ProcessGraph, ProcessParameter } from '$types/openeo-process';
 import { useAuth } from 'react-oidc-context';
 import { useEffect } from 'react';
 
@@ -18,12 +19,13 @@ type SaveProjectParams = {
   id: string;
   summary: string;
   code: string;
-  processGraph: unknown;
-  parameters?: unknown[];
+  processGraph: ProcessGraph;
+  parameters?: ProcessParameter[];
 };
 
 type ProjectsActions = {
   fetchProjects: (authToken: string) => Promise<void>;
+  loadProject: (authToken: string, id: string) => Promise<UserDefinedProcess>;
   saveProject: (
     authToken: string,
     params: SaveProjectParams
@@ -55,6 +57,21 @@ export const useProjectsStore = create<ProjectsState & ProjectsActions>(
             : new Error('Failed to load projects');
         set({ isLoading: false, isSuccess: false, error: err });
       }
+    },
+    loadProject: async (authToken, id) => {
+      const project = await fetchJson<UserDefinedProcess>(
+        `${appConfig.openeoApiUrl}/process_graphs/${id}`,
+        authToken
+      );
+
+      set((state) => ({
+        projects: [
+          ...state.projects.filter((p) => p.id !== project.id),
+          project
+        ]
+      }));
+
+      return project;
     },
     saveProject: async (authToken, params) => {
       const description = get().projects.find(
