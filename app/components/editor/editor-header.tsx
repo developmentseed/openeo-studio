@@ -1,25 +1,39 @@
 import { Flex, Heading, Separator, Tabs } from '@chakra-ui/react';
 import { LuCode, LuSettings2, LuSparkle } from 'react-icons/lu';
+import { useAuth } from 'react-oidc-context';
 
 import { EditorExecute } from '$components/editor/editor-execute';
+import { EditorOptionsMenu } from '$components/editor/editor-options-menu';
 import { useEditorStore } from '$stores/editor-store';
 
 export interface EditorHeaderProps {
-  executeCode: () => Promise<void>;
+  onExecuteClick: () => void;
   isExecuting: boolean;
   isReady: boolean;
-  hasCodeChanged: boolean;
-  hasConfigChanged: boolean;
+  hasPendingChanges: boolean;
+  onDeleteClick: () => void;
+  isDeleteBusy: boolean;
+  isDeleteDisabled: boolean;
 }
 
 export function EditorHeader({
-  executeCode,
+  onExecuteClick,
   isExecuting,
   isReady,
-  hasCodeChanged,
-  hasConfigChanged
+  hasPendingChanges,
+  onDeleteClick,
+  isDeleteBusy,
+  isDeleteDisabled
 }: EditorHeaderProps) {
   const sceneName = useEditorStore((state) => state.sceneName);
+  const { isAuthenticated } = useAuth();
+
+  const isExecuteDisabled =
+    !isReady ||
+    isExecuting ||
+    !isAuthenticated ||
+    !sceneName.trim() ||
+    !hasPendingChanges;
 
   return (
     <Flex
@@ -27,7 +41,7 @@ export function EditorHeader({
       justifyContent='space-between'
       alignItems='center'
       p={4}
-      bg='white'
+      bg='bg'
       borderBottomWidth='1px'
       borderColor='neutral.200'
       overflowX='auto'
@@ -47,12 +61,16 @@ export function EditorHeader({
         <Tabs.Trigger value='assistant'>
           <LuSparkle /> Assistant
         </Tabs.Trigger>
+        <EditorOptionsMenu
+          onDeleteClick={onDeleteClick}
+          isDeleteDisabled={isDeleteDisabled}
+          isDeleteLoading={isDeleteBusy}
+        />
         <EditorExecute
-          executeCode={executeCode}
-          isExecuting={isExecuting}
-          isReady={isReady}
-          hasCodeChanged={hasCodeChanged}
-          hasConfigChanged={hasConfigChanged}
+          onExecuteClick={onExecuteClick}
+          isLoading={isExecuting}
+          disabled={isExecuteDisabled}
+          hasPendingChanges={hasPendingChanges}
         />
       </Tabs.List>
     </Flex>

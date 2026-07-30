@@ -24,7 +24,7 @@ export function AppHeader() {
       alignItems='center'
       top={2}
       gap={4}
-      bg='white'
+      bg='bg'
     >
       <SmartLink
         to='/'
@@ -84,7 +84,7 @@ export function AppHeader() {
       </Stack>
 
       <Stack mt='auto'>
-        <UserInfo compact />
+        <UserInfo variant='outline' compact />
       </Stack>
     </Stack>
   );

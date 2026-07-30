@@ -1,44 +1,29 @@
 import { Box, Button, Portal, Tooltip } from '@chakra-ui/react';
-import { useAuth } from 'react-oidc-context';
 import { LuCheck } from 'react-icons/lu';
 
-import { useEditorStore } from '$stores/editor-store';
-
 interface EditorExecuteProps {
-  executeCode: () => Promise<void>;
-  isExecuting: boolean;
-  isReady: boolean;
-  hasCodeChanged: boolean;
-  hasConfigChanged: boolean;
+  onExecuteClick: () => void;
+  isLoading: boolean;
+  disabled: boolean;
+  hasPendingChanges: boolean;
 }
 
 export function EditorExecute({
-  executeCode,
-  isExecuting,
-  isReady,
-  hasCodeChanged,
-  hasConfigChanged
+  onExecuteClick,
+  isLoading,
+  disabled,
+  hasPendingChanges
 }: EditorExecuteProps) {
-  const { isAuthenticated } = useAuth();
-  const sceneName = useEditorStore((state) => state.sceneName);
-  const hasPendingChanges = hasCodeChanged || hasConfigChanged;
-
   return (
-    <Tooltip.Root open={isExecuting} positioning={{ placement: 'bottom' }}>
+    <Tooltip.Root open={isLoading} positioning={{ placement: 'bottom' }}>
       <Tooltip.Trigger asChild>
         <Box position='relative' display='inline-block'>
           <Button
             size='sm'
             variant='outline'
-            disabled={
-              !isReady ||
-              isExecuting ||
-              !isAuthenticated ||
-              !sceneName.trim() ||
-              !hasPendingChanges
-            }
-            onClick={executeCode}
-            loading={isExecuting}
+            disabled={disabled}
+            onClick={onExecuteClick}
+            loading={isLoading}
           >
             Save <LuCheck />
           </Button>

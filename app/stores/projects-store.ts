@@ -30,6 +30,7 @@ type ProjectsActions = {
     authToken: string,
     params: SaveProjectParams
   ) => Promise<UserDefinedProcess>;
+  deleteProject: (authToken: string, id: string) => Promise<void>;
 };
 
 export const useProjectsStore = create<ProjectsState & ProjectsActions>(
@@ -91,6 +92,19 @@ export const useProjectsStore = create<ProjectsState & ProjectsActions>(
       }));
 
       return project;
+    },
+    deleteProject: async (authToken, id) => {
+      // DELETE /process_graphs/{id} returns 204 No Content per the openEO
+      // spec, so fetchJson's undefined-body handling covers this fine.
+      await fetchJson<UserDefinedProcess | undefined>(
+        `${appConfig.openeoApiUrl}/process_graphs/${id}`,
+        authToken,
+        { method: 'DELETE' }
+      );
+
+      set((state) => ({
+        projects: state.projects.filter((p) => p.id !== id)
+      }));
     }
   })
 );
