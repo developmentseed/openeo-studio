@@ -1,22 +1,22 @@
 # OpenEO Studio
+A browser-based editor for writing and running openEO processes with results rendered on a map as soon as they're computed.  
+Write your algorithm in Python, point it at your data, and see the output on a map - no local install, no server-side execution to manage. Code runs client-side via [Pyodide](https://pyodide.org/); the map is served by [titiler-openeo](https://github.com/sentinel-hub/titiler-openeo) with tiles computed on the fly.
 
-Applying openEO processes for visual data exploration
+## Table of Contents
 
-Earth Observation (EO) data processing becomes accessible and powerful with Python-based openEO workflows. openEO Python allows data analysis to formulate their workflows
-in a familiar language and leave the data loading and workflow execution to interoperable backends.
+- [Where this fits in the openEO ecosystem](#where-this-fits-in-the-openeo-ecosystem)
+- [Installation and Usage](#installation-and-usage)
+- [Usage](#usage)
+- [Deployment](#deployment)
+- [Made possible by](#made-possible-by)
 
-openEO Studio adds another layer of convenience by providing a browser-based workflow development and execution environment where the openEO Python algorithm and a map 
-to view the result are the only elements an analyst needs to deal with - no installation or execution. Log in, select your data, define the workflow, and view the result
-right away on a map, computed on-the-fly and only at the level of detail required.
+## Where this fits in the openEO ecosystem
+[openEO](https://openeo.org/) defines a common API for processing earth observation data. openEO Studio is one client for that API, focused on interactive and visual exploration.
 
+**[openEO Web Editor](https://editor.openeo.org/)** is the general-purpose reference client for the ecosystem: it lets users pick from a list of registered backends, browse collections, and build workflows with a visual process graph editor as well as code.  
+**openEO Studio** trades that power and flexibility for a simpler, code-first, single-purpose tool: each deployment is wired to one backend and the emphasis is on fast map feedback while iterating on that code.
 
-## How openEO Studio works
-
-- React JS frontend application
-- Integration with third-party authentication and authorisation
-- Client-side openEO Python code execution with [Pyodide](https://pyodide.org/)
-- Tile-based openEO data processing [titiler-openeo](https://github.com/sentinel-hub/titiler-openeo)
-
+If you need to browse multiple backends or run long-running processes, the Web Editor is the better fit. If you want a lightweight, embeddable, code-driven map exploration tool, that's what this project is for.
 
 ## Installation and Usage
 
@@ -53,6 +53,8 @@ To configure the application:
 1. Copy `.env.example` to `.env`
 2. Modify the `.env` file with your specific configuration values
 3. Never modify `.env.example` directly as it serves as documentation
+
+Note `VITE_OPENEO_API_URL` in particular: this is the one backend this deployment will talk to.
 
 #### Where the app is mounted: `VITE_BASE_URL`
 
@@ -96,4 +98,9 @@ docker build -t openeo-studio .
 docker run -p 8888:80 -e BASE_URL=http://localhost:8888/subpath openeo-studio
 ```
 
-The image is built once with a relative asset base and configured per-container via environment variables (`BASE_URL`, `OPENEO_API_URL`, `APP_TITLE`, etc. — see `Dockerfile` for the full list). The entrypoint script derives the mount path from `BASE_URL` and writes it into nginx's rewrite rules, the page's `<base>` tag, and `window.__APP_CONFIG__` at container start — so the same image can be redeployed under a different `BASE_URL` without rebuilding.
+The image is built once with a relative asset base and configured per-container via environment variables (`BASE_URL`, `OPENEO_API_URL`, `APP_TITLE`, etc. — see `Dockerfile` for the full list). The entrypoint script derives the mount path from `BASE_URL` and writes it into nginx's rewrite rules, the page's `<base>` tag, and `window.__APP_CONFIG__` at container start — so the same image can be redeployed under a different `BASE_URL` or `OPENEO_API_URL` without rebuilding.
+
+## Made possible by
+openEO Studio began as a Development Seed Labs project, exploring what a lightweight interactive openEO client could look like. Continued development has been made possible by support from [EOPF](https://explorer.eopf.copernicus.eu/), [EOEPCA+](https://eoepca.org/eoepcaplus) and [APEx](https://apex.esa.int/).
+
+Interested in supporting feature development, or are you looking for support to run your own instance of OpenEO Studio? Drop us a line at [openeo@developmentseed.org](mailto:openeo@developmentseed.org).
