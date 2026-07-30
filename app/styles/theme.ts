@@ -5,7 +5,7 @@ import {
   defineGlobalStyles,
   defineSlotRecipe
 } from '@chakra-ui/react';
-import { tabsAnatomy } from '@ark-ui/react';
+import { tabsAnatomy, toastAnatomy } from '@ark-ui/react';
 
 import { colors, semanticColors } from './colors';
 
@@ -105,6 +105,25 @@ export const config = defineConfig({
               trigger: {
                 fontWeight: 'semibold'
               }
+            }
+          }
+        }
+      }),
+      toaster: defineSlotRecipe({
+        slots: toastAnatomy.keys(),
+        base: {
+          root: {
+            '&[data-type=warning]': {
+              bg: 'warning.solid',
+              color: 'warning.contrast'
+            },
+            '&[data-type=success]': {
+              bg: 'success.solid',
+              color: 'success.contrast'
+            },
+            '&[data-type=error]': {
+              bg: 'error.solid',
+              color: 'error.contrast'
             }
           }
         }
