@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, IconButton, Image, Tooltip } from '@chakra-ui/react';
+import { IconButton, Image, Tooltip } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 
 import { LoginButton, LoginButtonProps } from '$components/auth/login-button';

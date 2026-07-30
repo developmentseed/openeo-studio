@@ -5,11 +5,12 @@ import { LuLogIn } from 'react-icons/lu';
 
 export interface LoginButtonProps extends ButtonProps {
   compact?: boolean;
+  hideIfAuthenticated?: boolean;
 }
 
 export function LoginButton(props: LoginButtonProps) {
-  const { size = 'sm', compact, ...rest } = props;
-  const { signinRedirect, isLoading } = useAuth();
+  const { size = 'sm', compact, hideIfAuthenticated, ...rest } = props;
+  const { signinRedirect, isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
 
   const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -20,6 +21,10 @@ export function LoginButton(props: LoginButtonProps) {
       state: { returnTo: location.pathname }
     });
   };
+
+  if (isAuthenticated && hideIfAuthenticated) {
+    return null;
+  }
 
   if (compact) {
     return (
