@@ -102,7 +102,10 @@ export function EditorPage() {
     return null; // Still loading auth state
   }
 
-  if (!scene && !isBlankScene) {
+  // A sceneId that isn't a static sample scene is still valid if it's the
+  // project currently active in the store (e.g. one just saved from a
+  // blank scene) - only 404 on truly unknown ids.
+  if (!scene && !isBlankScene && storedSceneId !== sceneId) {
     throw new NotFound(`Scene not found: ${sceneId}`);
   }
 

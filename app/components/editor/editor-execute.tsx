@@ -1,6 +1,8 @@
-import { Button, Tooltip } from '@chakra-ui/react';
+import { Button, Portal, Tooltip } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { LuCheck } from 'react-icons/lu';
+
+import { useEditorStore } from '$stores/editor-store';
 
 interface EditorExecuteProps {
   executeCode: () => Promise<void>;
@@ -18,6 +20,7 @@ export function EditorExecute({
   hasConfigChanged
 }: EditorExecuteProps) {
   const { isAuthenticated } = useAuth();
+  const sceneName = useEditorStore((state) => state.sceneName);
 
   return (
     <Tooltip.Root open={isExecuting} positioning={{ placement: 'bottom' }}>
@@ -29,6 +32,7 @@ export function EditorExecute({
             !isReady ||
             isExecuting ||
             !isAuthenticated ||
+            !sceneName.trim() ||
             !(hasCodeChanged || hasConfigChanged)
           }
           onClick={executeCode}
@@ -37,12 +41,14 @@ export function EditorExecute({
           Save <LuCheck />
         </Button>
       </Tooltip.Trigger>
-      <Tooltip.Positioner>
-        <Tooltip.Content>
-          <Tooltip.Arrow />
-          Running analysis…
-        </Tooltip.Content>
-      </Tooltip.Positioner>
+      <Portal>
+        <Tooltip.Positioner>
+          <Tooltip.Content>
+            <Tooltip.Arrow />
+            Running analysis…
+          </Tooltip.Content>
+        </Tooltip.Positioner>
+      </Portal>
     </Tooltip.Root>
   );
 }

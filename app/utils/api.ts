@@ -16,7 +16,7 @@ export class APIError extends Error {
   }
 }
 
-const AUTH_PREFIX = 'Bearer oidc/oidc/';
+export const AUTH_PREFIX = 'Bearer oidc/oidc/';
 
 export async function fetchJson<T>(
   url: string,
@@ -52,6 +52,19 @@ export async function fetchJson<T>(
     throw e;
   }
 
-  const data = (await response.json()) as T;
-  return data;
+  // Some endpoints (e.g. PUT /process_graphs/{id}) respond 204 No Content.
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch (_: any) {
+    return text as T;
+  }
 }

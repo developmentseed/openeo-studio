@@ -89,20 +89,23 @@ export interface ValidationError {
 }
 
 /**
- * User-defined process (saved project) as returned by the openEO backend
- * GET /process_graphs endpoint.
+ * User-defined process (saved project), as returned by the openEO backend
+ * GET /process_graphs endpoint, and as sent to PUT /process_graphs/{id} to
+ * save a project (process_graph/parameters included in the latter case).
  */
-export interface ProcessGraphSummary {
+export interface UserDefinedProcess {
   id: string;
   summary?: string;
   description?: string;
+  process_graph?: unknown;
+  parameters?: unknown[];
 }
 
 /**
  * Response payload for GET /process_graphs.
  */
 export interface ProcessGraphsResponse {
-  processes: ProcessGraphSummary[];
+  processes: UserDefinedProcess[];
 }
 
 /**
