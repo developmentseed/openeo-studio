@@ -10,6 +10,7 @@ import { CodeTab } from './code-tab';
 import { AssistantTab } from './assistant-tab';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
+import { useDeleteProject } from './use-delete-project';
 
 export type EditorTabId = 'configuration' | 'code' | 'assistant';
 
@@ -62,6 +63,13 @@ export function EditorWorkspace({
     errorMessage,
     hasCodeChanged
   } = useCodeExecution(setServices, editor, selectedConfig);
+  const hasPendingChanges = hasCodeChanged || hasConfigChanged;
+
+  const {
+    onDeleteClick,
+    isBusy: isDeleteBusy,
+    disabled: isDeleteDisabled
+  } = useDeleteProject();
 
   const hasAutoExecutedRef = useRef(false);
   useEffect(() => {
@@ -97,11 +105,13 @@ export function EditorWorkspace({
       onValueChange={({ value }) => setActiveTab(value as EditorTabId)}
     >
       <EditorHeader
-        executeCode={executeCode}
+        onExecuteClick={executeCode}
         isExecuting={isExecuting}
         isReady={isExecutionReady}
-        hasCodeChanged={hasCodeChanged}
-        hasConfigChanged={hasConfigChanged}
+        hasPendingChanges={hasPendingChanges}
+        onDeleteClick={onDeleteClick}
+        isDeleteBusy={isDeleteBusy}
+        isDeleteDisabled={isDeleteDisabled}
       />
 
       <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
