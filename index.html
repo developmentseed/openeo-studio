@@ -60,13 +60,31 @@
       text-align: center;
     }
 
+    #welcome-banner h1 {
+      font-size: 1.5rem;
+      line-height: 1;
+      font-weight: bold;
+      margin: 0;
+    }
+
     #welcome-banner p {
       line-height: 1.5;
-      margin: 1rem 0 0 0;
+      margin: 0.25rem 0 0 0;
+    }
+
+    #welcome-banner p:first-of-type {
+      margin: 0;
     }
 
     #welcome-banner.dismissed {
       opacity: 0;
+    }
+
+    #welcome-banner .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0 0 0.5rem 0;
     }
   </style>
 </head>
@@ -74,9 +92,13 @@
 <body>
   <!-- Welcome banner gets hidden by React -->
   <div id='welcome-banner'>
-    <img src="./app/media/layout/ds-logo-pos.svg" alt="Development Seed logotype" width="188" height="32" />
-    <p>In the beginning the Universe was created.</p>
-    <p>This has made a lot of people very angry and been widely regarded as a bad move.</p>
+    <div class="logo">
+      <img src='%VITE_BASE_URL%/meta/icon.svg' width="128px"
+        alt="OpenEO Studio logo" />
+      <h1>OpenEO Studio</h1>
+    </div>
+    <p>Setting up the studio for you to do your best work!</p>
+    <p>Please wait...</p>
   </div>
 
   <div id='app-container'>
