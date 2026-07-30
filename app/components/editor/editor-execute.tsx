@@ -1,4 +1,4 @@
-import { Button, Portal, Tooltip } from '@chakra-ui/react';
+import { Box, Button, Portal, Tooltip } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { LuCheck } from 'react-icons/lu';
 
@@ -21,25 +21,39 @@ export function EditorExecute({
 }: EditorExecuteProps) {
   const { isAuthenticated } = useAuth();
   const sceneName = useEditorStore((state) => state.sceneName);
+  const hasPendingChanges = hasCodeChanged || hasConfigChanged;
 
   return (
     <Tooltip.Root open={isExecuting} positioning={{ placement: 'bottom' }}>
       <Tooltip.Trigger asChild>
-        <Button
-          size='sm'
-          variant='outline'
-          disabled={
-            !isReady ||
-            isExecuting ||
-            !isAuthenticated ||
-            !sceneName.trim() ||
-            !(hasCodeChanged || hasConfigChanged)
-          }
-          onClick={executeCode}
-          loading={isExecuting}
-        >
-          Save <LuCheck />
-        </Button>
+        <Box position='relative' display='inline-block'>
+          <Button
+            size='sm'
+            variant='outline'
+            disabled={
+              !isReady ||
+              isExecuting ||
+              !isAuthenticated ||
+              !sceneName.trim() ||
+              !hasPendingChanges
+            }
+            onClick={executeCode}
+            loading={isExecuting}
+          >
+            Save <LuCheck />
+          </Button>
+          {hasPendingChanges && (
+            <Box
+              position='absolute'
+              top='-2px'
+              right='-2px'
+              boxSize='8px'
+              borderRadius='full'
+              bg='orange.500'
+              aria-label='Unsaved changes'
+            />
+          )}
+        </Box>
       </Tooltip.Trigger>
       <Portal>
         <Tooltip.Positioner>

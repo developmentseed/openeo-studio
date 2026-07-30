@@ -4,6 +4,7 @@
  */
 import { appConfig } from '$config/runtime';
 import type { UserDefinedProcess } from '$types';
+import type { ProcessGraph, ProcessParameter } from '$types/openeo-process';
 import { fetchJson } from './api';
 
 // Matches the openeo-studio code block embedded in a UDP description.
@@ -26,7 +27,7 @@ export function extractCodeFromDescription(
  * user-authored notes) while replacing the embedded code block, if any,
  * with the current code.
  */
-function buildDescription(
+export function buildDescription(
   existingDescription: string | undefined,
   code: string
 ): string {
@@ -42,8 +43,8 @@ interface UpsertUserDefinedProcessParams {
   id: string;
   summary: string;
   code: string;
-  processGraph: unknown;
-  parameters?: unknown[];
+  processGraph: ProcessGraph;
+  parameters?: ProcessParameter[];
   description?: string;
 }
 
@@ -75,4 +76,101 @@ export async function upsertUserDefinedProcess(
   );
 
   return project;
+}
+
+export interface DerivedProjectConfig {
+  collectionId?: string;
+  temporalRange?: [string, string];
+  cloudCover?: number;
+  selectedBands?: string[];
+  boundingBox?: [number, number, number, number];
+}
+
+function findParameterDefault(
+  parameters: ProcessParameter[] | undefined,
+  name: string
+): unknown {
+  return parameters?.find((p) => p.name === name)?.default;
+}
+
+function findLoadCollectionId(
+  processGraph: ProcessGraph | undefined
+): string | undefined {
+  if (!processGraph) return undefined;
+  for (const node of Object.values(processGraph)) {
+    if (node.process_id === 'load_collection') {
+      const id = node.arguments.id;
+      if (typeof id === 'string') {
+        return id;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Reverse-derives editor config from a saved project's process graph and
+ * parameters. Mirrors how algorithms/base/loader.py builds them: each
+ * parameter serializes to { name, default, ... }, and collectionId lives on
+ * the load_collection node's arguments.id. Any field that can't be found or
+ * doesn't match the expected shape is simply omitted, never thrown.
+ */
+export function deriveConfigFromProject(
+  project: UserDefinedProcess
+): DerivedProjectConfig {
+  const config: DerivedProjectConfig = {};
+
+  const collectionId = findLoadCollectionId(project.process_graph);
+  if (collectionId) {
+    config.collectionId = collectionId;
+  }
+
+  const temporalRange = findParameterDefault(project.parameters, 'time');
+  if (
+    Array.isArray(temporalRange) &&
+    temporalRange.length === 2 &&
+    typeof temporalRange[0] === 'string' &&
+    typeof temporalRange[1] === 'string'
+  ) {
+    config.temporalRange = [temporalRange[0], temporalRange[1]];
+  }
+
+  const selectedBands = findParameterDefault(project.parameters, 'bands');
+  if (
+    Array.isArray(selectedBands) &&
+    selectedBands.every((band) => typeof band === 'string')
+  ) {
+    config.selectedBands = selectedBands as string[];
+  }
+
+  const cloudCover = findParameterDefault(
+    project.parameters,
+    'cloud_cover_max'
+  );
+  if (typeof cloudCover === 'number') {
+    config.cloudCover = cloudCover;
+  }
+
+  const boundingBox = findParameterDefault(
+    project.parameters,
+    'bounding_box'
+  ) as
+    | { west?: unknown; south?: unknown; east?: unknown; north?: unknown }
+    | undefined;
+  if (
+    boundingBox &&
+    typeof boundingBox.west === 'number' &&
+    typeof boundingBox.south === 'number' &&
+    typeof boundingBox.east === 'number' &&
+    typeof boundingBox.north === 'number'
+  ) {
+    config.boundingBox = [
+      boundingBox.west,
+      boundingBox.south,
+      boundingBox.east,
+      boundingBox.north
+    ];
+  }
+
+  return config;
 }
