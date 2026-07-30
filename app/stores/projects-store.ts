@@ -2,23 +2,36 @@ import { create } from 'zustand';
 
 import { appConfig } from '$config/runtime';
 import { APIError, fetchJson } from '$utils/api';
-import type { ProcessGraphSummary, ProcessGraphsResponse } from '$types';
+import { upsertUserDefinedProcess } from '$utils/process-graphs';
+import type { UserDefinedProcess, ProcessGraphsResponse } from '$types';
 import { useAuth } from 'react-oidc-context';
 import { useEffect } from 'react';
 
 type ProjectsState = {
-  projects: ProcessGraphSummary[];
+  projects: UserDefinedProcess[];
   isLoading: boolean;
   isSuccess: boolean;
   error: Error | null;
 };
 
+type SaveProjectParams = {
+  id: string;
+  summary: string;
+  code: string;
+  processGraph: unknown;
+  parameters?: unknown[];
+};
+
 type ProjectsActions = {
   fetchProjects: (authToken: string) => Promise<void>;
+  saveProject: (
+    authToken: string,
+    params: SaveProjectParams
+  ) => Promise<UserDefinedProcess>;
 };
 
 export const useProjectsStore = create<ProjectsState & ProjectsActions>(
-  (set) => ({
+  (set, get) => ({
     projects: [],
     isLoading: false,
     isSuccess: false,
@@ -42,6 +55,25 @@ export const useProjectsStore = create<ProjectsState & ProjectsActions>(
             : new Error('Failed to load projects');
         set({ isLoading: false, isSuccess: false, error: err });
       }
+    },
+    saveProject: async (authToken, params) => {
+      const description = get().projects.find(
+        (p) => p.id === params.id
+      )?.description;
+
+      const project = await upsertUserDefinedProcess(authToken, {
+        ...params,
+        description
+      });
+
+      set((state) => ({
+        projects: [
+          ...state.projects.filter((p) => p.id !== project.id),
+          project
+        ]
+      }));
+
+      return project;
     }
   })
 );

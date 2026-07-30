@@ -1,8 +1,8 @@
 import { Card, Stack, Heading, Text } from '@chakra-ui/react';
-import type { ProcessGraphSummary } from '$types';
+import type { UserDefinedProcess } from '$types';
 
 interface ProjectCardProps {
-  project: ProcessGraphSummary;
+  project: UserDefinedProcess;
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {

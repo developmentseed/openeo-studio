@@ -1,11 +1,14 @@
 import { useCallback, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
+import { useNavigate } from 'react-router';
+import { kebabCase } from 'lodash-es';
 import type { EditorView } from '@codemirror/view';
 
 import { usePyodide } from '$contexts/pyodide-context';
 import { processScript } from '$utils/code-runner';
 import type { ExecutionConfig, ServiceInfo } from '$types';
 import { useEditorStore } from '$stores/editor-store';
+import { useProjectsStore } from '$stores/projects-store';
 
 export function useCodeExecution(
   setServices: (services: ServiceInfo[]) => void,
@@ -14,8 +17,11 @@ export function useCodeExecution(
 ) {
   const { pyodide } = usePyodide();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const { hasCodeChanged, setHasCodeChanged } = useEditorStore();
+  const { hasCodeChanged, setHasCodeChanged, sceneName, sceneId, setSceneId } =
+    useEditorStore();
+  const saveProject = useProjectsStore((state) => state.saveProject);
 
   const [isExecuting, setIsExecuting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -37,6 +43,26 @@ export function useCodeExecution(
       if (services) {
         setServices(services);
       }
+
+      // Save (or update) the project as a UDP once execution succeeds.
+      if (services && services.length > 0) {
+        const { graphResult } = services[0];
+        const id = kebabCase(sceneName);
+
+        await saveProject(user?.access_token ?? '', {
+          id,
+          summary: sceneName,
+          code: content,
+          processGraph: graphResult.process_graph,
+          parameters: graphResult.parameters
+        });
+
+        // First save of a blank scene: reflect the new project in the URL.
+        if (!sceneId) {
+          setSceneId(id);
+          navigate(`/editor/${id}`, { replace: true });
+        }
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown execution error.';
@@ -50,7 +76,12 @@ export function useCodeExecution(
     editor,
     setServices,
     config,
-    setHasCodeChanged
+    setHasCodeChanged,
+    sceneName,
+    sceneId,
+    setSceneId,
+    saveProject,
+    navigate
   ]);
 
   return {

@@ -30,14 +30,17 @@ export function ConfigurationTab() {
 
   return (
     <VStack gap={6} align='stretch'>
-      <Field.Root>
-        <Field.Label htmlFor='scene-name'>Title</Field.Label>
+      <Field.Root required invalid={!sceneName.trim()}>
+        <Field.Label htmlFor='scene-name'>
+          Title <Field.RequiredIndicator />
+        </Field.Label>
         <Input
           id='scene-name'
           value={sceneName}
           onChange={(e) => setSceneName(e.target.value)}
           placeholder='New Scene'
         />
+        <Field.ErrorText>Title is required</Field.ErrorText>
       </Field.Root>
 
       <CollectionDisplay collectionId={selectedConfig.collectionId} />

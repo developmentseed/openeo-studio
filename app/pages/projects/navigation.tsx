@@ -2,6 +2,8 @@ import { Button, Flex, Heading } from '@chakra-ui/react';
 import { LuPlus, LuAward, LuUser } from 'react-icons/lu';
 import { NavLink } from 'react-router';
 
+import SmartLink from '$utils/smart-link';
+
 export function ProjectsNav() {
   return (
     <Flex
@@ -23,8 +25,10 @@ export function ProjectsNav() {
             <LuAward /> Samples
           </NavLink>
         </Button>
-        <Button size='sm' variant='outline'>
-          <LuPlus /> Create
+        <Button size='sm' variant='outline' asChild>
+          <SmartLink to='/editor'>
+            <LuPlus /> Create
+          </SmartLink>
         </Button>
       </Flex>
     </Flex>
