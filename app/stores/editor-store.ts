@@ -17,20 +17,17 @@ const DEFAULT_SCENE_NAME = 'New Project';
 
 type EditorState = {
   code: string;
-  hasCodeChanged: boolean;
+  isDirty: boolean;
   selectedConfig: ConfigValues;
-  previousConfig: ConfigValues;
   services: ServiceInfo[];
   sceneId: string | null;
   sceneName: string;
-  previousSceneName: string;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
 
 type EditorActions = {
   setCode: (code: string) => void;
-  setHasCodeChanged: (changed: boolean) => void;
   setCollectionId: (id: string) => void;
   setTemporalRange: (range: [string, string]) => void;
   setCloudCover: (cover: number) => void;
@@ -41,6 +38,7 @@ type EditorActions = {
   clearServices: () => void;
   setSceneId: (id: string | null) => void;
   setSceneName: (name: string) => void;
+  markClean: () => void;
   resetToDefaults: (defaults: ResetDefaults) => void;
   clearEditor: () => void;
   hydrateFromScene: (
@@ -75,45 +73,41 @@ export const useEditorStore = create<EditorStore>()(
   persist(
     (set) => ({
       code: '',
-      hasCodeChanged: false,
+      isDirty: false,
       selectedConfig: createInitialConfig(),
-      previousConfig: createInitialConfig(),
       services: [],
       sceneId: null,
       sceneName: DEFAULT_SCENE_NAME,
-      previousSceneName: DEFAULT_SCENE_NAME,
-      setCode: (code) => set({ code, hasCodeChanged: true }),
-      setHasCodeChanged: (changed) => set({ hasCodeChanged: changed }),
+      setCode: (code) => set({ code, isDirty: true }),
       setCollectionId: (collectionId) =>
         set((state) => ({
           selectedConfig: { ...state.selectedConfig, collectionId },
-          services: []
+          services: [],
+          isDirty: true
         })),
       setTemporalRange: (temporalRange) =>
         set((state) => ({
           selectedConfig: { ...state.selectedConfig, temporalRange },
-          services: []
+          services: [],
+          isDirty: true
         })),
       setCloudCover: (cloudCover) =>
         set((state) => ({
           selectedConfig: { ...state.selectedConfig, cloudCover },
-          services: []
+          services: [],
+          isDirty: true
         })),
       setSelectedBands: (selectedBands) =>
         set((state) => ({
-          selectedConfig: { ...state.selectedConfig, selectedBands }
+          selectedConfig: { ...state.selectedConfig, selectedBands },
+          isDirty: true
         })),
       setBoundingBox: (boundingBox) =>
         set((state) => ({
-          selectedConfig: { ...state.selectedConfig, boundingBox }
+          selectedConfig: { ...state.selectedConfig, boundingBox },
+          isDirty: true
         })),
-      setServices: (services) =>
-        set((state) => ({
-          services,
-          hasCodeChanged: false,
-          previousConfig: state.selectedConfig,
-          previousSceneName: state.sceneName
-        })),
+      setServices: (services) => set({ services }),
       toggleServiceVisibility: (serviceId) =>
         set((state) => ({
           services: state.services.map((service) =>
@@ -124,30 +118,27 @@ export const useEditorStore = create<EditorStore>()(
         })),
       clearServices: () => set({ services: [] }),
       setSceneId: (sceneId) => set({ sceneId }),
-      setSceneName: (sceneName) => set({ sceneName }),
+      setSceneName: (sceneName) => set({ sceneName, isDirty: true }),
+      markClean: () => set({ isDirty: false }),
       resetToDefaults: (defaults) => {
         const newConfig = createInitialConfig(defaults);
         set({
           code: '',
-          hasCodeChanged: false,
+          isDirty: false,
           selectedConfig: newConfig,
-          previousConfig: newConfig,
           services: [],
-          sceneName: DEFAULT_SCENE_NAME,
-          previousSceneName: DEFAULT_SCENE_NAME
+          sceneName: DEFAULT_SCENE_NAME
         });
       },
       clearEditor: () => {
         const initialConfig = createInitialConfig();
         set({
           code: '',
-          hasCodeChanged: false,
+          isDirty: false,
           selectedConfig: initialConfig,
-          previousConfig: initialConfig,
           services: [],
           sceneId: null,
-          sceneName: DEFAULT_SCENE_NAME,
-          previousSceneName: DEFAULT_SCENE_NAME
+          sceneName: DEFAULT_SCENE_NAME
         });
       },
       hydrateFromScene: (sceneId, scene) => {
@@ -161,11 +152,9 @@ export const useEditorStore = create<EditorStore>()(
         set({
           sceneId,
           sceneName: scene.name,
-          previousSceneName: scene.name,
           selectedConfig: sceneConfig,
-          previousConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
-          hasCodeChanged: false,
+          isDirty: false,
           services: []
         });
       }
@@ -176,10 +165,9 @@ export const useEditorStore = create<EditorStore>()(
       partialize: (state) => ({
         code: state.code,
         selectedConfig: state.selectedConfig,
-        previousConfig: state.previousConfig,
         sceneId: state.sceneId,
         sceneName: state.sceneName,
-        previousSceneName: state.previousSceneName
+        isDirty: state.isDirty
       })
     }
   )

@@ -34,7 +34,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
 
   const code = useEditorStore((state) => state.code);
-  const { setCode, setHasCodeChanged } = useEditorStore();
+  const { setCode, markClean } = useEditorStore();
 
   const themeColorMode = useColorModeValue(githubLight, githubDark);
 
@@ -110,14 +110,14 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
 
     if (!code && initialDoc) {
       setCode(initialDoc);
-      setHasCodeChanged(false);
+      markClean();
     }
 
     return () => {
       view.destroy();
       setEditor(null);
     };
-  }, [setCode, setHasCodeChanged]);
+  }, [setCode, markClean]);
 
   // Sync external code changes to editor (e.g. from scene hydration)
   useEffect(() => {
