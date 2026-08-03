@@ -33,7 +33,11 @@ export function EditorWorkspace({
   const previousConfig = useEditorStore(
     useShallow((state) => state.previousConfig)
   );
+  const sceneName = useEditorStore((state) => state.sceneName);
+  const previousSceneName = useEditorStore((state) => state.previousSceneName);
   const { setServices } = useEditorStore();
+
+  const hasSceneNameChanged = sceneName !== previousSceneName;
 
   const hasConfigChanged = !isEqual(
     [
@@ -63,7 +67,8 @@ export function EditorWorkspace({
     errorMessage,
     hasCodeChanged
   } = useCodeExecution(setServices, editor, selectedConfig);
-  const hasPendingChanges = hasCodeChanged || hasConfigChanged;
+  const hasPendingChanges =
+    hasCodeChanged || hasConfigChanged || hasSceneNameChanged;
 
   const {
     onDeleteClick,

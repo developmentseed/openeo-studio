@@ -23,6 +23,7 @@ type EditorState = {
   services: ServiceInfo[];
   sceneId: string | null;
   sceneName: string;
+  previousSceneName: string;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
@@ -80,6 +81,7 @@ export const useEditorStore = create<EditorStore>()(
       services: [],
       sceneId: null,
       sceneName: DEFAULT_SCENE_NAME,
+      previousSceneName: DEFAULT_SCENE_NAME,
       setCode: (code) => set({ code, hasCodeChanged: true }),
       setHasCodeChanged: (changed) => set({ hasCodeChanged: changed }),
       setCollectionId: (collectionId) =>
@@ -109,7 +111,8 @@ export const useEditorStore = create<EditorStore>()(
         set((state) => ({
           services,
           hasCodeChanged: false,
-          previousConfig: state.selectedConfig
+          previousConfig: state.selectedConfig,
+          previousSceneName: state.sceneName
         })),
       toggleServiceVisibility: (serviceId) =>
         set((state) => ({
@@ -130,7 +133,8 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: newConfig,
           previousConfig: newConfig,
           services: [],
-          sceneName: DEFAULT_SCENE_NAME
+          sceneName: DEFAULT_SCENE_NAME,
+          previousSceneName: DEFAULT_SCENE_NAME
         });
       },
       clearEditor: () => {
@@ -142,7 +146,8 @@ export const useEditorStore = create<EditorStore>()(
           previousConfig: initialConfig,
           services: [],
           sceneId: null,
-          sceneName: DEFAULT_SCENE_NAME
+          sceneName: DEFAULT_SCENE_NAME,
+          previousSceneName: DEFAULT_SCENE_NAME
         });
       },
       hydrateFromScene: (sceneId, scene) => {
@@ -156,6 +161,7 @@ export const useEditorStore = create<EditorStore>()(
         set({
           sceneId,
           sceneName: scene.name,
+          previousSceneName: scene.name,
           selectedConfig: sceneConfig,
           previousConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
@@ -172,7 +178,8 @@ export const useEditorStore = create<EditorStore>()(
         selectedConfig: state.selectedConfig,
         previousConfig: state.previousConfig,
         sceneId: state.sceneId,
-        sceneName: state.sceneName
+        sceneName: state.sceneName,
+        previousSceneName: state.previousSceneName
       })
     }
   )
