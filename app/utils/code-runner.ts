@@ -11,6 +11,7 @@ import {
 } from '$types';
 
 import { appConfig } from '$config/runtime';
+import { fetchJson, fetchHeaderLocation } from './api';
 import { getInstanceId } from './instance-id';
 
 export type ExecutionResult = {
@@ -25,7 +26,6 @@ export const EXAMPLE_CODE = trueColorAlgorithm;
 
 // OpenEO API constants
 const OPENEO_API_URL = appConfig.openeoApiUrl;
-const AUTH_PREFIX = 'Bearer oidc/oidc/';
 
 // Service title conventions for backend-side discovery
 const EPHEMERAL_TITLE_PREFIX = 'openeo-studio:ephemeral:';
@@ -113,12 +113,9 @@ async function createOpenEOService(
 ): Promise<string> {
   const { title, scope = 'public', extent, layerName } = options;
 
-  const response = await fetch(`${OPENEO_API_URL}/services`, {
+  return fetchHeaderLocation(`${OPENEO_API_URL}/services`, authToken, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...DEFAULT_SERVICE_CONFIG,
       title,
@@ -134,20 +131,6 @@ async function createOpenEOService(
       }
     })
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to create service (${response.status}): ${errorText}`
-    );
-  }
-
-  const location = response.headers.get('location');
-  if (!location) {
-    throw new Error('No location header in response');
-  }
-
-  return location;
 }
 
 function formatValidationErrors(errors: ValidationError[]): string {
@@ -167,27 +150,20 @@ async function validateProcessGraph(
   graphResult: GraphResult,
   authToken: string
 ): Promise<ValidationError[]> {
-  const response = await fetch(`${OPENEO_API_URL}/validation`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    },
-    body: JSON.stringify({
-      process_graph: graphResult.process_graph,
-      parameters: graphResult.parameters
-    })
-  });
+  const payload = await fetchJson<{ errors?: ValidationError[] }>(
+    `${OPENEO_API_URL}/validation`,
+    authToken,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        process_graph: graphResult.process_graph,
+        parameters: graphResult.parameters
+      })
+    }
+  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Validation request failed (${response.status}): ${errorText}`
-    );
-  }
-
-  const payload = (await response.json()) as { errors?: ValidationError[] };
-  return Array.isArray(payload.errors) ? payload.errors : [];
+  return Array.isArray(payload?.errors) ? payload.errors : [];
 }
 
 /**
@@ -201,22 +177,10 @@ export async function deleteOpenEOService(
   authToken: string
 ): Promise<void> {
   try {
-    const response = await fetch(serviceLocation, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `${AUTH_PREFIX}${authToken}`
-      }
-    });
-
-    if (!response.ok) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Failed to delete service ${serviceLocation}: ${response.status}`
-      );
-    }
+    await fetchJson(serviceLocation, authToken, { method: 'DELETE' });
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.warn('Error deleting service:', error);
+    console.warn(`Failed to delete service ${serviceLocation}:`, error);
   }
 }
 
@@ -243,18 +207,12 @@ export async function cleanupServices(authToken: string): Promise<void> {
 export async function listOpenEOServices(
   authToken: string
 ): Promise<BackendService[]> {
-  const response = await fetch(`${OPENEO_API_URL}/services`, {
-    headers: {
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    }
-  });
+  const payload = await fetchJson<{ services?: BackendService[] }>(
+    `${OPENEO_API_URL}/services`,
+    authToken
+  );
 
-  if (!response.ok) {
-    throw new Error(`Failed to list services (${response.status})`);
-  }
-
-  const payload = (await response.json()) as { services: BackendService[] };
-  return payload.services ?? [];
+  return payload?.services ?? [];
 }
 
 /**
@@ -307,19 +265,7 @@ export async function createPermanentService(
   });
 
   // Fetch the full service record from the backend
-  const response = await fetch(location, {
-    headers: {
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch created permanent service (${response.status})`
-    );
-  }
-
-  return (await response.json()) as BackendService;
+  return fetchJson<BackendService>(location, authToken);
 }
 
 /**
@@ -346,17 +292,7 @@ async function getTileUrl(
   serviceLocation: string,
   authToken: string
 ): Promise<string> {
-  const response = await fetch(serviceLocation, {
-    headers: {
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch service details (${response.status})`);
-  }
-
-  const tileJson = await response.json();
+  const tileJson = await fetchJson<{ url: string }>(serviceLocation, authToken);
   return tileJson.url;
 }
 
