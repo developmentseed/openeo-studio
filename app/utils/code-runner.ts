@@ -13,8 +13,13 @@ import {
 import { appConfig } from '$config/runtime';
 import { getInstanceId } from './instance-id';
 
+export type ExecutionResult = {
+  graphs: GraphResult[];
+  services: ServiceInfo[];
+};
+
 // Track active services for cleanup
-const activeServices: ServiceInfo[] = [];
+let activeServices: ServiceInfo[] = [];
 
 export const EXAMPLE_CODE = trueColorAlgorithm;
 
@@ -226,7 +231,7 @@ export async function cleanupServices(authToken: string): Promise<void> {
   );
 
   await Promise.allSettled(deletePromises);
-  activeServices.length = 0; // Clear the array
+  activeServices = [];
 }
 
 /**
@@ -356,28 +361,18 @@ async function getTileUrl(
 }
 
 /**
- * Executes a Python script with Pyodide and creates OpenEO services for multiple graphs.
+ * Runs the Python program via Pyodide and returns the parsed map_graphs array.
  *
  * @param pyodide - The Pyodide instance
- * @param authToken - Authentication token
- * @param script - The Python script to execute
+ * @param script - The algorithm script to execute
  * @param config - Execution configuration
- * @returns Array of ServiceInfo objects for map rendering, or undefined on error
+ * @returns The parsed array of graph results (may be empty)
  */
-export async function processScript(
+async function runAlgorithm(
   pyodide: PyodideAPI,
-  authToken: string,
   script: string,
   config: ExecutionConfig
-): Promise<ServiceInfo[] | undefined> {
-  // Clean up previous services before creating new ones
-  await cleanupServices(authToken);
-
-  // Also clean up any orphaned services from previous sessions (safety net)
-  const instanceId = getInstanceId();
-  await cleanupOrphanedServices(authToken, instanceId);
-
-  // Execute Python code and get map_graphs array
+): Promise<GraphResult[]> {
   const result = await pyodide.runPythonAsync(getPythonCode(script, config));
   const mapGraphs: GraphResult[] = JSON.parse(result);
 
@@ -385,8 +380,21 @@ export async function processScript(
     throw new Error('Expected map_graphs array from Python execution');
   }
 
-  // Validate all graphs before creating services
-  for (const [index, graphResult] of mapGraphs.entries()) {
+  return mapGraphs;
+}
+
+/**
+ * Validates every graph against the openEO backend, throwing on the first
+ * graph that fails validation.
+ *
+ * @param graphs - The graph results to validate
+ * @param authToken - Authentication token
+ */
+async function validateGraphs(
+  graphs: GraphResult[],
+  authToken: string
+): Promise<void> {
+  for (const [index, graphResult] of graphs.entries()) {
     const errors = await validateProcessGraph(graphResult, authToken);
     if (errors.length > 0) {
       const formattedErrors = formatValidationErrors(errors);
@@ -395,12 +403,26 @@ export async function processScript(
       );
     }
   }
+}
 
-  // Create services for each graph
+/**
+ * Creates one ephemeral XYZ service per graph, resolves its tile URL, and
+ * registers it for later cleanup.
+ *
+ * @param graphs - The graph results to create services for
+ * @param authToken - Authentication token
+ * @param instanceId - The studio instance UUID
+ * @returns Array of ServiceInfo objects for map rendering
+ */
+async function createEphemeralServices(
+  graphs: GraphResult[],
+  authToken: string,
+  instanceId: string
+): Promise<ServiceInfo[]> {
   const ephemeralTitle = `${EPHEMERAL_TITLE_PREFIX}${instanceId}`;
   const services: ServiceInfo[] = [];
 
-  for (const graphResult of mapGraphs) {
+  for (const graphResult of graphs) {
     const serviceLocation = await createOpenEOService(graphResult, authToken, {
       title: ephemeralTitle
     });
@@ -419,4 +441,43 @@ export async function processScript(
   }
 
   return services;
+}
+
+/**
+ * Executes a Python script with Pyodide and creates OpenEO services for the
+ * graphs it produces.
+ *
+ * The algorithm is run and validated *before* the previous ephemeral services
+ * are cleaned up, so a failed run leaves the currently rendered map intact.
+ *
+ * @param pyodide - The Pyodide instance
+ * @param authToken - Authentication token
+ * @param script - The Python script to execute
+ * @param config - Execution configuration
+ * @returns The produced graphs and their map services (both empty when the
+ *   script adds no graphs to the map)
+ */
+export async function processScript(
+  pyodide: PyodideAPI,
+  authToken: string,
+  script: string,
+  config: ExecutionConfig
+): Promise<ExecutionResult> {
+  // Run + validate first, so a failed run does not delete the services the
+  // current map is still displaying.
+  const graphs = await runAlgorithm(pyodide, script, config);
+  await validateGraphs(graphs, authToken);
+
+  // Only now clean up the previous ephemeral services (and orphans from prior
+  // sessions) — we have a valid new result to replace them with.
+  await cleanupServices(authToken);
+  const instanceId = getInstanceId();
+  await cleanupOrphanedServices(authToken, instanceId);
+
+  if (graphs.length === 0) {
+    return { graphs: [], services: [] };
+  }
+
+  const services = await createEphemeralServices(graphs, authToken, instanceId);
+  return { graphs, services };
 }

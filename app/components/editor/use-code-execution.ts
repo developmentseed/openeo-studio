@@ -23,57 +23,62 @@ export function useCodeExecution(
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { hasCodeChanged, setHasCodeChanged, sceneName, sceneId, setSceneId } =
-    useEditorStore();
+  const { sceneName, sceneId, setSceneId, markClean } = useEditorStore();
   const saveProject = useProjectsStore((state) => state.saveProject);
 
   const [isExecuting, setIsExecuting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showNoGraphNotice, setShowNoGraphNotice] = useState(false);
 
   const executeCode = useCallback(async () => {
     if (!pyodide || !editor) return;
 
     setIsExecuting(true);
     setErrorMessage(null);
-    setHasCodeChanged(false);
+    setShowNoGraphNotice(false);
     try {
       const content = editor.state.doc.toString();
-      const services = await processScript(
+      const { graphs, services } = await processScript(
         pyodide,
         user?.access_token ?? '',
         content,
         config
       );
-      if (services) {
-        setServices(services);
+      setServices(services);
+
+      // No add_graph_to_map() call means there is no output layer to save.
+      // Keep the project dirty and let the user know what is missing.
+      if (services.length === 0) {
+        setShowNoGraphNotice(true);
+        return;
       }
 
       // Save (or update) the project as a UDP once execution succeeds.
       // Every add_graph_to_map() call produces its own GraphResult (all of
       // them still become ephemeral /services for map preview); all of them
       // get combined into one process graph here so none are dropped.
-      if (services && services.length > 0) {
-        const id = kebabCase(sceneName);
-        const processGraph = mergeProcessGraphs(
-          services.map((service) => service.graphResult.process_graph)
-        );
-        const parameters = resolveSharedParameters(
-          services.map((service) => service.graphResult.parameters)
-        );
+      const id = kebabCase(sceneName);
+      const processGraph = mergeProcessGraphs(
+        graphs.map((graph) => graph.process_graph)
+      );
+      const parameters = resolveSharedParameters(
+        graphs.map((graph) => graph.parameters)
+      );
 
-        await saveProject(user?.access_token ?? '', {
-          id,
-          summary: sceneName,
-          code: content,
-          processGraph,
-          parameters
-        });
+      await saveProject(user?.access_token ?? '', {
+        id,
+        summary: sceneName,
+        code: content,
+        processGraph,
+        parameters
+      });
 
-        // First save of a blank scene: reflect the new project in the URL.
-        if (!sceneId) {
-          setSceneId(id);
-          navigate(`/editor/${id}`, { replace: true });
-        }
+      markClean();
+
+      // First save of a blank scene: reflect the new project in the URL.
+      if (!sceneId) {
+        setSceneId(id);
+        navigate(`/editor/${id}`, { replace: true });
       }
     } catch (error) {
       const message =
@@ -88,7 +93,7 @@ export function useCodeExecution(
     editor,
     setServices,
     config,
-    setHasCodeChanged,
+    markClean,
     sceneName,
     sceneId,
     setSceneId,
@@ -96,11 +101,17 @@ export function useCodeExecution(
     navigate
   ]);
 
+  const dismissNoGraphNotice = useCallback(
+    () => setShowNoGraphNotice(false),
+    []
+  );
+
   return {
     executeCode,
     isExecuting,
     isReady: !!pyodide && !!editor,
     errorMessage,
-    hasCodeChanged
+    showNoGraphNotice,
+    dismissNoGraphNotice
   };
 }

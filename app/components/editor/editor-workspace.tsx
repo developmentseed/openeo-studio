@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Tabs } from '@chakra-ui/react';
+import { Code, Tabs, Text } from '@chakra-ui/react';
 import { useShallow } from 'zustand/shallow';
 
 import { useEditorStore } from '$stores/editor-store';
+import { InfoDialog } from '$components/common/info-dialog';
 import { useCodeEditor } from './code-editor';
 import { useCodeExecution } from './use-code-execution';
 import { ConfigurationTab } from './configuration-tab';
@@ -19,10 +20,6 @@ interface EditorWorkspaceProps {
   autoExecuteOnReady?: boolean;
 }
 
-function isEqual(a: any, b: any) {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
 export function EditorWorkspace({
   defaultTab,
   autoExecuteOnReady = false
@@ -30,31 +27,8 @@ export function EditorWorkspace({
   const selectedConfig = useEditorStore(
     useShallow((state) => state.selectedConfig)
   );
-  const previousConfig = useEditorStore(
-    useShallow((state) => state.previousConfig)
-  );
-  const sceneName = useEditorStore((state) => state.sceneName);
-  const previousSceneName = useEditorStore((state) => state.previousSceneName);
+  const isDirty = useEditorStore((state) => state.isDirty);
   const { setServices } = useEditorStore();
-
-  const hasSceneNameChanged = sceneName !== previousSceneName;
-
-  const hasConfigChanged = !isEqual(
-    [
-      selectedConfig.collectionId,
-      selectedConfig.cloudCover,
-      selectedConfig.temporalRange,
-      selectedConfig.selectedBands,
-      selectedConfig.boundingBox
-    ],
-    [
-      previousConfig.collectionId,
-      previousConfig.cloudCover,
-      previousConfig.temporalRange,
-      previousConfig.selectedBands,
-      previousConfig.boundingBox
-    ]
-  );
 
   const editor = useCodeEditor();
 
@@ -65,10 +39,9 @@ export function EditorWorkspace({
     isExecuting,
     isReady: isExecutionReady,
     errorMessage,
-    hasCodeChanged
+    showNoGraphNotice,
+    dismissNoGraphNotice
   } = useCodeExecution(setServices, editor, selectedConfig);
-  const hasPendingChanges =
-    hasCodeChanged || hasConfigChanged || hasSceneNameChanged;
 
   const {
     onDeleteClick,
@@ -113,7 +86,7 @@ export function EditorWorkspace({
         onExecuteClick={executeCode}
         isExecuting={isExecuting}
         isReady={isExecutionReady}
-        hasPendingChanges={hasPendingChanges}
+        hasPendingChanges={isDirty}
         onDeleteClick={onDeleteClick}
         isDeleteBusy={isDeleteBusy}
         isDeleteDisabled={isDeleteDisabled}
@@ -146,6 +119,20 @@ export function EditorWorkspace({
           onDismiss={() => setIsErrorDismissed(true)}
         />
       )}
+
+      <InfoDialog
+        open={showNoGraphNotice}
+        title='Nothing to save'
+        okLabel='Got it'
+        onClose={dismissNoGraphNotice}
+      >
+        <Text fontSize='sm' color='fg.muted' whiteSpace='pre-wrap'>
+          Your code did not produce any layers to save.
+          <br />
+          Review your code and add a layer using{' '}
+          <Code>add_graph_to_map(graph, name)</Code>.
+        </Text>
+      </InfoDialog>
     </Tabs.Root>
   );
 }
