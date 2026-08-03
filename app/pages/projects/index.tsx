@@ -69,7 +69,7 @@ function NoProjects() {
       borderStyle='dashed'
       borderColor='border'
       borderRadius='lg'
-      bg='white'
+      bg='bg'
       p={6}
       boxSize='100%'
       maxH='40rem'
