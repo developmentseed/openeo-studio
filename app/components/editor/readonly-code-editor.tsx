@@ -1,22 +1,36 @@
 import { useEffect, useRef } from 'react';
 import { basicSetup } from 'codemirror';
-import { Compartment } from '@codemirror/state';
+import { Compartment, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
-import { lintGutter } from '@codemirror/lint';
+import { json } from '@codemirror/lang-json';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
-import { ruffLinter } from './ruff-linter';
 import { useColorModeValue } from '$utils/color-mode';
+
+type EditorLanguage = 'python' | 'json';
 
 interface ReadOnlyCodeEditorProps {
   code: string;
+  language?: EditorLanguage;
 }
 
 const themeCompartment = new Compartment();
 
-export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
+// Python gets the ruff linter; JSON is highlighted without any linting so a
+// process graph does not get flagged as invalid Python.
+function languageExtensions(language: EditorLanguage): Extension[] {
+  if (language === 'json') {
+    return [json()];
+  }
+  return [python()];
+}
+
+export function ReadOnlyCodeEditor({
+  code,
+  language = 'python'
+}: ReadOnlyCodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorViewRef = useRef<EditorView | null>(null);
 
@@ -35,8 +49,7 @@ export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
             height: '100%'
           },
           '&, .cm-scroller': {
-            fontFamily: '"Fira Code"',
-            fontSize: 'small'
+            fontFamily: '"Fira Code"'
           },
           '.cm-content, .cm-line': {
             width: '100%',
@@ -48,11 +61,9 @@ export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
         }),
         EditorView.lineWrapping,
         themeCompartment.of(themeColorMode),
-        python(),
         closeBrackets(),
         autocompletion(),
-        lintGutter(),
-        ruffLinter({ ignoreCodes: ['F401'] })
+        ...languageExtensions(language)
       ]
     });
 
@@ -66,7 +77,7 @@ export function ReadOnlyCodeEditor({ code }: ReadOnlyCodeEditorProps) {
       view.destroy();
       editorViewRef.current = null;
     };
-  }, [code]);
+  }, [code, language]);
 
   // Sync editor theme with color mode changes
   useEffect(() => {

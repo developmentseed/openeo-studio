@@ -71,6 +71,7 @@
     "@astral-sh/ruff-wasm-web": "^0.14.5",
     "@chakra-ui/react": "^3.30.0",
     "@codemirror/autocomplete": "^6.19.1",
+    "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lang-python": "^6.2.1",
     "@codemirror/language": "^6.11.3",
     "@codemirror/lint": "^6.9.2",
