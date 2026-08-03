@@ -18,11 +18,15 @@ export class APIError extends Error {
 
 export const AUTH_PREFIX = 'Bearer oidc/oidc/';
 
-export async function fetchJson<T>(
+/**
+ * Performs an authenticated fetch and throws an APIError on a non-2xx
+ * response. Returns the raw Response so callers can read the body or headers.
+ */
+async function request(
   url: string,
   token?: string,
   options: RequestInit = {}
-): Promise<T> {
+): Promise<Response> {
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -52,6 +56,16 @@ export async function fetchJson<T>(
     throw e;
   }
 
+  return response;
+}
+
+export async function fetchJson<T>(
+  url: string,
+  token?: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const response = await request(url, token, options);
+
   // Some endpoints (e.g. PUT /process_graphs/{id}) respond 204 No Content.
   if (response.status === 204) {
     return undefined as T;
@@ -67,4 +81,28 @@ export async function fetchJson<T>(
   } catch (_: any) {
     return text as T;
   }
+}
+
+/**
+ * Performs an authenticated request and returns the `Location` response
+ * header. Used by openEO create endpoints (e.g. POST /services) that respond
+ * with the new resource URL in the header rather than the body.
+ */
+export async function fetchHeaderLocation(
+  url: string,
+  token?: string,
+  options: RequestInit = {}
+): Promise<string> {
+  const response = await request(url, token, options);
+
+  const location = response.headers.get('location');
+  if (!location) {
+    throw new APIError(
+      'No location header in response',
+      response.status,
+      response.statusText
+    );
+  }
+
+  return location;
 }
