@@ -5,9 +5,9 @@ import {
   ClientOnly,
   IconButton,
   Skeleton,
-  Span,
+  Box,
   IconButtonProps,
-  SpanProps
+  BoxProps
 } from '@chakra-ui/react';
 import { ThemeProvider, useTheme, ThemeProviderProps } from 'next-themes';
 import { LuMoon, LuSun } from 'react-icons/lu';
@@ -71,26 +71,26 @@ export function ColorModeButton(props: Omit<IconButtonProps, 'aria-label'>) {
   );
 }
 
-export function LightMode(props: SpanProps) {
+export function LightMode(props: BoxProps) {
   return (
-    <Span
+    <Box
       color='fg'
       display='contents'
       className='chakra-theme light'
-      colorPalette='gray'
+      colorPalette='neutral'
       colorScheme='light'
       {...props}
     />
   );
 }
 
-export function DarkMode(props: SpanProps) {
+export function DarkMode(props: BoxProps) {
   return (
-    <Span
+    <Box
       color='fg'
       display='contents'
       className='chakra-theme dark'
-      colorPalette='gray'
+      colorPalette='neutral'
       colorScheme='dark'
       {...props}
     />

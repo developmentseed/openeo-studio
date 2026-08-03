@@ -53,11 +53,6 @@ export function AppHeader() {
             </NavLink>
           </IconButton>
         )}
-        <IconButton variant='ghost' size='sm' asChild>
-          <NavLink to='/docs'>
-            <LuCircleHelp />
-          </NavLink>
-        </IconButton>
         {isAuthenticated && (
           <>
             <Separator orientation='horizontal' w='4' />
@@ -87,6 +82,11 @@ export function AppHeader() {
       </Stack>
 
       <Stack mt='auto'>
+        <IconButton variant='ghost' size='sm' asChild>
+          <NavLink to='/docs'>
+            <LuCircleHelp />
+          </NavLink>
+        </IconButton>
         <ColorModeButton />
         <UserInfo variant='outline' compact />
       </Stack>

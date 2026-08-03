@@ -13,14 +13,7 @@ export function CollectionDisplay({ collectionId }: CollectionDisplayProps) {
   return (
     <Field.Root>
       <Field.Label>Collection</Field.Label>
-      <Text
-        fontSize='sm'
-        fontWeight='medium'
-        py={2}
-        px={3}
-        bg='gray.50'
-        borderRadius='md'
-      >
+      <Text fontSize='sm' fontWeight='medium' py={2} px={3} borderRadius='md'>
         {collection?.title || collectionId}
       </Text>
     </Field.Root>
