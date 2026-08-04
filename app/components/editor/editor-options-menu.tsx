@@ -26,7 +26,6 @@ export function EditorOptionsMenu({
           size='sm'
           variant='ghost'
           loading={isDeleteLoading}
-          disabled={isDeleteDisabled}
         >
           <LuEllipsisVertical />
         </IconButton>
@@ -38,6 +37,7 @@ export function EditorOptionsMenu({
               value={DELETE_ACTION}
               color='fg.error'
               _hover={{ bg: 'bg.error', color: 'fg.error' }}
+              disabled={isDeleteDisabled}
             >
               <LuTrash2 /> Delete
             </Menu.Item>

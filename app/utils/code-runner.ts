@@ -14,11 +14,6 @@ import { appConfig } from '$config/runtime';
 import { fetchJson, fetchHeaderLocation } from './api';
 import { getInstanceId } from './instance-id';
 
-export type ExecutionResult = {
-  graphs: GraphResult[];
-  services: ServiceInfo[];
-};
-
 // Track active services for cleanup
 let activeServices: ServiceInfo[] = [];
 
@@ -380,40 +375,38 @@ async function createEphemeralServices(
 }
 
 /**
- * Executes a Python script with Pyodide and creates OpenEO services for the
- * graphs it produces.
+ * Runs a Python script with Pyodide and validates every resulting graph against
+ * the openEO backend.
  *
- * The algorithm is run and validated *before* the previous ephemeral services
- * are cleaned up, so a failed run leaves the currently rendered map intact.
- *
- * @param pyodide - The Pyodide instance
- * @param authToken - Authentication token
- * @param script - The Python script to execute
- * @param config - Execution configuration
- * @returns The produced graphs and their map services (both empty when the
- *   script adds no graphs to the map)
+ * @returns The produced graphs (empty when the script adds none to the map)
  */
-export async function processScript(
+export async function runAndValidateScript(
   pyodide: PyodideAPI,
   authToken: string,
   script: string,
   config: ExecutionConfig
-): Promise<ExecutionResult> {
-  // Run + validate first, so a failed run does not delete the services the
-  // current map is still displaying.
+): Promise<GraphResult[]> {
   const graphs = await runAlgorithm(pyodide, script, config);
   await validateGraphs(graphs, authToken);
+  return graphs;
+}
 
-  // Only now clean up the previous ephemeral services (and orphans from prior
-  // sessions) — we have a valid new result to replace them with.
+/**
+ * Replaces the current ephemeral map services with ones built from `graphs`.
+ * Cleans up previous (and orphaned) services first; returns [] when there are
+ * no graphs.
+ */
+export async function createServicesFromGraphs(
+  graphs: GraphResult[],
+  authToken: string
+): Promise<ServiceInfo[]> {
   await cleanupServices(authToken);
   const instanceId = getInstanceId();
   await cleanupOrphanedServices(authToken, instanceId);
 
   if (graphs.length === 0) {
-    return { graphs: [], services: [] };
+    return [];
   }
 
-  const services = await createEphemeralServices(graphs, authToken, instanceId);
-  return { graphs, services };
+  return createEphemeralServices(graphs, authToken, instanceId);
 }
