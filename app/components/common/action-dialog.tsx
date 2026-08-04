@@ -1,27 +1,31 @@
-import { Button, Dialog, Flex, Heading } from '@chakra-ui/react';
+import { Dialog, Flex, Heading } from '@chakra-ui/react';
 
-interface InfoDialogProps extends Dialog.RootProps {
+interface ActionDialogProps extends Dialog.RootProps {
   open: boolean;
   title: string;
   children: React.ReactNode;
-  okLabel?: string;
+  actions: React.ReactNode;
   onClose: () => void;
+  /** Called after the close animation finishes (keep mounted until then). */
+  onExitComplete?: () => void;
 }
 
-export function InfoDialog({
+export function ActionDialog({
   open,
   title,
   children,
-  okLabel = 'OK',
+  actions,
   onClose,
+  onExitComplete,
   ...rest
-}: InfoDialogProps) {
+}: ActionDialogProps) {
   return (
     <Dialog.Root
       open={open}
       onOpenChange={(details) => {
         if (!details.open) onClose();
       }}
+      onExitComplete={onExitComplete}
       placement='center'
       {...rest}
     >
@@ -34,10 +38,8 @@ export function InfoDialog({
           </Dialog.Header>
           <Dialog.Body p={0}>
             {children}
-            <Flex justify='flex-end' mt={4}>
-              <Button variant='outline' size='sm' onClick={onClose}>
-                {okLabel}
-              </Button>
+            <Flex justify='flex-end' mt={4} gap={2}>
+              {actions}
             </Flex>
           </Dialog.Body>
         </Dialog.Content>
