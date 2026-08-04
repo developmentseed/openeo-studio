@@ -1,16 +1,29 @@
-import { Flex, Stack, Tabs, Text } from '@chakra-ui/react';
-import { useEffect, useMemo, useState, memo } from 'react';
+import { Flex, Spinner, Stack, Tabs, Text } from '@chakra-ui/react';
+import {
+  Suspense,
+  lazy,
+  memo,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode
+} from 'react';
 import { useShallow } from 'zustand/shallow';
+import { LuCodeXml, LuWorkflow } from 'react-icons/lu';
 
 import type { ServiceInfo } from '$types';
+import type { ProcessGraph } from '$types/openeo-process';
 import { useEditorStore } from '$stores/editor-store';
-import { mergeProcessGraphs } from '$utils/process-graphs';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
 import { ShareDialog } from '$components/map/share-dialog';
 import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
-import { LuCodeXml } from 'react-icons/lu';
+
+import { useMergedProcessGraph } from './use-merged-process-graph';
+
+// React Flow and dagre are only ever needed by the visual tab.
+const ProcessGraphViewer = lazy(() => import('$components/process-graph'));
 
 function MapPanelComponent() {
   const { bounds, sceneId, services } = useEditorStore(
@@ -28,6 +41,8 @@ function MapPanelComponent() {
   });
   const [shareService, setShareService] = useState<ServiceInfo | null>(null);
 
+  const mergedGraph = useMergedProcessGraph(services);
+
   useEffect(() => {
     if (services.length === 0 && tileStatus.status !== 'idle') {
       setTileStatus({ pending: 0, status: 'idle' });
@@ -36,7 +51,7 @@ function MapPanelComponent() {
 
   return (
     <Flex flexGrow={1} h='100%' position='relative'>
-      <Tabs.Root defaultValue='map' variant='enclosed' w='100%'>
+      <Tabs.Root defaultValue='map' variant='enclosed' w='100%' lazyMount>
         <Tabs.List
           className='chakra-theme dark'
           colorPalette='neutral'
@@ -74,8 +89,11 @@ function MapPanelComponent() {
           </Flex>
           {services.length > 0 && <TileStatusAlert status={tileStatus} />}
         </Tabs.Content>
+        <Tabs.Content value='visual' display='flex' h='100%' p={0}>
+          <OutputVisual graph={mergedGraph} />
+        </Tabs.Content>
         <Tabs.Content value='json' display='flex' h='100%' p={0}>
-          <OutputJson services={services} />
+          <OutputJson graph={mergedGraph} />
         </Tabs.Content>
       </Tabs.Root>
       {shareService && (
@@ -91,29 +109,54 @@ function MapPanelComponent() {
 
 export const MapPanel = memo(MapPanelComponent);
 
-function OutputJson({ services }: { services: ServiceInfo[] }) {
-  const mergedGraphJson = useMemo(() => {
-    if (services.length === 0) return null;
-    try {
-      const merged = mergeProcessGraphs(
-        services.map((service) => service.graphResult.process_graph)
-      );
-      return JSON.stringify(merged, null, 2);
-    } catch {
-      return null;
-    }
-  }, [services]);
-
-  return mergedGraphJson ? (
-    <ReadOnlyCodeEditor code={mergedGraphJson} language='json' />
-  ) : (
+function NoOutput({ icon, hint }: { icon: ReactNode; hint: string }) {
+  return (
     <Stack flexGrow={1} align='center' justify='center' p={8} gap={4}>
-      <LuCodeXml size='4rem' />
+      {icon}
       <Text color='fg' textAlign='center'>
-        There is no output to display.
+        There is nothing to display.
         <br />
-        Save your project to see the process graph.
+        {hint}
       </Text>
     </Stack>
+  );
+}
+
+function OutputVisual({ graph }: { graph: ProcessGraph | null }) {
+  if (!graph) {
+    return (
+      <NoOutput
+        icon={<LuWorkflow size='4rem' />}
+        hint='Save your project to see the process graph.'
+      />
+    );
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <Flex flexGrow={1} align='center' justify='center'>
+          <Spinner size='lg' />
+        </Flex>
+      }
+    >
+      <ProcessGraphViewer graph={graph} />
+    </Suspense>
+  );
+}
+
+function OutputJson({ graph }: { graph: ProcessGraph | null }) {
+  const graphJson = useMemo(
+    () => (graph ? JSON.stringify(graph, null, 2) : null),
+    [graph]
+  );
+
+  return graphJson ? (
+    <ReadOnlyCodeEditor code={graphJson} language='json' />
+  ) : (
+    <NoOutput
+      icon={<LuCodeXml size='4rem' />}
+      hint='Save your project to see the process graph.'
+    />
   );
 }
