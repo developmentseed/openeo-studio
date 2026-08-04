@@ -6,11 +6,14 @@ test.describe('Navigation', () => {
     test('landing page loads and displays main content', async ({ page }) => {
       await page.goto('/');
 
-      // Verify page title/heading is visible (h1 is main title)
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      // Verify page heading and supporting copy are visible
+      await expect(
+        page.getByRole('heading', { name: /Author openEO python code/i })
+      ).toBeVisible();
 
-      // Verify main sections are present
-      await expect(page.getByText(/explore|analyze|satellite/i)).toBeVisible();
+      await expect(
+        page.getByText(/process cloud-native data/i)
+      ).toBeVisible();
     });
 
     test('editor page loads when authenticated', async ({
@@ -26,7 +29,10 @@ test.describe('Navigation', () => {
         })
       ).toBeVisible();
       await expect(
-        authenticatedPage.getByRole('tab', { name: /code/i, selected: false })
+        authenticatedPage.getByRole('tab', {
+          name: /python/i,
+          selected: false
+        })
       ).toBeVisible();
 
       // Verify no restricted-page gate is shown
@@ -50,12 +56,15 @@ test.describe('Navigation', () => {
       await expect(authenticatedPage.locator('p')).toBeTruthy();
     });
 
-    test('docs route requires sign-in when logged out', async ({ page }) => {
+    test('docs route is public when logged out', async ({ page }) => {
       await page.goto('/docs');
 
       await expect(
-        page.getByRole('heading', { name: 'Restricted' })
+        page.getByRole('heading', { name: /documentation/i })
       ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Restricted' })
+      ).not.toBeVisible();
     });
   });
 
@@ -64,8 +73,8 @@ test.describe('Navigation', () => {
       await page.goto('/');
       await expect(page).toHaveURL('/');
 
-      // Navigate to docs
-      await page.getByRole('button', { name: /read the docs/i }).click();
+      // Navigate to docs via Learn More CTA
+      await page.getByRole('link', { name: /learn more/i }).click();
       await page.waitForURL('/docs');
 
       // Navigate home
@@ -92,25 +101,32 @@ test.describe('Navigation', () => {
           await expect(authenticatedPage).toHaveURL(href);
         }
 
-        // Verify editor is loaded
+        // Verify editor is loaded with Python tab selected for scenes
         await expect(
-          authenticatedPage.getByRole('tab', { name: /code/i, selected: true })
+          authenticatedPage.getByRole('tab', {
+            name: /python/i,
+            selected: true
+          })
         ).toBeVisible();
       }
     });
 
-    test('back button returns to landing page from editor', async ({
+    test('home link returns to landing page from editor', async ({
       authenticatedPage
     }) => {
       await authenticatedPage.goto('/editor');
 
-      // Click back button
-      await authenticatedPage.getByRole('link', { name: /back/i }).click();
+      // Click home logo in the header
+      await authenticatedPage
+        .getByRole('link', { name: 'Home', exact: true })
+        .click();
 
       // Verify landed on home page
       await expect(authenticatedPage).toHaveURL('/');
       await expect(
-        authenticatedPage.getByRole('heading', { level: 1 })
+        authenticatedPage.getByRole('heading', {
+          name: /Author openEO python code/i
+        })
       ).toBeVisible();
     });
   });
@@ -215,9 +231,9 @@ test.describe('Navigation', () => {
         })
       ).not.toBeVisible();
 
-      // Verify logout button is visible (indicates authenticated)
+      // Verify user avatar logout control is visible (indicates authenticated)
       await expect(
-        authenticatedPage.getByRole('button', { name: /logout/i })
+        authenticatedPage.getByRole('button', { name: /user image/i })
       ).toBeVisible();
     });
 
@@ -229,7 +245,7 @@ test.describe('Navigation', () => {
 
       // Verify authenticated
       await expect(
-        authenticatedPage.getByRole('button', { name: /logout/i })
+        authenticatedPage.getByRole('button', { name: /user image/i })
       ).toBeVisible();
 
       // Navigate to /docs
@@ -246,7 +262,7 @@ test.describe('Navigation', () => {
 
       // Verify still authenticated throughout
       await expect(
-        authenticatedPage.getByRole('button', { name: /logout/i })
+        authenticatedPage.getByRole('button', { name: /user image/i })
       ).toBeVisible();
     });
   });
