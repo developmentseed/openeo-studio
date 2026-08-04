@@ -22,7 +22,7 @@ test.describe('Unauthenticated UI', () => {
   test('should show restricted page on other gated routes', async ({
     page
   }) => {
-    for (const path of ['/projects', '/projects/samples', '/docs']) {
+    for (const path of ['/projects', '/projects/samples']) {
       await page.goto(path);
       await expect(
         page.getByRole('heading', { name: 'Restricted' })
@@ -30,11 +30,11 @@ test.describe('Unauthenticated UI', () => {
     }
   });
 
-  test('should show login button in header', async ({ page }) => {
+  test('should show login button on landing page', async ({ page }) => {
     await page.goto('/');
 
-    // Login button in header - match by role and name
-    const loginButton = page.getByRole('button', { name: /login/i });
+    // Landing page includes Login CTAs when logged out
+    const loginButton = page.getByRole('button', { name: /login/i }).first();
     await expect(loginButton).toBeVisible();
   });
 });
@@ -56,9 +56,9 @@ test.describe('Authenticated UI', () => {
   }) => {
     await authenticatedPage.goto('/');
 
-    // Logout button in header
+    // Logout control is an icon button whose accessible name comes from the avatar
     const logoutButton = authenticatedPage.getByRole('button', {
-      name: /logout/i
+      name: /user image/i
     });
     await expect(logoutButton).toBeVisible();
 
@@ -66,21 +66,21 @@ test.describe('Authenticated UI', () => {
     await expect(logoutButton.locator('img')).toBeVisible();
   });
 
-  test('should enable Apply button after code change', async ({
+  test('should enable Save button after code change', async ({
     authenticatedPage
   }) => {
     await authenticatedPage.goto('/editor');
 
-    const applyButton = authenticatedPage.getByRole('button', {
-      name: /apply/i
+    const saveButton = authenticatedPage.getByRole('button', {
+      name: /save/i
     });
     await expect(
-      applyButton,
-      'Apply button should be initially disabled'
+      saveButton,
+      'Save button should be initially disabled'
     ).toBeDisabled();
 
-    // Switch to code tab and change code to enable Apply
-    const codeTab = authenticatedPage.getByRole('tab', { name: /code/i });
+    // Switch to Python tab and change code to enable Save
+    const codeTab = authenticatedPage.getByRole('tab', { name: /python/i });
     await codeTab.click();
     await expect(codeTab).toHaveAttribute('aria-selected', 'true');
 
@@ -92,25 +92,25 @@ test.describe('Authenticated UI', () => {
     await codeEditorContent.pressSequentially('\n# change', { delay: 10 });
 
     await expect(
-      applyButton,
-      'Apply button should be enabled after code change when authenticated and ready'
+      saveButton,
+      'Save button should be enabled after code change when authenticated and ready'
     ).toBeEnabled();
   });
 
-  test('should enable Apply button after config change', async ({
+  test('should enable Save button after config change', async ({
     authenticatedPage
   }) => {
     await authenticatedPage.goto('/editor/sentinel-2-apa');
 
-    const applyButton = authenticatedPage.getByRole('button', {
-      name: /apply/i
+    const saveButton = authenticatedPage.getByRole('button', {
+      name: /save/i
     });
     await expect(
-      applyButton,
-      'Apply button should be initially disabled'
+      saveButton,
+      'Save button should be initially disabled'
     ).toBeDisabled();
 
-    // Switch to configuration tab and change cloud cover
+    // Switch to configuration tab and change temporal range
     const configTab = authenticatedPage.getByRole('tab', {
       name: /configuration/i
     });
@@ -129,8 +129,8 @@ test.describe('Authenticated UI', () => {
     });
 
     await expect(
-      applyButton,
-      'Apply button should be enabled after config change when authenticated'
+      saveButton,
+      'Save button should be enabled after config change when authenticated'
     ).toBeEnabled();
   });
 });

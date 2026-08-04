@@ -37,7 +37,7 @@ pnpm test:integration auth.spec.ts
 
 ### Python Runtime
 
-- **Pyodide Mock** (`test/integration/__fixtures__/index.ts`) - Mocks `window.loadPyodide` to prevent WebAssembly memory allocation errors during tests
+- **Pyodide Mock** (`test/integration/__fixtures__/index.ts`) - Mocks `window.loadPyodide` to prevent WebAssembly memory allocation errors during tests; `PyodideProvider` prefers this override and skips CDN/package setup
 - Applied to all tests via the `page` fixture override
 
 ### Other APIs
