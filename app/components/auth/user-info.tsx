@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IconButton, Image, Tooltip } from '@chakra-ui/react';
+import { IconButton, Image, Portal, Tooltip } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 
 import { LoginButton, LoginButtonProps } from '$components/auth/login-button';
@@ -60,12 +60,14 @@ export function UserInfo(props: LoginButtonProps) {
           />
         </IconButton>
       </Tooltip.Trigger>
-      <Tooltip.Positioner>
-        <Tooltip.Content>
-          <Tooltip.Arrow />
-          Logout
-        </Tooltip.Content>
-      </Tooltip.Positioner>
+      <Portal>
+        <Tooltip.Positioner>
+          <Tooltip.Content>
+            <Tooltip.Arrow />
+            Logout
+          </Tooltip.Content>
+        </Tooltip.Positioner>
+      </Portal>
     </Tooltip.Root>
   );
 }
