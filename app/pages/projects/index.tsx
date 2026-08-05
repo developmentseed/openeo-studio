@@ -8,7 +8,7 @@ import {
   VStack
 } from '@chakra-ui/react';
 
-import { ProjectsNav } from './navigation';
+import { ProjectsHeader } from './header';
 import { useProjects } from '$stores/projects-store';
 import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton';
 import { ProjectCard } from '$components/projects/project-card';
@@ -22,9 +22,9 @@ export function ProjectsPage() {
 
   return (
     <Box flex={1}>
-      <Stack h='100%' gap={4}>
-        <ProjectsNav />
-        <Flex p={4} h='100%' justifyContent='stretch'>
+      <Stack h='100%' gap={2}>
+        <ProjectsHeader />
+        <Flex px={2} h='100%' justifyContent='stretch'>
           {error ? (
             <Flex w='100%' align='center' justify='center'>
               <ErrorProjects error={error} />
@@ -68,7 +68,7 @@ function NoProjects() {
       borderWidth='2px'
       borderStyle='dashed'
       borderColor='border'
-      borderRadius='lg'
+      borderRadius='uni'
       bg='bg'
       p={6}
       boxSize='100%'

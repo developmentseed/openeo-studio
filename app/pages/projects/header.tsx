@@ -4,7 +4,7 @@ import { NavLink } from 'react-router';
 
 import SmartLink from '$utils/smart-link';
 
-export function ProjectsNav() {
+export function ProjectsHeader() {
   return (
     <Flex
       gap={4}

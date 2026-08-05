@@ -59,7 +59,7 @@ function MapPanelComponent() {
           position='absolute'
           top={4}
           right={4}
-          zIndex={9999}
+          zIndex={1}
         >
           <Tabs.Trigger value='map'>Map</Tabs.Trigger>
           <Tabs.Trigger value='visual'>Visual</Tabs.Trigger>
