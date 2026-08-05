@@ -1,4 +1,5 @@
 import { IconButton, Image, Separator, Stack } from '@chakra-ui/react';
+import { NavLink } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { LuCircleHelp, LuFolder, LuPlus, LuServer } from 'react-icons/lu';
 
@@ -7,7 +8,6 @@ import SmartLink from '$utils/smart-link';
 import { ColorModeButton } from '$utils/color-mode';
 
 import logoImg from '../../media/openeo_navbar_logo.png';
-import { NavLink } from 'react-router';
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
