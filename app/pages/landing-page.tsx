@@ -1,13 +1,23 @@
 import { useEffect } from 'react';
-import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react';
-import { useNavigate } from 'react-router';
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  SimpleGrid,
+  Stack,
+  Text
+} from '@chakra-ui/react';
+import { NavLink } from 'react-router';
+import { LuArrowRight } from 'react-icons/lu';
 
-import { SceneGrid } from '$components/landing/scene-grid';
 import { APP_TITLE } from '$config/constants';
-import { useEditorStore } from '../stores/editor-store';
+import { SAMPLE_SCENES } from '$config/sample-scenes';
+import { useEditorStore } from '$stores/editor-store';
+import { LoginButton } from '$components/auth/login-button';
+import { SceneCard } from '$components/landing/scene-card';
 
 export function LandingPage() {
-  const navigate = useNavigate();
   const { clearEditor } = useEditorStore();
 
   // Clear editor state when navigating to landing to ensure fresh scene loads
@@ -16,43 +26,102 @@ export function LandingPage() {
   }, [clearEditor]);
 
   return (
-    <Box flex={1} overflowY='auto' px={8} py={8}>
-      <Flex flexDirection='column' maxWidth='1200px' mx='auto' gap={6}>
-        <Flex flexDirection='column' gap={2}>
-          <Heading as='h1' size='2xl'>
-            Welcome to the {APP_TITLE} for Sentinel EOPF
-          </Heading>
-
-          <Box maxW='3xl'>
-            <Text fontSize='lg' color='gray.600'>
-              Write and execute openEO python code directly in your browser to
-              process cloud&#8209;native Sentinel EOPF Zarr data. Visualize
-              results instantly with on&#8209;the&#8209;fly rendering.
-            </Text>
-          </Box>
-
-          <Box>
-            <Button variant='outline' onClick={() => navigate('/docs')}>
-              Read the docs{' '}
-              <svg
-                version='1.1'
-                xmlns='http://www.w3.org/2000/svg'
-                width='16'
-                height='16'
-                viewBox='0 0 16 16'
-                style={{ fill: 'currentColor' }}
-              >
-                <rect width='16' height='16' id='icon-bound' fill='none' />
-                <polygon points='7.586,2.414 12.172,7 0,7 0,9 12.172,9 7.586,13.586 9,15 16,8 9,1' />
-              </svg>
-            </Button>
-          </Box>
+    <Box flex={1}>
+      <Stack h='100%' gap={4}>
+        <Flex
+          gap={4}
+          justifyContent='space-between'
+          alignItems='center'
+          px={2}
+          py={4}
+        >
+          <Heading size='md'>Welcome to {APP_TITLE}</Heading>
+          <Flex gap={2}>
+            <LoginButton hideIfAuthenticated />
+          </Flex>
         </Flex>
+        <Stack p={4} gap={12}>
+          <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
+            <Stack
+              gridColumn='1 / span 8'
+              gap={4}
+              align='start'
+              justify='center'
+            >
+              <Heading size='2xl'>
+                Author openEO python code and visualize its output from the
+                comfort of your browser
+              </Heading>
+              <Text>
+                Write and execute openEO python code directly in your browser to
+                process cloud-native data. Visualize results instantly with
+                on-the-fly rendering.
+              </Text>
 
-        <Heading size='xl'>Explore the sample visualization processing</Heading>
+              <Button variant='outline' asChild>
+                <NavLink to='/docs' end>
+                  Learn More <LuArrowRight />
+                </NavLink>
+              </Button>
+            </Stack>
+            <Box bg='neutral.300' gridColumn='9 / span 4' aspectRatio={1} />
+          </SimpleGrid>
 
-        <SceneGrid />
-      </Flex>
+          <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
+            <Heading gridColumn='1 / -1' size='2xl'>
+              Features
+            </Heading>
+
+            <Box bg='neutral.300' gridColumn='1 / span 5' aspectRatio={1} />
+            <Stack
+              gridColumn='6 / span 7'
+              gap={4}
+              align='start'
+              justify='center'
+            >
+              <Heading as='h3'>Feature Lorem Ipsum</Heading>
+              <Text>Some description about this</Text>
+            </Stack>
+
+            <Stack
+              gridColumn='1 / span 7'
+              gap={4}
+              align='start'
+              justify='center'
+            >
+              <Heading as='h3'>Feature Lorem Ipsum</Heading>
+              <Text>Some description about this</Text>
+            </Stack>
+            <Box bg='neutral.300' gridColumn='8 / span 5' aspectRatio={1} />
+          </SimpleGrid>
+
+          <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
+            <Heading gridColumn='1 / -1' size='2xl'>
+              Algorithm catalog
+            </Heading>
+
+            <Stack
+              gridColumn='1 / span 7'
+              gap={4}
+              align='start'
+              justify='center'
+            >
+              <Heading as='h3'>Access an extensive algorithm catalog</Heading>
+              <Text>
+                These are some of the sample scenes you&apos;ll have access to
+                once you create an account and login
+              </Text>
+
+              <LoginButton size='md' hideIfAuthenticated />
+            </Stack>
+
+            <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='8 / span 5' />
+            {SAMPLE_SCENES.slice(1, 4).map((scene) => (
+              <SceneCard key={scene.id} scene={scene} gridColumn='span 4' />
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Stack>
     </Box>
   );
 }

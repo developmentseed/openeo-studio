@@ -1,3 +1,9 @@
+import type {
+  OpenEOProcess,
+  ProcessGraph,
+  ProcessParameter
+} from './openeo-process';
+
 /**
  * Sample configuration for quick-starting analysis.
  */
@@ -62,8 +68,8 @@ export interface ExecutionConfig {
  * Contains multiple process graphs with their parameter metadata.
  */
 export interface GraphResult {
-  process_graph: unknown;
-  parameters: unknown[];
+  process_graph: ProcessGraph;
+  parameters: ProcessParameter[];
   name: string;
   visible: boolean;
 }
@@ -86,6 +92,20 @@ export interface ValidationError {
   code?: string;
   message?: string;
   path?: string;
+}
+
+/**
+ * User-defined process (saved project), as returned by the openEO backend
+ * GET /process_graphs endpoint, and as sent to PUT /process_graphs/{id} to
+ * save a project (process_graph/parameters included in the latter case).
+ */
+export type UserDefinedProcess = OpenEOProcess;
+
+/**
+ * Response payload for GET /process_graphs.
+ */
+export interface ProcessGraphsResponse {
+  processes: UserDefinedProcess[];
 }
 
 /**

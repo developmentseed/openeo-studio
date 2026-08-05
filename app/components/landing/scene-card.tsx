@@ -1,21 +1,23 @@
 import {
   Box,
   Card,
-  Flex,
+  Stack,
   Heading,
   Text,
   Image,
-  Spinner
+  Spinner,
+  CardRootProps
 } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { SampleScene } from '$types';
 import SmartLink from '$utils/smart-link';
 
-interface SceneCardProps {
+interface SceneCardProps extends CardRootProps {
   scene: SampleScene;
 }
 
-export function SceneCard({ scene }: SceneCardProps) {
+export function SceneCard(props: SceneCardProps) {
+  const { scene, ...rest } = props;
   const { collection, isLoading } = useCollection(scene.collectionId);
 
   // Extract thumbnail from STAC item assets
@@ -26,20 +28,21 @@ export function SceneCard({ scene }: SceneCardProps) {
       cursor='pointer'
       asChild
       transition='all 0.2s'
+      rounded='uni'
       _hover={{
         transform: 'translateY(-4px)',
         shadow: 'lg'
       }}
+      {...rest}
     >
       <SmartLink to={`/editor/${scene.id}`} unstyled>
-        <Card.Body gap={4}>
+        <Card.Body gap={4} p={8}>
           {/* Thumbnail */}
           {isLoading ? (
             <Box
               height='200px'
               width='100%'
-              bg='gray.100'
-              borderRadius='md'
+              rounded='uni'
               display='flex'
               alignItems='center'
               justifyContent='center'
@@ -47,38 +50,26 @@ export function SceneCard({ scene }: SceneCardProps) {
               <Spinner size='lg' />
             </Box>
           ) : thumbnail ? (
-            <Image
-              src={thumbnail}
-              alt={scene.name}
-              height='200px'
-              width='100%'
-              objectFit='cover'
-              borderRadius='md'
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          ) : (
-            <Box
-              height='200px'
-              width='100%'
-              bg='gray.200'
-              borderRadius='md'
-              display='flex'
-              alignItems='center'
-              justifyContent='center'
-            >
-              <Text color='gray.500'>No Preview</Text>
+            <Box m={-8} mb={0}>
+              <Image
+                src={thumbnail}
+                alt={scene.name}
+                height='200px'
+                width='100%'
+                objectFit='cover'
+                roundedTop='uni'
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
             </Box>
-          )}
+          ) : null}
 
           {/* Scene info */}
-          <Flex flexDirection='column' gap={2}>
+          <Stack gap={2}>
             <Heading size='md'>{scene.name}</Heading>
-            <Text fontSize='sm' color='gray.600'>
-              {scene.description}
-            </Text>
-          </Flex>
+            <Text fontSize='sm'>{scene.description}</Text>
+          </Stack>
         </Card.Body>
       </SmartLink>
     </Card.Root>

@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { basicSetup } from 'codemirror';
+import { Compartment } from '@codemirror/state';
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
-import { githubLight } from '@uiw/codemirror-theme-github';
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
 import { EXAMPLE_CODE } from '$utils/code-runner';
+import { useColorModeValue } from '$utils/color-mode';
 import { useEditorStore } from '$stores/editor-store';
 import { ruffLinter } from './ruff-linter';
 
@@ -26,11 +28,15 @@ interface RootProps {
   initialCode?: string;
 }
 
+const themeCompartment = new Compartment();
+
 function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
 
   const code = useEditorStore((state) => state.code);
-  const { setCode, setHasCodeChanged } = useEditorStore();
+  const { setCode, markClean } = useEditorStore();
+
+  const themeColorMode = useColorModeValue(githubLight, githubDark);
 
   const initialDocRef = useRef<string | null>(null);
   if (initialDocRef.current === null) {
@@ -42,7 +48,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
     // Create update listener plugin to track changes with debouncing
     const updateListener = ViewPlugin.fromClass(
       class {
-        debounceTimer: NodeJS.Timeout | null = null;
+        debounceTimer: number | null = null;
         destroyed = false;
 
         update(update: ViewUpdate) {
@@ -90,7 +96,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
           }
         }),
         EditorView.lineWrapping,
-        githubLight,
+        themeCompartment.of(themeColorMode),
         python(),
         closeBrackets(),
         autocompletion(),
@@ -104,14 +110,14 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
 
     if (!code && initialDoc) {
       setCode(initialDoc);
-      setHasCodeChanged(false);
+      markClean();
     }
 
     return () => {
       view.destroy();
       setEditor(null);
     };
-  }, [setCode, setHasCodeChanged]);
+  }, [setCode, markClean]);
 
   // Sync external code changes to editor (e.g. from scene hydration)
   useEffect(() => {
@@ -126,6 +132,14 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
       }
     });
   }, [code, editor]);
+
+  // Sync editor theme with color mode changes
+  useEffect(() => {
+    if (!editor) return;
+    editor.dispatch({
+      effects: themeCompartment.reconfigure(themeColorMode)
+    });
+  }, [themeColorMode, editor]);
 
   return <CodeEditorContext value={{ editor }}>{children}</CodeEditorContext>;
 }

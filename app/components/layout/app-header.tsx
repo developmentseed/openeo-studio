@@ -1,37 +1,37 @@
 import { useState } from 'react';
-import { Button, Flex, Heading, Separator } from '@chakra-ui/react';
-import { useNavigate, useLocation } from 'react-router';
+import { IconButton, Image, Separator, Stack } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
-import { APP_TITLE } from '$config/constants';
+import { LuCircleHelp, LuFolder, LuPlus, LuServer } from 'react-icons/lu';
+
 import { UserInfo } from '$components/auth/user-info';
 import { ServicesPanel } from '$components/layout/services-panel';
 import SmartLink from '$utils/smart-link';
+import { ColorModeButton } from '$utils/color-mode';
+
+import logoImg from '../../media/openeo_navbar_logo.png';
+import { NavLink } from 'react-router';
 
 export function AppHeader() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { isAuthenticated } = useAuth();
   const [servicesPanelOpen, setServicesPanelOpen] = useState(false);
 
-  const handleDocsClick = () => {
-    if (location.pathname !== '/docs') {
-      navigate('/docs');
-    }
-  };
-
   return (
-    <Flex
+    <Stack
+      p={2}
+      pt={3}
+      borderWidth='1px'
+      borderColor='border'
+      borderRadius='uni'
+      position='sticky'
+      h='calc(100vh -  1rem)'
       alignItems='center'
-      justifyContent='space-between'
-      px={4}
-      py={2}
-      borderBottomWidth='1px'
-      borderColor='gray.200'
+      top={2}
+      gap={4}
+      bg='bg'
     >
       <SmartLink
         to='/'
-        paddingInline='3.5'
-        height='9'
+        height='1.5rem'
         aria-label='Home'
         _hover={{ textDecoration: 'none' }}
         _focus={{ outline: 'none' }}
@@ -40,33 +40,56 @@ export function AppHeader() {
           outlineOffset: '2px',
           outlineStyle: 'solid',
           outlineColor: 'colorPalette.focusRing',
-          borderRadius: 'l2'
+          borderRadius: 'uni'
         }}
       >
-        <Heading size='md'>{APP_TITLE}</Heading>
+        <Image src={logoImg} h='100%' />
       </SmartLink>
-      <Flex ml='auto' alignItems='center' gap={4}>
-        <Button variant='ghost' size='sm' onClick={handleDocsClick}>
-          Documentation
-        </Button>
+      <Stack as='nav' gap={2} alignItems='center'>
         {isAuthenticated && (
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => setServicesPanelOpen(true)}
-          >
-            My Services
-          </Button>
+          <IconButton variant='ghost' size='sm' asChild>
+            <NavLink to='/projects'>
+              <LuFolder />
+            </NavLink>
+          </IconButton>
         )}
-        <Separator orientation='vertical' height='8' />
-        <UserInfo />
-      </Flex>
-      {isAuthenticated && (
-        <ServicesPanel
-          open={servicesPanelOpen}
-          onClose={() => setServicesPanelOpen(false)}
-        />
-      )}
-    </Flex>
+        {isAuthenticated && (
+          <>
+            <Separator orientation='horizontal' w='4' />
+            <IconButton variant='outline' size='sm' asChild>
+              <SmartLink to='/editor'>
+                <LuPlus />
+              </SmartLink>
+            </IconButton>
+          </>
+        )}
+        {isAuthenticated && (
+          <>
+            <IconButton
+              variant='ghost'
+              size='sm'
+              onClick={() => setServicesPanelOpen(true)}
+              colorPalette='red'
+            >
+              <LuServer />
+            </IconButton>
+            <ServicesPanel
+              open={servicesPanelOpen}
+              onClose={() => setServicesPanelOpen(false)}
+            />
+          </>
+        )}
+      </Stack>
+
+      <Stack mt='auto'>
+        <IconButton variant='ghost' size='sm' asChild>
+          <NavLink to='/docs'>
+            <LuCircleHelp />
+          </NavLink>
+        </IconButton>
+        <ColorModeButton />
+        <UserInfo variant='outline' compact />
+      </Stack>
+    </Stack>
   );
 }

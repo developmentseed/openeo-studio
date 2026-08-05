@@ -8,6 +8,7 @@ import {
   Flex,
   Heading,
   IconButton,
+  Portal,
   Spinner,
   Text,
   VStack
@@ -118,131 +119,136 @@ export function ServicesPanel({ open, onClose }: ServicesPanelProps) {
         if (!details.open) onClose();
       }}
     >
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content maxW='lg' p={6} maxH='80vh'>
-          <Dialog.CloseTrigger />
-          <Dialog.Header p={0} mb={4}>
-            <Heading size='md'>Permanent Services</Heading>
-          </Dialog.Header>
-          <Dialog.Body p={0} overflowY='auto'>
-            {isLoading && (
-              <Flex justify='center' py={8}>
-                <Spinner size='md' />
-              </Flex>
-            )}
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content maxW='lg' p={6} maxH='80vh'>
+            <Dialog.CloseTrigger />
+            <Dialog.Header p={0} mb={4}>
+              <Heading size='md'>Permanent Services</Heading>
+            </Dialog.Header>
+            <Dialog.Body p={0} overflowY='auto'>
+              {isLoading && (
+                <Flex justify='center' py={8}>
+                  <Spinner size='md' />
+                </Flex>
+              )}
 
-            {error && (
-              <Text fontSize='sm' color='red.500'>
-                {error}
-              </Text>
-            )}
+              {error && (
+                <Text fontSize='sm' color='red.500'>
+                  {error}
+                </Text>
+              )}
 
-            {!isLoading && !error && services.length === 0 && (
-              <Text fontSize='sm' color='gray.500'>
-                No permanent services found. Use the export button on a map
-                layer to create one.
-              </Text>
-            )}
+              {!isLoading && !error && services.length === 0 && (
+                <Text fontSize='sm' color='gray.500'>
+                  No permanent services found. Use the export button on a map
+                  layer to create one.
+                </Text>
+              )}
 
-            {!isLoading && services.length > 0 && (
-              <VStack align='stretch' gap={3}>
-                {services.map((service) => {
-                  const scope = getScope(service);
-                  const shareUrl = `${window.location.origin}/share/${service.id}`;
-                  const isDeleting = deletingIds.has(service.id);
+              {!isLoading && services.length > 0 && (
+                <VStack align='stretch' gap={3}>
+                  {services.map((service) => {
+                    const scope = getScope(service);
+                    const shareUrl = `${window.location.origin}/share/${service.id}`;
+                    const isDeleting = deletingIds.has(service.id);
 
-                  let serviceUrl = service.url;
-                  try {
-                    serviceUrl = decodeURIComponent(serviceUrl);
-                  } catch {
-                    /* keep encoded */
-                  }
+                    let serviceUrl = service.url;
+                    try {
+                      serviceUrl = decodeURIComponent(serviceUrl);
+                    } catch {
+                      /* keep encoded */
+                    }
 
-                  return (
-                    <Box
-                      key={service.id}
-                      p={3}
-                      borderWidth='1px'
-                      borderRadius='md'
-                    >
-                      <Flex align='center' justify='space-between' mb={2}>
-                        <Flex align='center' gap={2}>
-                          <Text fontSize='sm' fontWeight='medium'>
-                            {(service.configuration?.layerName as string) ||
-                              service.title}
-                          </Text>
-                          <Badge
-                            size='sm'
-                            colorPalette={
-                              scope === 'public' ? 'green' : 'orange'
-                            }
-                          >
-                            {scope}
-                          </Badge>
-                        </Flex>
-                        <IconButton
-                          aria-label='Delete service'
-                          size='xs'
-                          variant='ghost'
-                          colorPalette='red'
-                          onClick={() => handleDelete(service)}
-                          disabled={isDeleting}
-                        >
-                          {isDeleting ? <Spinner size='xs' /> : <TrashIcon />}
-                        </IconButton>
-                      </Flex>
-                      {service.created && (
-                        <Text fontSize='xs' color='gray.500' mb={2}>
-                          Created: {new Date(service.created).toLocaleString()}
-                        </Text>
-                      )}
-                      <Flex gap={2} wrap='wrap'>
-                        <Clipboard.Root value={serviceUrl}>
-                          <Clipboard.Trigger asChild>
-                            <Button variant='outline' size='xs'>
-                              Copy XYZ URL
-                            </Button>
-                          </Clipboard.Trigger>
-                        </Clipboard.Root>
-                        {scope === 'public' && (
-                          <Clipboard.Root value={shareUrl}>
-                            <Clipboard.Trigger asChild>
-                              <Button variant='outline' size='xs'>
-                                Copy Share Link
-                              </Button>
-                            </Clipboard.Trigger>
-                          </Clipboard.Root>
-                        )}
-                        {scope === 'public' && (
-                          <Button variant='outline' size='xs' asChild>
-                            <a
-                              href={shareUrl}
-                              target='_blank'
-                              rel='noopener noreferrer'
+                    return (
+                      <Box
+                        key={service.id}
+                        p={3}
+                        borderWidth='1px'
+                        borderRadius='md'
+                      >
+                        <Flex align='center' justify='space-between' mb={2}>
+                          <Flex align='center' gap={2}>
+                            <Text fontSize='sm' fontWeight='medium'>
+                              {(service.configuration?.layerName as string) ||
+                                service.title}
+                            </Text>
+                            <Badge
+                              size='sm'
+                              colorPalette={
+                                scope === 'public' ? 'green' : 'orange'
+                              }
                             >
-                              Open
-                            </a>
-                          </Button>
+                              {scope}
+                            </Badge>
+                          </Flex>
+                          <IconButton
+                            aria-label='Delete service'
+                            size='xs'
+                            variant='ghost'
+                            colorPalette='red'
+                            onClick={() => handleDelete(service)}
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? <Spinner size='xs' /> : <TrashIcon />}
+                          </IconButton>
+                        </Flex>
+                        {service.created && (
+                          <Text fontSize='xs' color='gray.500' mb={2}>
+                            Created:{' '}
+                            {new Date(service.created).toLocaleString()}
+                          </Text>
                         )}
-                        {ENABLE_NARRATIVE_EXPORT && (
-                          <Clipboard.Root value={getNarrativeMarkdown(service)}>
+                        <Flex gap={2} wrap='wrap'>
+                          <Clipboard.Root value={serviceUrl}>
                             <Clipboard.Trigger asChild>
                               <Button variant='outline' size='xs'>
-                                Copy as Narrative
+                                Copy XYZ URL
                               </Button>
                             </Clipboard.Trigger>
                           </Clipboard.Root>
-                        )}
-                      </Flex>
-                    </Box>
-                  );
-                })}
-              </VStack>
-            )}
-          </Dialog.Body>
-        </Dialog.Content>
-      </Dialog.Positioner>
+                          {scope === 'public' && (
+                            <Clipboard.Root value={shareUrl}>
+                              <Clipboard.Trigger asChild>
+                                <Button variant='outline' size='xs'>
+                                  Copy Share Link
+                                </Button>
+                              </Clipboard.Trigger>
+                            </Clipboard.Root>
+                          )}
+                          {scope === 'public' && (
+                            <Button variant='outline' size='xs' asChild>
+                              <a
+                                href={shareUrl}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                              >
+                                Open
+                              </a>
+                            </Button>
+                          )}
+                          {ENABLE_NARRATIVE_EXPORT && (
+                            <Clipboard.Root
+                              value={getNarrativeMarkdown(service)}
+                            >
+                              <Clipboard.Trigger asChild>
+                                <Button variant='outline' size='xs'>
+                                  Copy as Narrative
+                                </Button>
+                              </Clipboard.Trigger>
+                            </Clipboard.Root>
+                          )}
+                        </Flex>
+                      </Box>
+                    );
+                  })}
+                </VStack>
+              )}
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
     </Dialog.Root>
   );
 }

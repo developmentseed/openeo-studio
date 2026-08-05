@@ -11,16 +11,21 @@ import {
 } from '$types';
 
 import { appConfig } from '$config/runtime';
+import { fetchJson, fetchHeaderLocation } from './api';
 import { getInstanceId } from './instance-id';
 
+export type ExecutionResult = {
+  graphs: GraphResult[];
+  services: ServiceInfo[];
+};
+
 // Track active services for cleanup
-const activeServices: ServiceInfo[] = [];
+let activeServices: ServiceInfo[] = [];
 
 export const EXAMPLE_CODE = trueColorAlgorithm;
 
 // OpenEO API constants
 const OPENEO_API_URL = appConfig.openeoApiUrl;
-const AUTH_PREFIX = 'Bearer oidc/oidc/';
 
 // Service title conventions for backend-side discovery
 const EPHEMERAL_TITLE_PREFIX = 'openeo-studio:ephemeral:';
@@ -108,12 +113,9 @@ async function createOpenEOService(
 ): Promise<string> {
   const { title, scope = 'public', extent, layerName } = options;
 
-  const response = await fetch(`${OPENEO_API_URL}/services`, {
+  return fetchHeaderLocation(`${OPENEO_API_URL}/services`, authToken, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...DEFAULT_SERVICE_CONFIG,
       title,
@@ -129,20 +131,6 @@ async function createOpenEOService(
       }
     })
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to create service (${response.status}): ${errorText}`
-    );
-  }
-
-  const location = response.headers.get('location');
-  if (!location) {
-    throw new Error('No location header in response');
-  }
-
-  return location;
 }
 
 function formatValidationErrors(errors: ValidationError[]): string {
@@ -162,27 +150,20 @@ async function validateProcessGraph(
   graphResult: GraphResult,
   authToken: string
 ): Promise<ValidationError[]> {
-  const response = await fetch(`${OPENEO_API_URL}/validation`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    },
-    body: JSON.stringify({
-      process_graph: graphResult.process_graph,
-      parameters: graphResult.parameters
-    })
-  });
+  const payload = await fetchJson<{ errors?: ValidationError[] }>(
+    `${OPENEO_API_URL}/validation`,
+    authToken,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        process_graph: graphResult.process_graph,
+        parameters: graphResult.parameters
+      })
+    }
+  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Validation request failed (${response.status}): ${errorText}`
-    );
-  }
-
-  const payload = (await response.json()) as { errors?: ValidationError[] };
-  return Array.isArray(payload.errors) ? payload.errors : [];
+  return Array.isArray(payload?.errors) ? payload.errors : [];
 }
 
 /**
@@ -196,22 +177,10 @@ export async function deleteOpenEOService(
   authToken: string
 ): Promise<void> {
   try {
-    const response = await fetch(serviceLocation, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `${AUTH_PREFIX}${authToken}`
-      }
-    });
-
-    if (!response.ok) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Failed to delete service ${serviceLocation}: ${response.status}`
-      );
-    }
+    await fetchJson(serviceLocation, authToken, { method: 'DELETE' });
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.warn('Error deleting service:', error);
+    console.warn(`Failed to delete service ${serviceLocation}:`, error);
   }
 }
 
@@ -226,7 +195,7 @@ export async function cleanupServices(authToken: string): Promise<void> {
   );
 
   await Promise.allSettled(deletePromises);
-  activeServices.length = 0; // Clear the array
+  activeServices = [];
 }
 
 /**
@@ -238,18 +207,12 @@ export async function cleanupServices(authToken: string): Promise<void> {
 export async function listOpenEOServices(
   authToken: string
 ): Promise<BackendService[]> {
-  const response = await fetch(`${OPENEO_API_URL}/services`, {
-    headers: {
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    }
-  });
+  const payload = await fetchJson<{ services?: BackendService[] }>(
+    `${OPENEO_API_URL}/services`,
+    authToken
+  );
 
-  if (!response.ok) {
-    throw new Error(`Failed to list services (${response.status})`);
-  }
-
-  const payload = (await response.json()) as { services: BackendService[] };
-  return payload.services ?? [];
+  return payload?.services ?? [];
 }
 
 /**
@@ -302,19 +265,7 @@ export async function createPermanentService(
   });
 
   // Fetch the full service record from the backend
-  const response = await fetch(location, {
-    headers: {
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch created permanent service (${response.status})`
-    );
-  }
-
-  return (await response.json()) as BackendService;
+  return fetchJson<BackendService>(location, authToken);
 }
 
 /**
@@ -341,43 +292,23 @@ async function getTileUrl(
   serviceLocation: string,
   authToken: string
 ): Promise<string> {
-  const response = await fetch(serviceLocation, {
-    headers: {
-      Authorization: `${AUTH_PREFIX}${authToken}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch service details (${response.status})`);
-  }
-
-  const tileJson = await response.json();
+  const tileJson = await fetchJson<{ url: string }>(serviceLocation, authToken);
   return tileJson.url;
 }
 
 /**
- * Executes a Python script with Pyodide and creates OpenEO services for multiple graphs.
+ * Runs the Python program via Pyodide and returns the parsed map_graphs array.
  *
  * @param pyodide - The Pyodide instance
- * @param authToken - Authentication token
- * @param script - The Python script to execute
+ * @param script - The algorithm script to execute
  * @param config - Execution configuration
- * @returns Array of ServiceInfo objects for map rendering, or undefined on error
+ * @returns The parsed array of graph results (may be empty)
  */
-export async function processScript(
+async function runAlgorithm(
   pyodide: PyodideAPI,
-  authToken: string,
   script: string,
   config: ExecutionConfig
-): Promise<ServiceInfo[] | undefined> {
-  // Clean up previous services before creating new ones
-  await cleanupServices(authToken);
-
-  // Also clean up any orphaned services from previous sessions (safety net)
-  const instanceId = getInstanceId();
-  await cleanupOrphanedServices(authToken, instanceId);
-
-  // Execute Python code and get map_graphs array
+): Promise<GraphResult[]> {
   const result = await pyodide.runPythonAsync(getPythonCode(script, config));
   const mapGraphs: GraphResult[] = JSON.parse(result);
 
@@ -385,8 +316,21 @@ export async function processScript(
     throw new Error('Expected map_graphs array from Python execution');
   }
 
-  // Validate all graphs before creating services
-  for (const [index, graphResult] of mapGraphs.entries()) {
+  return mapGraphs;
+}
+
+/**
+ * Validates every graph against the openEO backend, throwing on the first
+ * graph that fails validation.
+ *
+ * @param graphs - The graph results to validate
+ * @param authToken - Authentication token
+ */
+async function validateGraphs(
+  graphs: GraphResult[],
+  authToken: string
+): Promise<void> {
+  for (const [index, graphResult] of graphs.entries()) {
     const errors = await validateProcessGraph(graphResult, authToken);
     if (errors.length > 0) {
       const formattedErrors = formatValidationErrors(errors);
@@ -395,12 +339,26 @@ export async function processScript(
       );
     }
   }
+}
 
-  // Create services for each graph
+/**
+ * Creates one ephemeral XYZ service per graph, resolves its tile URL, and
+ * registers it for later cleanup.
+ *
+ * @param graphs - The graph results to create services for
+ * @param authToken - Authentication token
+ * @param instanceId - The studio instance UUID
+ * @returns Array of ServiceInfo objects for map rendering
+ */
+async function createEphemeralServices(
+  graphs: GraphResult[],
+  authToken: string,
+  instanceId: string
+): Promise<ServiceInfo[]> {
   const ephemeralTitle = `${EPHEMERAL_TITLE_PREFIX}${instanceId}`;
   const services: ServiceInfo[] = [];
 
-  for (const graphResult of mapGraphs) {
+  for (const graphResult of graphs) {
     const serviceLocation = await createOpenEOService(graphResult, authToken, {
       title: ephemeralTitle
     });
@@ -419,4 +377,43 @@ export async function processScript(
   }
 
   return services;
+}
+
+/**
+ * Executes a Python script with Pyodide and creates OpenEO services for the
+ * graphs it produces.
+ *
+ * The algorithm is run and validated *before* the previous ephemeral services
+ * are cleaned up, so a failed run leaves the currently rendered map intact.
+ *
+ * @param pyodide - The Pyodide instance
+ * @param authToken - Authentication token
+ * @param script - The Python script to execute
+ * @param config - Execution configuration
+ * @returns The produced graphs and their map services (both empty when the
+ *   script adds no graphs to the map)
+ */
+export async function processScript(
+  pyodide: PyodideAPI,
+  authToken: string,
+  script: string,
+  config: ExecutionConfig
+): Promise<ExecutionResult> {
+  // Run + validate first, so a failed run does not delete the services the
+  // current map is still displaying.
+  const graphs = await runAlgorithm(pyodide, script, config);
+  await validateGraphs(graphs, authToken);
+
+  // Only now clean up the previous ephemeral services (and orphans from prior
+  // sessions) — we have a valid new result to replace them with.
+  await cleanupServices(authToken);
+  const instanceId = getInstanceId();
+  await cleanupOrphanedServices(authToken, instanceId);
+
+  if (graphs.length === 0) {
+    return { graphs: [], services: [] };
+  }
+
+  const services = await createEphemeralServices(graphs, authToken, instanceId);
+  return { graphs, services };
 }

@@ -6,11 +6,15 @@ import { StacApiProvider } from '@developmentseed/stac-react';
 import { BrowserRouter } from 'react-router';
 import { WebStorageStateStore } from 'oidc-client-ts';
 
+import ErrorBoundary from '$pages/uhoh/boundary';
+
+import { Toaster } from '$components/layout/toaster';
 import { appConfig } from '$config/runtime';
 import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$utils/auth-monitor';
-import { setupReloadDetector } from './utils/reload-detector';
-import { monitorSessionStorage } from './utils/storage-monitor';
+import { setupReloadDetector } from '$utils/reload-detector';
+import { monitorSessionStorage } from '$utils/storage-monitor';
+import { ColorModeProvider } from '$utils/color-mode';
 // Mock auth provider for Playwright tests - only used when window.__MOCK_AUTH__ is set
 import { MockAuthProvider } from '../test/integration/__mocks__/auth-provider';
 
@@ -70,10 +74,7 @@ function Root() {
   }
 
   useEffect(() => {
-    // Hide the welcome banner.
-    const banner = document.querySelector('#welcome-banner')!;
-    banner.classList.add('dismissed');
-    setTimeout(() => banner.remove(), 500);
+    dispatchEvent(new Event('app-ready'));
   }, []);
 
   /* Use mock auth provider in test mode (when window.__MOCK_AUTH__ is set)
@@ -89,16 +90,21 @@ function Root() {
 
   return (
     <BrowserRouter basename={appConfig.pathPrefix || undefined}>
-      <AuthWrapper {...authProps}>
-        {!window.__MOCK_AUTH__ && <AuthMonitor />}
-        <ChakraProvider value={system}>
-          <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
-            <PyodideProvider>
-              <App />
-            </PyodideProvider>
-          </StacApiProvider>
-        </ChakraProvider>
-      </AuthWrapper>
+      <ErrorBoundary>
+        <AuthWrapper {...authProps}>
+          {!window.__MOCK_AUTH__ && <AuthMonitor />}
+          <ColorModeProvider>
+            <ChakraProvider value={system}>
+              <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
+                <PyodideProvider>
+                  <App />
+                </PyodideProvider>
+              </StacApiProvider>
+              <Toaster />
+            </ChakraProvider>
+          </ColorModeProvider>
+        </AuthWrapper>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

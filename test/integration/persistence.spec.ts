@@ -8,13 +8,14 @@ test.describe('Persistence', () => {
     }) => {
       await authenticatedPage.goto('/editor/sentinel-2-apa');
 
-      // Switch to code tab
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch to Python tab
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
 
       // Modify code in editor
       const editor = authenticatedPage.locator(
         '.cm-content[contenteditable="true"]'
       );
+      await expect(editor).toBeVisible({ timeout: 15000 });
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Test persistence comment');
@@ -26,8 +27,8 @@ test.describe('Persistence', () => {
       await authenticatedPage.reload();
       await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
 
-      // Switch back to code tab after reload
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch back to Python tab after reload
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
 
       // Verify code modification persisted
       await expect(editor).toContainText('# Test persistence comment');
@@ -38,11 +39,12 @@ test.describe('Persistence', () => {
     }) => {
       await authenticatedPage.goto('/editor/sentinel-2-apa');
 
-      // Switch to code tab and add marker
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch to Python tab and add marker
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
       const editor = authenticatedPage.locator(
         '.cm-content[contenteditable="true"]'
       );
+      await expect(editor).toBeVisible({ timeout: 15000 });
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Tab switch test');
@@ -58,8 +60,8 @@ test.describe('Persistence', () => {
         authenticatedPage.getByText(/collection/i).first()
       ).toBeVisible();
 
-      // Switch back to code tab
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch back to Python tab
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
 
       // Verify code persisted across tab switches
       await expect(editor).toContainText('# Tab switch test');
@@ -72,10 +74,11 @@ test.describe('Persistence', () => {
       await authenticatedPage.waitForURL('/editor');
 
       // Add code to blank editor
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
       const editor = authenticatedPage.locator(
         '.cm-content[contenteditable="true"]'
       );
+      await expect(editor).toBeVisible({ timeout: 15000 });
       await editor.click();
       await authenticatedPage.keyboard.type('# Blank editor test');
 
@@ -87,7 +90,7 @@ test.describe('Persistence', () => {
       await authenticatedPage.waitForURL('/editor');
 
       // Verify code persisted
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
       await expect(editor).toContainText('# Blank editor test');
     });
   });
@@ -159,11 +162,12 @@ test.describe('Persistence', () => {
       // Verify different scene loaded (URL changed)
       await expect(authenticatedPage).toHaveURL(/sentinel-2-ndci/);
 
-      // Switch to code tab to verify algorithm changed
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch to Python tab to verify algorithm changed
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
       const editor = authenticatedPage.locator(
         '.cm-content[contenteditable="true"]'
       );
+      await expect(editor).toBeVisible({ timeout: 15000 });
 
       // Both scenes should have different algorithms, so code should differ
       const codeContent = await editor.textContent();
@@ -175,14 +179,18 @@ test.describe('Persistence', () => {
     }) => {
       await authenticatedPage.goto('/editor/sentinel-2-apa');
 
-      // Switch to code tab and add custom code
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch to Python tab and add custom code
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
       const editor = authenticatedPage.locator(
         '.cm-content[contenteditable="true"]'
       );
+      await expect(editor).toBeVisible({ timeout: 15000 });
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Custom code marker');
+
+      // Wait for debounced store update
+      await authenticatedPage.waitForTimeout(350);
 
       // Navigate to landing
       await authenticatedPage.goto('/');
@@ -196,8 +204,9 @@ test.describe('Persistence', () => {
       await sceneLink.click();
       await authenticatedPage.waitForURL(/\/editor\/.+/);
 
-      // Switch to code tab
-      await authenticatedPage.getByRole('tab', { name: /code/i }).click();
+      // Switch to Python tab
+      await authenticatedPage.getByRole('tab', { name: /python/i }).click();
+      await expect(editor).toBeVisible({ timeout: 15000 });
 
       // Verify custom code was cleared (fresh scene load)
       await expect(editor).not.toContainText('# Custom code marker');
