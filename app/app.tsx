@@ -12,6 +12,7 @@ import { DocsPage } from '$pages/docs-page';
 import { SharePage } from '$pages/share-page';
 import { ProjectsPage } from '$pages/projects';
 import { ProjectsSamplesPage } from '$pages/projects/samples';
+import { ServicesPage } from '$pages/services';
 import UhOh404 from '$pages/uhoh/404';
 import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
 
