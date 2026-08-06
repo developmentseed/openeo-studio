@@ -15,8 +15,7 @@ async function hash(string: string) {
 }
 
 export function UserInfo(props: LoginButtonProps) {
-  const { isLoading, isAuthenticated, user, removeUser, events, signinSilent } =
-    useAuth();
+  const { isAuthenticated, user, removeUser } = useAuth();
 
   const profile = user?.profile;
 
@@ -27,19 +26,9 @@ export function UserInfo(props: LoginButtonProps) {
     }
   }, [profile?.email]);
 
-  useEffect(() => {
-    // the `return` is important - addAccessTokenExpiring() returns a cleanup function
-    return events.addAccessTokenExpiring(() => {
-      signinSilent();
-    });
-  }, [events, signinSilent]);
-
-  if (!isAuthenticated || !profile || isLoading) {
+  if (!isAuthenticated || !profile) {
     return <LoginButton {...props} />;
   }
-
-  // const username =
-  //   `${profile.given_name} ${profile.family_name}`.trim() || undefined;
 
   return (
     <Tooltip.Root positioning={{ placement: 'right' }} openDelay={100}>
