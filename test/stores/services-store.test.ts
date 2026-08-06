@@ -5,9 +5,12 @@ jest.mock('$config/runtime', () => ({
 const mockListPermanentServices = jest.fn();
 const mockFetchJson = jest.fn();
 
-jest.mock('$utils/code-runner', () => ({
+jest.mock('$utils/openeo/permanent-services', () => ({
   listPermanentServices: (...args: unknown[]) =>
-    mockListPermanentServices(...args),
+    mockListPermanentServices(...args)
+}));
+
+jest.mock('$utils/openeo/services', () => ({
   getServiceUrl: (id: string) => `https://example.test/openeo/services/${id}`
 }));
 

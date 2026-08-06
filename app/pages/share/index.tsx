@@ -12,7 +12,7 @@ import {
   type ServiceScope
 } from '$components/services/service-scope-badge';
 import { APIError, fetchJson } from '$utils/api';
-import { getServiceUrl } from '$utils/code-runner';
+import { getServiceUrl } from '$utils/openeo/services';
 import { ShareHeader } from './header';
 import { LuMapPinOff } from 'react-icons/lu';
 

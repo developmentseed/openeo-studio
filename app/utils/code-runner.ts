@@ -1,58 +1,27 @@
+/**
+ * Pyodide algorithm execution orchestrator.
+ * openEO service/validation helpers live under `$utils/openeo/`.
+ */
+
 import { PyodideAPI } from 'pyodide';
 import loaderScript from '../algorithms/base/loader.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 
-import {
-  type ExecutionConfig,
-  type GraphResult,
-  type ServiceInfo,
-  type ValidationError,
-  type BackendService
-} from '$types';
+import type { ExecutionConfig, GraphResult, ServiceInfo } from '$types';
 
-import { appConfig } from '$config/runtime';
-import { fetchJson, fetchHeaderLocation } from './api';
 import { getInstanceId } from './instance-id';
-
-// Track active services for cleanup
-let activeServices: ServiceInfo[] = [];
+import {
+  cleanupOrphanedServices,
+  cleanupServices,
+  createEphemeralServices
+} from './openeo/ephemeral-services';
+import { validateGraphs } from './openeo/validation';
 
 export const EXAMPLE_CODE = trueColorAlgorithm;
-
-// OpenEO API constants
-const OPENEO_API_URL = appConfig.openeoApiUrl;
-
-// Service title conventions for backend-side discovery
-const EPHEMERAL_TITLE_PREFIX = 'openeo-studio:ephemeral:';
-const PERMANENT_TITLE_PREFIX = 'openeo-studio:permanent:';
-
-/**
- * Returns the management URL for a service given its id.
- * The openEO API uses the path structure: /services/{id}
- */
-export function getServiceUrl(serviceId: string): string {
-  return `${OPENEO_API_URL}/services/${serviceId}`;
-}
-
-const DEFAULT_SERVICE_CONFIG = {
-  description: null,
-  type: 'XYZ',
-  enabled: true,
-  configuration: {
-    scope: 'public',
-    minZoom: 6,
-    maxZoom: 15
-  },
-  plan: null,
-  budget: null
-};
 
 /**
  * Combines the base loader script with an algorithm script to create
  * a complete Python program for execution.
- *
- * @param algorithmScript - The algorithm code to combine with the loader
- * @param config - Execution configuration with runtime parameters
  */
 function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
   // Inject the user-selected run configuration for parameter initialization
@@ -89,215 +58,7 @@ json.dumps(map_graphs)
 }
 
 /**
- * Creates an OpenEO service with the provided process graph and parameters.
- *
- * @param graphResult - The process graph and parameters from map_graphs
- * @param authToken - Authentication token
- * @param options - Service creation options (title, scope)
- * @returns The service location URL from the response header
- */
-async function createOpenEOService(
-  graphResult: GraphResult,
-  authToken: string,
-  options: {
-    title: string;
-    scope?: 'public' | 'private';
-    extent?: [number, number, number, number];
-    layerName?: string;
-  }
-): Promise<string> {
-  const { title, scope = 'public', extent, layerName } = options;
-
-  return fetchHeaderLocation(`${OPENEO_API_URL}/services`, authToken, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...DEFAULT_SERVICE_CONFIG,
-      title,
-      configuration: {
-        ...DEFAULT_SERVICE_CONFIG.configuration,
-        scope,
-        ...(extent ? { extent } : {}),
-        ...(layerName ? { layerName } : {})
-      },
-      process: {
-        process_graph: graphResult.process_graph,
-        parameters: graphResult.parameters
-      }
-    })
-  });
-}
-
-function formatValidationErrors(errors: ValidationError[]): string {
-  if (errors.length === 0) return 'Unknown validation error.';
-
-  return errors
-    .map((error) => {
-      const code = error.code ? `${error.code}: ` : '';
-      const path = error.path ? ` (${error.path})` : '';
-      const message = error.message || 'Validation error.';
-      return `${code}${message}${path}`;
-    })
-    .join('\n');
-}
-
-async function validateProcessGraph(
-  graphResult: GraphResult,
-  authToken: string
-): Promise<ValidationError[]> {
-  const payload = await fetchJson<{ errors?: ValidationError[] }>(
-    `${OPENEO_API_URL}/validation`,
-    authToken,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        process_graph: graphResult.process_graph,
-        parameters: graphResult.parameters
-      })
-    }
-  );
-
-  return Array.isArray(payload?.errors) ? payload.errors : [];
-}
-
-/**
- * Deletes an OpenEO service.
- *
- * @param serviceLocation - The service location URL
- * @param authToken - Authentication token
- */
-export async function deleteOpenEOService(
-  serviceLocation: string,
-  authToken: string
-): Promise<void> {
-  try {
-    await fetchJson(serviceLocation, authToken, { method: 'DELETE' });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn(`Failed to delete service ${serviceLocation}:`, error);
-  }
-}
-
-/**
- * Cleans up all active ephemeral services.
- *
- * @param authToken - Authentication token
- */
-export async function cleanupServices(authToken: string): Promise<void> {
-  const deletePromises = activeServices.map((service) =>
-    deleteOpenEOService(service.location, authToken)
-  );
-
-  await Promise.allSettled(deletePromises);
-  activeServices = [];
-}
-
-/**
- * Lists all services owned by the authenticated user from the openEO backend.
- *
- * @param authToken - Authentication token
- * @returns Array of backend service records
- */
-export async function listOpenEOServices(
-  authToken: string
-): Promise<BackendService[]> {
-  const payload = await fetchJson<{ services?: BackendService[] }>(
-    `${OPENEO_API_URL}/services`,
-    authToken
-  );
-
-  return payload?.services ?? [];
-}
-
-/**
- * Discovers and deletes orphaned ephemeral services from previous sessions
- * belonging to this studio instance. Errors are logged but never block execution.
- *
- * @param authToken - Authentication token
- * @param instanceId - The studio instance UUID (from getInstanceId())
- */
-export async function cleanupOrphanedServices(
-  authToken: string,
-  instanceId: string
-): Promise<void> {
-  try {
-    const services = await listOpenEOServices(authToken);
-    const prefix = `${EPHEMERAL_TITLE_PREFIX}${instanceId}`;
-    const orphans = services.filter((s) => s.title === prefix);
-
-    const deletePromises = orphans.map((s) =>
-      deleteOpenEOService(getServiceUrl(s.id), authToken)
-    );
-    await Promise.allSettled(deletePromises);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('Error cleaning up orphaned services:', error);
-  }
-}
-
-/**
- * Creates a permanent (never auto-cleaned) XYZ service from a process graph.
- *
- * @param graphResult - The process graph and parameters
- * @param authToken - Authentication token
- * @param scope - Service visibility scope ('public' or 'private')
- * @returns The created service record from the backend
- */
-export async function createPermanentService(
-  graphResult: GraphResult,
-  authToken: string,
-  scope: 'public' | 'private' = 'public',
-  extent?: [number, number, number, number]
-): Promise<BackendService> {
-  const serviceUUID = crypto.randomUUID();
-  const title = `${PERMANENT_TITLE_PREFIX}${serviceUUID}`;
-  const location = await createOpenEOService(graphResult, authToken, {
-    title,
-    scope,
-    extent,
-    layerName: graphResult.name
-  });
-
-  // Fetch the full service record from the backend
-  return fetchJson<BackendService>(location, authToken);
-}
-
-/**
- * Lists all permanent services created by openEO Studio for the authenticated user.
- *
- * @param authToken - Authentication token
- * @returns Array of backend service records matching the permanent title prefix
- */
-export async function listPermanentServices(
-  authToken: string
-): Promise<BackendService[]> {
-  const services = await listOpenEOServices(authToken);
-  return services.filter((s) => s.title?.startsWith(PERMANENT_TITLE_PREFIX));
-}
-
-/**
- * Fetches the tile URL from an OpenEO service location.
- *
- * @param serviceLocation - The service location URL
- * @param authToken - Authentication token
- * @returns The tile URL for map rendering
- */
-async function getTileUrl(
-  serviceLocation: string,
-  authToken: string
-): Promise<string> {
-  const tileJson = await fetchJson<{ url: string }>(serviceLocation, authToken);
-  return tileJson.url;
-}
-
-/**
  * Runs the Python program via Pyodide and returns the parsed map_graphs array.
- *
- * @param pyodide - The Pyodide instance
- * @param script - The algorithm script to execute
- * @param config - Execution configuration
- * @returns The parsed array of graph results (may be empty)
  */
 async function runAlgorithm(
   pyodide: PyodideAPI,
@@ -315,68 +76,11 @@ async function runAlgorithm(
 }
 
 /**
- * Validates every graph against the openEO backend, throwing on the first
- * graph that fails validation.
- *
- * @param graphs - The graph results to validate
- * @param authToken - Authentication token
- */
-async function validateGraphs(
-  graphs: GraphResult[],
-  authToken: string
-): Promise<void> {
-  for (const [index, graphResult] of graphs.entries()) {
-    const errors = await validateProcessGraph(graphResult, authToken);
-    if (errors.length > 0) {
-      const formattedErrors = formatValidationErrors(errors);
-      throw new Error(
-        `Validation failed for graph ${index + 1}:\n${formattedErrors}`
-      );
-    }
-  }
-}
-
-/**
- * Creates one ephemeral XYZ service per graph, resolves its tile URL, and
- * registers it for later cleanup.
- *
- * @param graphs - The graph results to create services for
- * @param authToken - Authentication token
- * @param instanceId - The studio instance UUID
- * @returns Array of ServiceInfo objects for map rendering
- */
-async function createEphemeralServices(
-  graphs: GraphResult[],
-  authToken: string,
-  instanceId: string
-): Promise<ServiceInfo[]> {
-  const ephemeralTitle = `${EPHEMERAL_TITLE_PREFIX}${instanceId}`;
-  const services: ServiceInfo[] = [];
-
-  for (const graphResult of graphs) {
-    const serviceLocation = await createOpenEOService(graphResult, authToken, {
-      title: ephemeralTitle
-    });
-    const tileUrl = await getTileUrl(serviceLocation, authToken);
-
-    const serviceInfo: ServiceInfo = {
-      id: crypto.randomUUID(),
-      location: serviceLocation,
-      tileUrl,
-      graphResult,
-      visible: graphResult.visible
-    };
-
-    services.push(serviceInfo);
-    activeServices.push(serviceInfo);
-  }
-
-  return services;
-}
-
-/**
  * Runs a Python script with Pyodide and validates every resulting graph against
  * the openEO backend.
+ *
+ * The algorithm is run and validated *before* services are replaced, so a failed
+ * run leaves the currently rendered map intact.
  *
  * @returns The produced graphs (empty when the script adds none to the map)
  */

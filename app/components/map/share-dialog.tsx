@@ -26,7 +26,8 @@ import {
 } from '$components/services/service-scope-badge';
 import { ShareHeader } from '$pages/share/header';
 import type { BackendService, ServiceInfo } from '$types';
-import { createPermanentService, getServiceUrl } from '$utils/code-runner';
+import { createPermanentService } from '$utils/openeo/permanent-services';
+import { getServiceUrl } from '$utils/openeo/services';
 import { toaster } from '$utils/toaster';
 import { LuX } from 'react-icons/lu';
 
