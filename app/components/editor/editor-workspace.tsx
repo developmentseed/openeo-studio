@@ -148,8 +148,7 @@ export function EditorWorkspace({
         flex={1}
         display='flex'
         flexDirection='column'
-        px={4}
-        py={0}
+        p={0}
         minHeight={0}
         overflow='hidden'
       >
