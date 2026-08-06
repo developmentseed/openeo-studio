@@ -90,6 +90,11 @@ export const config = defineConfig({
         base: {
           fontWeight: 'bold'
         }
+      },
+      code: {
+        base: {
+          borderRadius: 'uni'
+        }
       }
     },
     slotRecipes: {
