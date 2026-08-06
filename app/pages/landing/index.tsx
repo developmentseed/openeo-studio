@@ -9,6 +9,7 @@ import {
   Text
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router';
+import { useAuth } from 'react-oidc-context';
 import { LuArrowRight } from 'react-icons/lu';
 
 import { APP_TITLE } from '$config/constants';
@@ -19,6 +20,7 @@ import { SceneCard } from '$pages/projects/scene-card';
 
 export function LandingPage() {
   const { clearEditor } = useEditorStore();
+  const { isAuthenticated } = useAuth();
 
   // Clear editor state when navigating to landing to ensure fresh scene loads
   useEffect(() => {
@@ -67,7 +69,7 @@ export function LandingPage() {
             <Box bg='neutral.300' gridColumn='9 / span 4' aspectRatio={1} />
           </SimpleGrid>
 
-          <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
+          {/* <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
             <Heading gridColumn='1 / -1' size='2xl'>
               Features
             </Heading>
@@ -93,32 +95,53 @@ export function LandingPage() {
               <Text>Some description about this</Text>
             </Stack>
             <Box bg='neutral.300' gridColumn='8 / span 5' aspectRatio={1} />
-          </SimpleGrid>
+          </SimpleGrid> */}
 
           <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
             <Heading gridColumn='1 / -1' size='2xl'>
               Algorithm catalog
             </Heading>
 
-            <Stack
-              gridColumn='1 / span 7'
-              gap={4}
-              align='start'
-              justify='center'
-            >
+            <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='span 4' />
+            <SceneCard scene={SAMPLE_SCENES[1]} gridColumn='span 4' />
+
+            <Stack gridColumn='span 4' gap={4} align='start' justify='center'>
               <Heading as='h3'>Access an extensive algorithm catalog</Heading>
               <Text>
                 These are some of the sample scenes you&apos;ll have access to
-                once you create an account and login
+                once you create an account and login.
               </Text>
-
-              <LoginButton size='md' hideIfAuthenticated />
             </Stack>
 
-            <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='8 / span 5' />
-            {SAMPLE_SCENES.slice(1, 4).map((scene) => (
-              <SceneCard key={scene.id} scene={scene} gridColumn='span 4' />
-            ))}
+            <Stack gridColumn='span 4' gap={4} align='start' justify='center'>
+              <Heading as='h3'>Develop your own</Heading>
+              <Text>
+                Start from scratch or use one of the existing examples as a
+                starting point.
+              </Text>
+              <Button variant='outline' asChild>
+                <NavLink to='/docs' end>
+                  Learn More <LuArrowRight />
+                </NavLink>
+              </Button>
+            </Stack>
+
+            <SceneCard scene={SAMPLE_SCENES[2]} gridColumn='5 / span 4' />
+            <SceneCard scene={SAMPLE_SCENES[3]} gridColumn='span 4' />
+
+            <SceneCard scene={SAMPLE_SCENES[4]} gridColumn='5 / span 4' />
+
+            {!isAuthenticated && (
+              <Stack gridColumn='span 4' gap={4} align='start' justify='center'>
+                <Heading as='h3'>Login and get started</Heading>
+                <Text>
+                  Start from scratch or use one of the existing examples as a
+                  starting point.
+                </Text>
+
+                <LoginButton size='md' />
+              </Stack>
+            )}
           </SimpleGrid>
         </Stack>
       </Stack>
