@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from 'react-oidc-context';
 
-import { cleanupOrphanedServices } from '../utils/code-runner';
+import { cleanupOrphanedServices } from '../utils/openeo/ephemeral-services';
 import { getInstanceId } from '../utils/instance-id';
 
 /**

@@ -4,14 +4,16 @@ import {
   Flex,
   IconButton,
   Popover,
+  Portal,
   RadioGroup,
   Separator,
   Switch,
   Tabs,
   Text,
+  Tooltip,
   VStack
 } from '@chakra-ui/react';
-import { LuExternalLink, LuLayers, LuX } from 'react-icons/lu';
+import { LuLayers, LuServer, LuX } from 'react-icons/lu';
 import type { ServiceInfo } from '$types';
 
 interface BaseLayerOption {
@@ -103,14 +105,29 @@ export function MapLayerSelector({
                             {service.graphResult.name}
                           </Text>
                           {onServicePublish && (
-                            <IconButton
-                              aria-label='Publish as permanent service'
-                              size='xs'
-                              variant='ghost'
-                              onClick={() => onServicePublish(service)}
+                            <Tooltip.Root
+                              positioning={{ placement: 'top' }}
+                              openDelay={100}
                             >
-                              <LuExternalLink />
-                            </IconButton>
+                              <Tooltip.Trigger asChild>
+                                <IconButton
+                                  aria-label='Publish as permanent service'
+                                  size='xs'
+                                  variant='ghost'
+                                  onClick={() => onServicePublish(service)}
+                                >
+                                  <LuServer />
+                                </IconButton>
+                              </Tooltip.Trigger>
+                              <Portal>
+                                <Tooltip.Positioner>
+                                  <Tooltip.Content>
+                                    <Tooltip.Arrow />
+                                    Publish as permanent service
+                                  </Tooltip.Content>
+                                </Tooltip.Positioner>
+                              </Portal>
+                            </Tooltip.Root>
                           )}
                           <Switch.Root
                             size='sm'

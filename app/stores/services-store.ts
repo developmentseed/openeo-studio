@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
 
 import { APIError, fetchJson } from '$utils/api';
-import { getServiceUrl, listPermanentServices } from '$utils/code-runner';
+import { getServiceUrl } from '$utils/openeo/services';
+import { listPermanentServices } from '$utils/openeo/permanent-services';
 import type { BackendService } from '$types';
 
 type ServicesState = {
