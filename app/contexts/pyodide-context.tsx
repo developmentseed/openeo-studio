@@ -52,6 +52,8 @@ async function initializePyodide(
       : undefined;
   const isTestMock = typeof windowLoader === 'function';
 
+  onLog(createLogEntry('Python ready', 'success'));
+
   onLog(
     createLogEntry(
       isTestMock
@@ -101,6 +103,8 @@ export function PyodideProvider({ children }: { children: ReactNode }) {
     };
 
     async function load() {
+      addLog(createLogEntry('Loading Python environment...'));
+
       try {
         const pyodideInstance = await initializePyodide(addLog);
 

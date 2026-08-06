@@ -15,7 +15,7 @@ import { APP_TITLE } from '$config/constants';
 import { SAMPLE_SCENES } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 import { LoginButton } from '$components/auth/login-button';
-import { SceneCard } from '$components/landing/scene-card';
+import { SceneCard } from '$pages/projects/scene-card';
 
 export function LandingPage() {
   const { clearEditor } = useEditorStore();

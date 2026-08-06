@@ -11,7 +11,7 @@ import {
   firaCodeTheme,
   githubDark,
   githubLight
-} from '$utils/codemirror-theme';
+} from '$styles/codemirror-theme';
 import { useColorModeValue } from '$contexts/color-mode';
 import { useEditorStore } from '$stores/editor-store';
 import { ruffLinter } from '$utils/ruff-linter';

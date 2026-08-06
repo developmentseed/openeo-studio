@@ -168,7 +168,7 @@ positions written into nodes; fitView()
 
 ### Mount / new graph
 
-1. `map-panel` passes the merged graph into `<ProcessGraphViewer graph={…} />`
+1. `results-panel` passes the merged graph into `<ProcessGraphViewer graph={…} />`
    (or shows the empty state when the hook returns `null`).
 2. `ProcessGraphViewer` wraps `Canvas` in `ReactFlowProvider`.
 3. `Canvas` resets `path` and the position cache whenever `graph` identity

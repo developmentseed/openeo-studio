@@ -12,7 +12,7 @@ import {
   firaCodeTheme,
   githubDark,
   githubLight
-} from '$utils/codemirror-theme';
+} from '$styles/codemirror-theme';
 
 type EditorLanguage = 'python' | 'json';
 
@@ -50,12 +50,12 @@ export function ReadOnlyCodeEditor({
         basicSetup,
         EditorView.editable.of(false),
         firaCodeTheme({
-          '.cm-content, .cm-line': {
-            width: '100%',
-            backgroundColor: 'var(--chakra-colors-bg-subtle)'
+          // basicSetup highlights the active line; hide it in read-only views
+          '.cm-activeLine': {
+            backgroundColor: 'transparent'
           },
-          '.cm-gutters': {
-            backgroundColor: 'var(--chakra-colors-bg-subtle)'
+          '.cm-activeLineGutter': {
+            backgroundColor: 'transparent'
           }
         }),
         EditorView.lineWrapping,

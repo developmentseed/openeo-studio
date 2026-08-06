@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, Text, useRecipe } from '@chakra-ui/react';
+import { Box, Button, Flex, IconButton, Text } from '@chakra-ui/react';
+import { LuGripVertical, LuX } from 'react-icons/lu';
 
-import { RemoveIconButton } from '$components/common/icon-buttons';
 import type { BandVariable } from '$types';
 
 interface BandArrayBuilderProps {
@@ -167,11 +167,6 @@ function SelectedBandChip({
   onDragEnd,
   isDragging
 }: SelectedBandChipProps) {
-  const button = useRecipe({ key: 'button' });
-  const styles = button({
-    variant: 'outline',
-    size: 'xs'
-  });
   return (
     <Flex alignItems='center' opacity={isDragging ? 0.5 : 1}>
       <Box minW='8' flexShrink={0}>
@@ -179,8 +174,10 @@ function SelectedBandChip({
           [{index}]:
         </Text>
       </Box>
-      <Flex
-        css={styles}
+      <Button
+        as='div'
+        size='xs'
+        variant='outline'
         draggable
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -194,25 +191,19 @@ function SelectedBandChip({
         justifyContent='space-between'
         color='gray.500'
       >
-        <svg
-          version='1.1'
-          xmlns='http://www.w3.org/2000/svg'
-          width='16'
-          height='16'
-          viewBox='0 0 16 16'
-          fill='currentColor'
-        >
-          <rect width='16' height='16' id='icon-bound' fill='none' />
-          <path
-            id='grip-vertical'
-            d='M7,13L5,13L5,15L7,15L7,13ZM11,13L9,13L9,15L11,15L11,13ZM7,9L5,9L5,11L7,11L7,9ZM11,9L9,9L9,11L11,11L11,9ZM7,5L5,5L5,7L7,7L7,5ZM11,5L9,5L9,7L11,7L11,5ZM7,1L5,1L5,3L7,3L7,1ZM11,1L9,1L9,3L11,3L11,1Z'
-          />
-        </svg>
+        <LuGripVertical size={16} />
         <Box textAlign='left' flex={1} color='fg'>
           {band.name}
         </Box>
-        <RemoveIconButton onClick={onRemove} />
-      </Flex>
+        <IconButton
+          size='2xs'
+          variant='ghost'
+          onClick={onRemove}
+          aria-label='Remove band'
+        >
+          <LuX />
+        </IconButton>
+      </Button>
     </Flex>
   );
 }
