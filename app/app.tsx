@@ -3,7 +3,7 @@ import { Flex, Heading, Spinner, Stack } from '@chakra-ui/react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
-import { useServiceCleanup } from './hooks/use-service-cleanup';
+import { useServiceCleanup } from '$components/services/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
 import { RequireAuth } from '$components/auth/require-auth';
 import { LandingPage } from '$pages/landing-page';

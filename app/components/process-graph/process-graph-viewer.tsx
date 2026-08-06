@@ -15,7 +15,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import type { ProcessGraph } from '$types/openeo-process';
-import { useColorMode } from '$utils/color-mode';
+import { useColorMode } from '$contexts/color-mode';
 
 import { buildGraphView, type ArgumentView } from './graph-model';
 import { NODE_WIDTH, layoutGraph } from './layout';

@@ -2,7 +2,7 @@ import { Button, Flex, Heading } from '@chakra-ui/react';
 import { LuPlus, LuAward, LuUser } from 'react-icons/lu';
 import { NavLink } from 'react-router';
 
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 
 export function ProjectsHeader() {
   return (

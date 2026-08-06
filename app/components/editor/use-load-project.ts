@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
 
+import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
 import { useEditorStore } from '$stores/editor-store';
 import { useProjectsStore } from '$stores/projects-store';
 import {
@@ -8,13 +9,6 @@ import {
   extractCodeFromDescription
 } from '$utils/process-graphs';
 import type { SampleScene } from '$types';
-
-const FALLBACK_CONFIG = {
-  collectionId: 'sentinel-2-l2a',
-  temporalRange: ['', ''] as [string, string],
-  cloudCover: 50,
-  selectedBands: [] as string[]
-};
 
 interface UseLoadProjectResult {
   isLoading: boolean;
@@ -59,10 +53,13 @@ export function useLoadProject(
         const derived = deriveConfigFromProject(project);
         hydrateFromScene(project.id, {
           name: project.summary ?? project.id,
-          collectionId: derived.collectionId ?? FALLBACK_CONFIG.collectionId,
-          temporalRange: derived.temporalRange ?? FALLBACK_CONFIG.temporalRange,
-          cloudCover: derived.cloudCover ?? FALLBACK_CONFIG.cloudCover,
-          defaultBands: derived.selectedBands ?? FALLBACK_CONFIG.selectedBands,
+          collectionId:
+            derived.collectionId ?? DEFAULT_EDITOR_CONFIG.collectionId,
+          temporalRange:
+            derived.temporalRange ?? DEFAULT_EDITOR_CONFIG.temporalRange,
+          cloudCover: derived.cloudCover ?? DEFAULT_EDITOR_CONFIG.cloudCover,
+          defaultBands:
+            derived.selectedBands ?? DEFAULT_EDITOR_CONFIG.selectedBands,
           boundingBox: derived.boundingBox,
           suggestedAlgorithm:
             extractCodeFromDescription(project.description) ?? ''

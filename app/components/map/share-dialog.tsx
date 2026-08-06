@@ -24,10 +24,14 @@ import {
   getServiceScope,
   type ServiceScope
 } from '$components/services/service-scope-badge';
-import { ShareHeader } from '$pages/share/header';
+import { ShareHeader } from '$components/share/share-header';
 import type { BackendService, ServiceInfo } from '$types';
 import { createPermanentService } from '$utils/openeo/permanent-services';
-import { getServiceUrl } from '$utils/openeo/services';
+import {
+  backendServiceToServiceInfo,
+  getServiceDisplayName,
+  getServiceExtent
+} from '$utils/openeo/service-adapters';
 import { toaster } from '$utils/toaster';
 import { LuX } from 'react-icons/lu';
 
@@ -35,58 +39,6 @@ interface ShareDialogProps {
   service: ServiceInfo;
   bounds?: [number, number, number, number];
   onClose: () => void;
-}
-
-function decodeTileUrl(url: string): string {
-  try {
-    return decodeURIComponent(url);
-  } catch {
-    return url;
-  }
-}
-
-function getDisplayName(service: BackendService): string {
-  return (
-    (typeof service.configuration?.layerName === 'string' &&
-      service.configuration.layerName) ||
-    service.title
-  );
-}
-
-function getExtent(
-  service: BackendService,
-  fallback?: [number, number, number, number]
-): [number, number, number, number] | undefined {
-  const extent = service.configuration?.extent;
-  if (
-    Array.isArray(extent) &&
-    extent.length === 4 &&
-    extent.every((v) => typeof v === 'number')
-  ) {
-    return extent as [number, number, number, number];
-  }
-  return fallback;
-}
-
-function toMapService(
-  service: BackendService,
-  visible: boolean,
-  fallbackName: string
-): ServiceInfo {
-  const name = getDisplayName(service) || fallbackName;
-
-  return {
-    id: service.id,
-    location: getServiceUrl(service.id),
-    tileUrl: decodeTileUrl(service.url),
-    visible,
-    graphResult: {
-      name,
-      process_graph: {},
-      parameters: [],
-      visible
-    }
-  };
 }
 
 export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
@@ -131,12 +83,18 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
 
   const mapServices = useMemo(() => {
     if (!created) return [];
-    return [toMapService(created, layerVisible, service.graphResult.name)];
+    return [
+      backendServiceToServiceInfo(
+        created,
+        layerVisible,
+        service.graphResult.name
+      )
+    ];
   }, [created, layerVisible, service.graphResult.name]);
 
-  const previewBounds = created ? getExtent(created, bounds) : bounds;
+  const previewBounds = created ? getServiceExtent(created, bounds) : bounds;
   const previewTitle = created
-    ? getDisplayName(created) || service.graphResult.name
+    ? getServiceDisplayName(created) || service.graphResult.name
     : service.graphResult.name;
   const previewScope = created ? getServiceScope(created.configuration) : scope;
 

@@ -1,17 +1,15 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import {
+  createInitialConfig,
+  type EditorConfigValues
+} from '$config/default-editor-config';
 import type { ServiceInfo } from '$types';
 
 type BoundingBox = [number, number, number, number];
 
-type ConfigValues = {
-  collectionId: string;
-  temporalRange: [string, string];
-  cloudCover: number;
-  selectedBands: string[];
-  boundingBox?: BoundingBox;
-};
+type ConfigValues = EditorConfigValues;
 
 const DEFAULT_SCENE_NAME = 'New Project';
 
@@ -35,7 +33,6 @@ type EditorActions = {
   setBoundingBox: (bbox: BoundingBox | undefined) => void;
   setServices: (services: ServiceInfo[]) => void;
   toggleServiceVisibility: (serviceId: string) => void;
-  clearServices: () => void;
   setSceneId: (id: string | null) => void;
   setSceneName: (name: string) => void;
   markClean: () => void;
@@ -56,18 +53,6 @@ type EditorActions = {
 };
 
 type EditorStore = EditorState & EditorActions;
-
-// Helper to create initial config with defaults
-const createInitialConfig = (
-  overrides: Partial<ConfigValues> = {}
-): ConfigValues => ({
-  collectionId: 'sentinel-2-l2a',
-  temporalRange: ['', ''],
-  cloudCover: 50,
-  selectedBands: [],
-  boundingBox: undefined,
-  ...overrides
-});
 
 export const useEditorStore = create<EditorStore>()(
   persist(
@@ -116,7 +101,6 @@ export const useEditorStore = create<EditorStore>()(
               : service
           )
         })),
-      clearServices: () => set({ services: [] }),
       setSceneId: (sceneId) => set({ sceneId }),
       setSceneName: (sceneName) => set({ sceneName, isDirty: true }),
       markClean: () => set({ isDirty: false }),

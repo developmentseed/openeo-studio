@@ -9,6 +9,7 @@ import { MapPanel } from '$components/layout/map-panel';
 import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
+import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 import { NotFound } from '$pages/uhoh/error';
@@ -35,13 +36,7 @@ export function EditorPage() {
   useEffect(() => {
     if (isBlankScene) {
       if (storedSceneId !== null) {
-        resetToDefaults({
-          collectionId: 'sentinel-2-l2a',
-          cloudCover: 50,
-          temporalRange: ['', ''],
-          selectedBands: [],
-          boundingBox: undefined
-        });
+        resetToDefaults(DEFAULT_EDITOR_CONFIG);
         setSceneId(null);
       }
       return;

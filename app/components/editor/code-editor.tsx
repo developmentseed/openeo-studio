@@ -8,7 +8,7 @@ import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
 import { EXAMPLE_CODE } from '$utils/code-runner';
-import { useColorModeValue } from '$utils/color-mode';
+import { useColorModeValue } from '$contexts/color-mode';
 import { useEditorStore } from '$stores/editor-store';
 import { ruffLinter } from './ruff-linter';
 
