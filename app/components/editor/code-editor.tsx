@@ -10,7 +10,7 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import { EXAMPLE_CODE } from '$utils/code-runner';
 import { useColorModeValue } from '$contexts/color-mode';
 import { useEditorStore } from '$stores/editor-store';
-import { ruffLinter } from './ruff-linter';
+import { ruffLinter } from '$utils/ruff-linter';
 
 // Create a CodeEditor context.
 const CodeEditorContext = createContext<{

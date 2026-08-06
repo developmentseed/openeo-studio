@@ -11,7 +11,7 @@ import {
 import {
   mergeProcessGraphs,
   resolveSharedParameters
-} from '$utils/process-graphs';
+} from '$utils/openeo/user-defined-processes';
 import type { ExecutionConfig, GraphResult, ServiceInfo } from '$types';
 import { useEditorStore } from '$stores/editor-store';
 import { useProjectsStore } from '$stores/projects-store';

@@ -43,7 +43,7 @@ interface ShareDialogProps {
 
 export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   const { user } = useAuth();
-  const [scope, setScope] = useState<'public' | 'private'>('private');
+  const [scope, setScope] = useState<ServiceScope>('private');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<BackendService | null>(null);
@@ -153,7 +153,7 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                         size='sm'
                         value={scope}
                         onValueChange={(details) =>
-                          setScope(details.value as 'public' | 'private')
+                          setScope(details.value as ServiceScope)
                         }
                       >
                         <VStack align='stretch' gap={2}>

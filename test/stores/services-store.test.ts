@@ -3,19 +3,19 @@ jest.mock('$config/runtime', () => ({
 }));
 
 const mockListPermanentServices = jest.fn();
-const mockFetchJson = jest.fn();
+const mockDeletePermanentService = jest.fn();
+const mockUpdatePermanentServiceConfiguration = jest.fn();
 
 jest.mock('$utils/openeo/permanent-services', () => ({
   listPermanentServices: (...args: unknown[]) =>
-    mockListPermanentServices(...args)
-}));
-
-jest.mock('$utils/openeo/services', () => ({
-  getServiceUrl: (id: string) => `https://example.test/openeo/services/${id}`
+    mockListPermanentServices(...args),
+  deletePermanentService: (...args: unknown[]) =>
+    mockDeletePermanentService(...args),
+  updatePermanentServiceConfiguration: (...args: unknown[]) =>
+    mockUpdatePermanentServiceConfiguration(...args)
 }));
 
 jest.mock('$utils/api', () => ({
-  fetchJson: (...args: unknown[]) => mockFetchJson(...args),
   APIError: class APIError extends Error {
     constructor(message: string) {
       super(message);
@@ -50,7 +50,8 @@ describe('services-store', () => {
   beforeEach(() => {
     resetStore();
     mockListPermanentServices.mockReset();
-    mockFetchJson.mockReset();
+    mockDeletePermanentService.mockReset();
+    mockUpdatePermanentServiceConfiguration.mockReset();
   });
 
   it('fetchServices loads permanent services into state', async () => {
@@ -78,21 +79,17 @@ describe('services-store', () => {
 
   it('deleteService removes the service after a successful DELETE', async () => {
     useServicesStore.setState({ services: [sampleService] });
-    mockFetchJson.mockResolvedValue(undefined);
+    mockDeletePermanentService.mockResolvedValue(undefined);
 
     await useServicesStore.getState().deleteService('token', 'svc-1');
 
-    expect(mockFetchJson).toHaveBeenCalledWith(
-      'https://example.test/openeo/services/svc-1',
-      'token',
-      { method: 'DELETE' }
-    );
+    expect(mockDeletePermanentService).toHaveBeenCalledWith('svc-1', 'token');
     expect(useServicesStore.getState().services).toEqual([]);
   });
 
   it('deleteService leaves the service in place when DELETE fails', async () => {
     useServicesStore.setState({ services: [sampleService] });
-    mockFetchJson.mockRejectedValue(new Error('forbidden'));
+    mockDeletePermanentService.mockRejectedValue(new Error('forbidden'));
 
     await expect(
       useServicesStore.getState().deleteService('token', 'svc-1')
@@ -103,22 +100,20 @@ describe('services-store', () => {
 
   it('updateServiceScope PATCHes full configuration and updates state', async () => {
     useServicesStore.setState({ services: [sampleService] });
-    mockFetchJson.mockResolvedValue(undefined);
+    const updated = {
+      ...sampleService,
+      configuration: { scope: 'private', layerName: 'NDVI' }
+    };
+    mockUpdatePermanentServiceConfiguration.mockResolvedValue(updated);
 
     await useServicesStore
       .getState()
       .updateServiceScope('token', sampleService, 'private');
 
-    expect(mockFetchJson).toHaveBeenCalledWith(
-      'https://example.test/openeo/services/svc-1',
+    expect(mockUpdatePermanentServiceConfiguration).toHaveBeenCalledWith(
+      sampleService,
       'token',
-      {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          configuration: { scope: 'private', layerName: 'NDVI' }
-        })
-      }
+      { scope: 'private', layerName: 'NDVI' }
     );
     expect(useServicesStore.getState().services[0].configuration.scope).toBe(
       'private'
@@ -126,7 +121,11 @@ describe('services-store', () => {
   });
 
   it('updateServiceScope works when the service is not in the list cache', async () => {
-    mockFetchJson.mockResolvedValue(undefined);
+    const updated = {
+      ...sampleService,
+      configuration: { scope: 'private', layerName: 'NDVI' }
+    };
+    mockUpdatePermanentServiceConfiguration.mockResolvedValue(updated);
 
     await useServicesStore
       .getState()
@@ -140,7 +139,9 @@ describe('services-store', () => {
 
   it('updateServiceScope leaves state unchanged when PATCH fails', async () => {
     useServicesStore.setState({ services: [sampleService] });
-    mockFetchJson.mockRejectedValue(new Error('bad request'));
+    mockUpdatePermanentServiceConfiguration.mockRejectedValue(
+      new Error('bad request')
+    );
 
     await expect(
       useServicesStore

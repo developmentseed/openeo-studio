@@ -6,7 +6,7 @@ import { CodeEditor } from '$components/editor/code-editor';
 import {
   CodeInfoMenu,
   type CodeViewType
-} from '$components/editor/code-options-menu';
+} from '$components/editor/code-info-menu';
 import { OutputPanel } from '$components/editor/output-panel';
 import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
 import { usePyodide } from '$contexts/pyodide-context';

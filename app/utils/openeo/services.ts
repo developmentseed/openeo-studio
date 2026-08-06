@@ -4,7 +4,7 @@
  */
 
 import { appConfig } from '$config/runtime';
-import type { BackendService, GraphResult } from '$types';
+import type { BackendService, GraphResult, ServiceScope } from '$types';
 import { fetchJson, fetchHeaderLocation } from '../api';
 
 const OPENEO_API_URL = appConfig.openeoApiUrl;
@@ -40,7 +40,7 @@ export async function createOpenEOService(
   authToken: string,
   options: {
     title: string;
-    scope?: 'public' | 'private';
+    scope?: ServiceScope;
     extent?: [number, number, number, number];
     layerName?: string;
   }

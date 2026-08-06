@@ -1,14 +1,7 @@
-import {
-  Box,
-  Flex,
-  Heading,
-  SimpleGrid,
-  Stack,
-  Text,
-  VStack
-} from '@chakra-ui/react';
+import { Box, Flex, Heading, SimpleGrid, Stack } from '@chakra-ui/react';
 import { LuServer, LuServerOff } from 'react-icons/lu';
 
+import { EmptyState } from '$components/common/empty-state';
 import { ServiceCard } from '$components/services/service-card';
 import { ServiceCardSkeleton } from '$components/services/service-card-skeleton';
 import { useServices } from '$stores/services-store';
@@ -33,7 +26,12 @@ export function ServicesPage() {
         <Flex px={2} h='100%' justifyContent='stretch'>
           {error ? (
             <Flex w='100%' align='center' justify='center'>
-              <ErrorServices error={error} />
+              <EmptyState
+                variant='error'
+                icon={<LuServerOff size='4rem' />}
+                title='Error loading services'
+                description={error.message}
+              />
             </Flex>
           ) : isLoading ? (
             <SimpleGrid
@@ -48,7 +46,11 @@ export function ServicesPage() {
             </SimpleGrid>
           ) : services.length === 0 ? (
             <Flex w='100%' align='center' justify='center'>
-              <NoServices />
+              <EmptyState
+                icon={<LuServer size='4rem' />}
+                title='No permanent services'
+                description='Use the export button on a map layer to create one.'
+              />
             </Flex>
           ) : (
             <SimpleGrid
@@ -64,62 +66,6 @@ export function ServicesPage() {
           )}
         </Flex>
       </Stack>
-    </Box>
-  );
-}
-
-function NoServices() {
-  return (
-    <Box
-      borderWidth='2px'
-      borderStyle='dashed'
-      borderColor='border'
-      borderRadius='lg'
-      bg='bg'
-      p={6}
-      boxSize='100%'
-      maxH='40rem'
-      maxW='80rem'
-    >
-      <VStack gap={2} justify='center' height='100%'>
-        <LuServer size='4rem' />
-        <VStack gap={2}>
-          <Text fontWeight='semibold' fontSize='lg'>
-            No permanent services
-          </Text>
-          <Text fontSize='sm' textAlign='center'>
-            Use the export button on a map layer to create one.
-          </Text>
-        </VStack>
-      </VStack>
-    </Box>
-  );
-}
-
-function ErrorServices({ error }: { error: Error }) {
-  return (
-    <Box
-      borderWidth='2px'
-      borderStyle='dashed'
-      borderColor='border.error'
-      borderRadius='lg'
-      bg='white'
-      p={6}
-      boxSize='100%'
-      maxH='40rem'
-      maxW='80rem'
-    >
-      <VStack gap={2} justify='center' height='100%'>
-        <LuServerOff size='4rem' />
-        <VStack gap={2} color='error.700'>
-          <Text fontWeight='semibold' fontSize='lg'>
-            Error loading services
-          </Text>
-          <Text fontSize='sm' textAlign='center'>
-            {error.message}
-          </Text>
-        </VStack>
-      </VStack>
     </Box>
   );
 }

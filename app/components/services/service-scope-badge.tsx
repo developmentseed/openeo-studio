@@ -1,7 +1,9 @@
 import { Badge } from '@chakra-ui/react';
 import { LuGlobe, LuLock } from 'react-icons/lu';
 
-export type ServiceScope = 'public' | 'private';
+import type { ServiceScope } from '$types';
+
+export type { ServiceScope };
 
 interface ServiceScopeBadgeProps {
   scope: ServiceScope;

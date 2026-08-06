@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import type { ServiceInfo } from '$types';
 import type { ProcessGraph } from '$types/openeo-process';
-import { mergeProcessGraphs } from '$utils/process-graphs';
+import { mergeProcessGraphs } from '$utils/openeo/user-defined-processes';
 
 /**
  * Merges every layer's process graph into the single graph shown by both the
