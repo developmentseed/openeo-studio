@@ -1,13 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { basicSetup } from 'codemirror';
-import { Compartment, type Extension } from '@codemirror/state';
+import { type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { json } from '@codemirror/lang-json';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
 import { useColorModeValue } from '$contexts/color-mode';
+import {
+  createThemeCompartment,
+  firaCodeTheme,
+  githubDark,
+  githubLight
+} from '$utils/codemirror-theme';
 
 type EditorLanguage = 'python' | 'json';
 
@@ -16,7 +21,7 @@ interface ReadOnlyCodeEditorProps {
   language?: EditorLanguage;
 }
 
-const themeCompartment = new Compartment();
+const themeCompartment = createThemeCompartment();
 
 // Python gets the ruff linter; JSON is highlighted without any linting so a
 // process graph does not get flagged as invalid Python.
@@ -44,13 +49,7 @@ export function ReadOnlyCodeEditor({
       extensions: [
         basicSetup,
         EditorView.editable.of(false),
-        EditorView.theme({
-          '&': {
-            height: '100%'
-          },
-          '&, .cm-scroller': {
-            fontFamily: '"Fira Code"'
-          },
+        firaCodeTheme({
           '.cm-content, .cm-line': {
             width: '100%',
             backgroundColor: 'var(--chakra-colors-bg-subtle)'

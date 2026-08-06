@@ -23,7 +23,11 @@ import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
 import { useMergedProcessGraph } from './use-merged-process-graph';
 
 // React Flow and dagre are only ever needed by the visual tab.
-const ProcessGraphViewer = lazy(() => import('$components/process-graph'));
+const ProcessGraphViewer = lazy(() =>
+  import('$components/process-graph').then((m) => ({
+    default: m.ProcessGraphViewer
+  }))
+);
 
 function MapPanelComponent() {
   const { bounds, sceneId, services } = useEditorStore(

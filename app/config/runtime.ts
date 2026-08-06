@@ -2,7 +2,7 @@
  * Runtime config: window.__APP_CONFIG__ (Docker) with VITE_* fallbacks (local).
  */
 
-import { pathPrefixFromUrl } from '$config/baseUrl';
+import { pathPrefixFromUrl } from '$config/base-url';
 
 export interface AppConfig {
   openeoApiUrl: string;
