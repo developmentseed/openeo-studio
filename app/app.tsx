@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Flex, Heading, Spinner, Stack } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
 import { useServiceCleanup } from '$components/services/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
+import { AuthLoading } from '$components/auth/auth-loading';
 import { RequireAuth } from '$components/auth/require-auth';
 import { LandingPage } from '$pages/landing';
 import { EditorPage } from '$pages/editor';
@@ -74,11 +75,7 @@ export default function App() {
     return (
       <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
         <AppHeader />
-
-        <Stack flex={1} alignItems='center' justifyContent='center'>
-          <Spinner size='lg' />
-          <Heading size='xl'>Signing you in…</Heading>
-        </Stack>
+        <AuthLoading message='Signing you in…' />
       </Flex>
     );
   }

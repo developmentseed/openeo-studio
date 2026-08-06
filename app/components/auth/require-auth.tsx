@@ -1,7 +1,7 @@
-import { Flex, Spinner } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { Outlet } from 'react-router';
 
+import { AuthLoading } from '$components/auth/auth-loading';
 import { RestrictedPage } from '$components/auth/restricted-page';
 
 export function RequireAuth() {
@@ -14,11 +14,7 @@ export function RequireAuth() {
   const isBlockingAuthLoad = isLoading && !isAuthenticated;
 
   if (isBlockingAuthLoad) {
-    return (
-      <Flex flex={1} alignItems='center' justifyContent='center'>
-        <Spinner size='lg' />
-      </Flex>
-    );
+    return <AuthLoading />;
   }
 
   if (!isAuthenticated) {

@@ -1,13 +1,17 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { basicSetup } from 'codemirror';
-import { Compartment } from '@codemirror/state';
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
 import { EXAMPLE_CODE } from '$utils/code-runner';
+import {
+  createThemeCompartment,
+  firaCodeTheme,
+  githubDark,
+  githubLight
+} from '$utils/codemirror-theme';
 import { useColorModeValue } from '$contexts/color-mode';
 import { useEditorStore } from '$stores/editor-store';
 import { ruffLinter } from '$utils/ruff-linter';
@@ -28,7 +32,7 @@ interface RootProps {
   initialCode?: string;
 }
 
-const themeCompartment = new Compartment();
+const themeCompartment = createThemeCompartment();
 
 function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
@@ -84,17 +88,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
       doc: initialDoc,
       extensions: [
         basicSetup,
-        EditorView.theme({
-          '&': {
-            height: '100%'
-          },
-          '&, .cm-scroller': {
-            fontFamily: '"Fira Code"'
-          },
-          '.cm-content, .cm-line': {
-            width: '100%'
-          }
-        }),
+        firaCodeTheme(),
         EditorView.lineWrapping,
         themeCompartment.of(themeColorMode),
         python(),

@@ -16,7 +16,7 @@ export class APIError extends Error {
   }
 }
 
-export const AUTH_PREFIX = 'Bearer oidc/oidc/';
+const AUTH_PREFIX = 'Bearer oidc/oidc/';
 
 /**
  * Performs an authenticated fetch and throws an APIError on a non-2xx

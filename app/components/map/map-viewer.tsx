@@ -2,14 +2,11 @@ import { useRef, useEffect, useState } from 'react';
 import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { MapLayers } from './map-layers.js';
+import { MapLayers } from './map-layers';
 import { MapLayerSelector } from './map-layer-selector';
-import {
-  useMapTileStatus,
-  type TileLoadStatus
-} from './use-map-tile-status.js';
+import { useMapTileStatus, type TileLoadStatus } from './use-map-tile-status';
 import type { ServiceInfo } from '$types';
-import { MAPTILER_KEY } from '$config/constants.js';
+import { MAPTILER_KEY } from '$config/constants';
 
 const BASE_LAYERS = [
   {
