@@ -7,7 +7,13 @@ import { RestrictedPage } from '$components/auth/restricted-page';
 export function RequireAuth() {
   const { isLoading, isAuthenticated } = useAuth();
 
-  if (isLoading) {
+  // react-oidc-context sets `isLoading` during silent renew (`signinSilent`),
+  // including when the user is already authenticated. Blocking on that unmounts
+  // protected pages and looks like a full refresh. Only block while we do not
+  // yet know the user is signed in.
+  const isBlockingAuthLoad = isLoading && !isAuthenticated;
+
+  if (isBlockingAuthLoad) {
     return (
       <Flex flex={1} alignItems='center' justifyContent='center'>
         <Spinner size='lg' />
