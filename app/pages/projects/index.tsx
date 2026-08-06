@@ -12,7 +12,7 @@ import { ProjectsHeader } from './header';
 import { useProjects } from '$stores/projects-store';
 import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton';
 import { ProjectCard } from '$components/projects/project-card';
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 import { LuAward, LuFolder, LuFolderX, LuPlus } from 'react-icons/lu';
 
 const SKELETON_COUNT = 6;

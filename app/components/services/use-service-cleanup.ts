@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from 'react-oidc-context';
 
-import { cleanupOrphanedServices } from '../utils/openeo/ephemeral-services';
-import { getInstanceId } from '../utils/instance-id';
+import { cleanupOrphanedServices } from '$utils/openeo/ephemeral-services';
+import { getInstanceId } from '$utils/instance-id';
 
 /**
  * Hook that cleans up orphaned ephemeral services from previous sessions

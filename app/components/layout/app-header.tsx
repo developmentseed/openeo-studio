@@ -4,8 +4,8 @@ import { useAuth } from 'react-oidc-context';
 import { LuCircleHelp, LuFolder, LuPlus, LuServer } from 'react-icons/lu';
 
 import { UserInfo } from '$components/auth/user-info';
-import SmartLink from '$utils/smart-link';
-import { ColorModeButton } from '$utils/color-mode';
+import SmartLink from '$components/common/smart-link';
+import { ColorModeButton } from '$contexts/color-mode';
 
 import logoImg from '../../media/openeo_navbar_logo.png';
 

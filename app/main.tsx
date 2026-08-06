@@ -11,10 +11,10 @@ import ErrorBoundary from '$pages/uhoh/boundary';
 import { Toaster } from '$components/layout/toaster';
 import { appConfig } from '$config/runtime';
 import { PyodideProvider } from '$contexts/pyodide-context';
-import { AuthMonitor } from '$utils/auth-monitor';
+import { AuthMonitor } from '$components/auth/auth-monitor';
 import { setupReloadDetector } from '$utils/reload-detector';
 import { monitorSessionStorage } from '$utils/storage-monitor';
-import { ColorModeProvider } from '$utils/color-mode';
+import { ColorModeProvider } from '$contexts/color-mode';
 // Mock auth provider for Playwright tests - only used when window.__MOCK_AUTH__ is set
 import { MockAuthProvider } from '../test/integration/__mocks__/auth-provider';
 

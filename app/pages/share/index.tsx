@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { Box, Flex, Spinner, Stack, Text, VStack } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 
-import type { BackendService, ServiceInfo } from '$types';
+import type { BackendService } from '$types';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
@@ -11,57 +11,15 @@ import {
   getServiceScope,
   type ServiceScope
 } from '$components/services/service-scope-badge';
+import { ShareHeader } from '$components/share/share-header';
 import { APIError, fetchJson } from '$utils/api';
+import {
+  backendServiceToServiceInfo,
+  getServiceDisplayName,
+  getServiceExtent
+} from '$utils/openeo/service-adapters';
 import { getServiceUrl } from '$utils/openeo/services';
-import { ShareHeader } from './header';
 import { LuMapPinOff } from 'react-icons/lu';
-
-function getDisplayName(service: BackendService): string {
-  return (
-    (typeof service.configuration?.layerName === 'string' &&
-      service.configuration.layerName) ||
-    service.title
-  );
-}
-
-function getExtent(
-  service: BackendService
-): [number, number, number, number] | undefined {
-  const extent = service.configuration?.extent;
-  if (
-    Array.isArray(extent) &&
-    extent.length === 4 &&
-    extent.every((v) => typeof v === 'number')
-  ) {
-    return extent as [number, number, number, number];
-  }
-  return undefined;
-}
-
-function decodeTileUrl(url: string): string {
-  try {
-    return decodeURIComponent(url);
-  } catch {
-    return url;
-  }
-}
-
-function toServiceInfo(service: BackendService, visible: boolean): ServiceInfo {
-  const name = getDisplayName(service);
-
-  return {
-    id: service.id,
-    location: getServiceUrl(service.id),
-    tileUrl: decodeTileUrl(service.url),
-    visible,
-    graphResult: {
-      name,
-      process_graph: {},
-      parameters: [],
-      visible
-    }
-  };
-}
 
 export function SharePage() {
   const { serviceId } = useParams<{ serviceId: string }>();
@@ -112,11 +70,11 @@ export function SharePage() {
 
   const services = useMemo(() => {
     if (!service) return [];
-    return [toServiceInfo(service, layerVisible)];
+    return [backendServiceToServiceInfo(service, layerVisible)];
   }, [service, layerVisible]);
 
-  const bounds = service ? getExtent(service) : undefined;
-  const title = service ? getDisplayName(service) : 'Shared service';
+  const bounds = service ? getServiceExtent(service) : undefined;
+  const title = service ? getServiceDisplayName(service) : 'Shared service';
   const scope = service ? getServiceScope(service.configuration) : 'public';
 
   const handleToggleLayer = (id: string) => {

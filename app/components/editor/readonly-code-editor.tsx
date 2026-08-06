@@ -7,7 +7,7 @@ import { json } from '@codemirror/lang-json';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 
-import { useColorModeValue } from '$utils/color-mode';
+import { useColorModeValue } from '$contexts/color-mode';
 
 type EditorLanguage = 'python' | 'json';
 

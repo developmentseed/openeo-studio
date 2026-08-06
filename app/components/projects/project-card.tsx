@@ -1,5 +1,5 @@
 import { Card, Stack, Heading, Text } from '@chakra-ui/react';
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 import type { UserDefinedProcess } from '$types';
 
 interface ProjectCardProps {

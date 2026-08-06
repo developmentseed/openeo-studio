@@ -1,5 +1,5 @@
 import { Heading, Text, VStack } from '@chakra-ui/react';
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 import { APP_TITLE } from '$config/constants';
 
 export default function UhOh500() {

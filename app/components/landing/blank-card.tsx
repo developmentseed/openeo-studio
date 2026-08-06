@@ -1,4 +1,4 @@
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 import { Box, Text, VStack } from '@chakra-ui/react';
 import { LuPlus } from 'react-icons/lu';
 

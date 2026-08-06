@@ -26,6 +26,10 @@ import {
 import { ENABLE_NARRATIVE_EXPORT } from '$config/constants';
 import { useServicesStore } from '$stores/services-store';
 import { buildNarrativeMarkdown } from '$utils/narrative-export';
+import {
+  decodeServiceUrl,
+  getServiceExtent
+} from '$utils/openeo/service-adapters';
 import { toaster } from '$utils/toaster';
 import type { BackendService } from '$types';
 
@@ -45,19 +49,9 @@ interface ServiceOptionsMenuProps {
   portalled?: boolean;
 }
 
-function decodeServiceUrl(url: string): string {
-  try {
-    return decodeURIComponent(url);
-  } catch {
-    return url;
-  }
-}
-
 function getNarrativeMarkdown(service: BackendService): string {
   const url = decodeServiceUrl(service.url);
-  const extent = service.configuration?.extent as
-    | [number, number, number, number]
-    | undefined;
+  const extent = getServiceExtent(service);
   const center: [number, number] = extent
     ? [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2]
     : [0, 0];

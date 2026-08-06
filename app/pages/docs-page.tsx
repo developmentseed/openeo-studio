@@ -1,5 +1,5 @@
 import { Box, Heading, VStack } from '@chakra-ui/react';
-import { MarkdownRenderer } from '$utils/md-renderer';
+import { MarkdownRenderer } from '$components/common/md-renderer';
 import content from './docs-content.md?raw';
 
 export function DocsPage() {

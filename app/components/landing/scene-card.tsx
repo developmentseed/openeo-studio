@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { SampleScene } from '$types';
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 
 interface SceneCardProps extends CardRootProps {
   scene: SampleScene;

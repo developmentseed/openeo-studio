@@ -2,7 +2,7 @@ import { Box, Card, Heading, Stack } from '@chakra-ui/react';
 
 import { ServiceOptionsMenu } from './service-options-menu';
 import { getServiceScope, ServiceScopeBadge } from './service-scope-badge';
-import SmartLink from '$utils/smart-link';
+import SmartLink from '$components/common/smart-link';
 import type { BackendService } from '$types';
 
 interface ServiceCardProps {
