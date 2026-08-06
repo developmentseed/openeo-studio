@@ -38,6 +38,11 @@ interface ServiceOptionsMenuProps {
   /** Called after a successful delete (e.g. to navigate away). */
   onDeleted?: () => void;
   triggerProps?: IconButtonProps;
+  /**
+   * When false, renders the menu inside the current DOM tree (required inside
+   * Dialog — a body portal is dismissed by the dialog focus trap).
+   */
+  portalled?: boolean;
 }
 
 function decodeServiceUrl(url: string): string {
@@ -103,11 +108,134 @@ function ClipboardField({
   );
 }
 
+function MenuPanel({
+  showOwnerActions,
+  isBusy,
+  scope,
+  serviceUrl,
+  shareUrl,
+  service,
+  onScopeChange
+}: {
+  showOwnerActions: boolean;
+  isBusy: boolean;
+  scope: ServiceScope;
+  serviceUrl: string;
+  shareUrl: string;
+  service: BackendService;
+  onScopeChange: (scope: ServiceScope) => void;
+}) {
+  return (
+    <Menu.Content
+      minW='18rem'
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+      bg='bg.subtle'
+      p={0}
+      gap={1}
+      display='flex'
+      flexDirection='column'
+      alignItems='stretch'
+    >
+      <Box px={3} py={2} bg='bg'>
+        <Text fontSize='xs' fontWeight='bold'>
+          Menu
+        </Text>
+      </Box>
+
+      {showOwnerActions && (
+        <Stack px={3} py={2} gap={1}>
+          <Text fontSize='sm' fontWeight='bold'>
+            Scope
+          </Text>
+          <VStack align='stretch' gap={0} asChild>
+            <RadioGroup.Root
+              size='sm'
+              value={scope}
+              disabled={isBusy}
+              onValueChange={(details) => {
+                if (details.value === 'public' || details.value === 'private') {
+                  void onScopeChange(details.value);
+                }
+              }}
+            >
+              {(
+                [
+                  { value: 'public', label: 'Public' },
+                  { value: 'private', label: 'Private' }
+                ] as const
+              ).map((option) => (
+                <Flex
+                  key={option.value}
+                  align='center'
+                  justify='space-between'
+                  borderRadius='sm'
+                  lineHeight='1.75rem'
+                >
+                  <Text fontSize='sm' truncate flex={1}>
+                    {option.label}
+                  </Text>
+                  <RadioGroup.Item value={option.value}>
+                    <RadioGroup.ItemHiddenInput />
+                    <RadioGroup.ItemIndicator />
+                  </RadioGroup.Item>
+                </Flex>
+              ))}
+            </RadioGroup.Root>
+          </VStack>
+        </Stack>
+      )}
+
+      {showOwnerActions && <Separator />}
+
+      <VStack align='stretch' gap={2} px={3} py={2}>
+        <ClipboardField
+          label='XYZ url'
+          value={serviceUrl}
+          aria-label='XYZ tile URL'
+        />
+        {scope === 'public' && (
+          <ClipboardField
+            label='Share url'
+            value={shareUrl}
+            aria-label='Share url'
+          />
+        )}
+      </VStack>
+
+      {(ENABLE_NARRATIVE_EXPORT || showOwnerActions) && (
+        <>
+          <Separator />
+          <Stack gap={0}>
+            {ENABLE_NARRATIVE_EXPORT && <CopyNarrative service={service} />}
+
+            {showOwnerActions && (
+              <Menu.Item
+                as='button'
+                value={DELETE_ACTION}
+                fontWeight='semibold'
+                color='fg.error'
+                _hover={{ bg: 'bg.error', color: 'fg.error' }}
+                _icon={{ w: 4, h: 4 }}
+                disabled={isBusy}
+                p={3}
+              >
+                <LuTrash2 /> Delete
+              </Menu.Item>
+            )}
+          </Stack>
+        </>
+      )}
+    </Menu.Content>
+  );
+}
+
 export function ServiceOptionsMenu({
   service,
   onScopeChanged,
   onDeleted,
-  triggerProps
+  triggerProps,
+  portalled = true
 }: ServiceOptionsMenuProps) {
   const { user, isAuthenticated } = useAuth();
   const deleteService = useServicesStore((s) => s.deleteService);
@@ -125,7 +253,7 @@ export function ServiceOptionsMenu({
     if (!user?.access_token || isBusy || nextScope === scope) return;
     setIsUpdatingScope(true);
     try {
-      await updateServiceScope(user.access_token, service.id, nextScope);
+      await updateServiceScope(user.access_token, service, nextScope);
       onScopeChanged?.(nextScope);
       toaster.success({
         title:
@@ -161,7 +289,12 @@ export function ServiceOptionsMenu({
 
   return (
     <Menu.Root
-      positioning={{ placement: 'bottom-end' }}
+      positioning={{
+        placement: 'bottom-end',
+        ...(portalled
+          ? {}
+          : { strategy: 'fixed' as const, hideWhenDetached: true })
+      }}
       onSelect={(details) => {
         if (details.value === DELETE_ACTION) handleDelete();
       }}
@@ -177,114 +310,17 @@ export function ServiceOptionsMenu({
           <LuEllipsisVertical />
         </IconButton>
       </Menu.Trigger>
-      <Portal>
+      <Portal disabled={!portalled}>
         <Menu.Positioner>
-          <Menu.Content
-            minW='18rem'
-            onClick={(event) => event.stopPropagation()}
-            onPointerDown={(event) => event.stopPropagation()}
-            bg='bg.subtle'
-            p={0}
-            gap={1}
-            display='flex'
-            flexDirection='column'
-            alignItems='stretch'
-          >
-            <Box px={3} py={2} bg='bg'>
-              <Text fontSize='xs' fontWeight='bold'>
-                Menu
-              </Text>
-            </Box>
-
-            {showOwnerActions && (
-              <Stack px={3} py={2} gap={1}>
-                <Text fontSize='sm' fontWeight='bold'>
-                  Scope
-                </Text>
-                <VStack align='stretch' gap={0} asChild>
-                  <RadioGroup.Root
-                    size='sm'
-                    value={scope}
-                    disabled={isBusy}
-                    onValueChange={(details) => {
-                      if (
-                        details.value === 'public' ||
-                        details.value === 'private'
-                      ) {
-                        void handleScopeChange(details.value);
-                      }
-                    }}
-                  >
-                    {(
-                      [
-                        { value: 'public', label: 'Public' },
-                        { value: 'private', label: 'Private' }
-                      ] as const
-                    ).map((option) => (
-                      <Flex
-                        key={option.value}
-                        align='center'
-                        justify='space-between'
-                        borderRadius='sm'
-                        lineHeight='1.75rem'
-                      >
-                        <Text fontSize='sm' truncate flex={1}>
-                          {option.label}
-                        </Text>
-                        <RadioGroup.Item value={option.value}>
-                          <RadioGroup.ItemHiddenInput />
-                          <RadioGroup.ItemIndicator />
-                        </RadioGroup.Item>
-                      </Flex>
-                    ))}
-                  </RadioGroup.Root>
-                </VStack>
-              </Stack>
-            )}
-
-            {showOwnerActions && <Separator />}
-
-            <VStack align='stretch' gap={2} px={3} py={2}>
-              <ClipboardField
-                label='XYZ url'
-                value={serviceUrl}
-                aria-label='XYZ tile URL'
-              />
-              {scope === 'public' && (
-                <ClipboardField
-                  label='Share url'
-                  value={shareUrl}
-                  aria-label='Share url'
-                />
-              )}
-            </VStack>
-
-            {(ENABLE_NARRATIVE_EXPORT || showOwnerActions) && (
-              <>
-                <Separator />
-                <Stack gap={0}>
-                  {ENABLE_NARRATIVE_EXPORT && (
-                    <CopyNarrative service={service} />
-                  )}
-
-                  {showOwnerActions && (
-                    <Menu.Item
-                      as='button'
-                      value={DELETE_ACTION}
-                      fontWeight='semibold'
-                      color='fg.error'
-                      _hover={{ bg: 'bg.error', color: 'fg.error' }}
-                      _icon={{ w: 4, h: 4 }}
-                      disabled={isBusy}
-                      p={3}
-                    >
-                      <LuTrash2 /> Delete
-                    </Menu.Item>
-                  )}
-                </Stack>
-              </>
-            )}
-          </Menu.Content>
+          <MenuPanel
+            showOwnerActions={showOwnerActions}
+            isBusy={isBusy}
+            scope={scope}
+            serviceUrl={serviceUrl}
+            shareUrl={shareUrl}
+            service={service}
+            onScopeChange={handleScopeChange}
+          />
         </Menu.Positioner>
       </Portal>
     </Menu.Root>

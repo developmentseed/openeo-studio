@@ -104,7 +104,7 @@ describe('services-store', () => {
 
     await useServicesStore
       .getState()
-      .updateServiceScope('token', 'svc-1', 'private');
+      .updateServiceScope('token', sampleService, 'private');
 
     expect(mockFetchJson).toHaveBeenCalledWith(
       'https://example.test/openeo/services/svc-1',
@@ -122,12 +122,27 @@ describe('services-store', () => {
     );
   });
 
+  it('updateServiceScope works when the service is not in the list cache', async () => {
+    mockFetchJson.mockResolvedValue(undefined);
+
+    await useServicesStore
+      .getState()
+      .updateServiceScope('token', sampleService, 'private');
+
+    expect(useServicesStore.getState().services).toHaveLength(1);
+    expect(useServicesStore.getState().services[0].configuration.scope).toBe(
+      'private'
+    );
+  });
+
   it('updateServiceScope leaves state unchanged when PATCH fails', async () => {
     useServicesStore.setState({ services: [sampleService] });
     mockFetchJson.mockRejectedValue(new Error('bad request'));
 
     await expect(
-      useServicesStore.getState().updateServiceScope('token', 'svc-1', 'private')
+      useServicesStore
+        .getState()
+        .updateServiceScope('token', sampleService, 'private')
     ).rejects.toThrow('bad request');
 
     expect(useServicesStore.getState().services[0].configuration.scope).toBe(

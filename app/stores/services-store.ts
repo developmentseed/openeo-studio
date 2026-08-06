@@ -20,13 +20,13 @@ type ServicesActions = {
   deleteService: (authToken: string, id: string) => Promise<void>;
   updateServiceScope: (
     authToken: string,
-    id: string,
+    service: BackendService,
     scope: ServiceScope
   ) => Promise<void>;
 };
 
 export const useServicesStore = create<ServicesState & ServicesActions>(
-  (set, get) => ({
+  (set) => ({
     services: [],
     isLoading: false,
     isSuccess: false,
@@ -54,25 +54,24 @@ export const useServicesStore = create<ServicesState & ServicesActions>(
         services: state.services.filter((s) => s.id !== id)
       }));
     },
-    updateServiceScope: async (authToken, id, scope) => {
-      const service = get().services.find((s) => s.id === id);
-      if (!service) {
-        throw new Error('Service not found');
-      }
-
+    updateServiceScope: async (authToken, service, scope) => {
       // PATCH only replaces first-level fields; send the full configuration.
       const configuration = { ...service.configuration, scope };
-      await fetchJson(getServiceUrl(id), authToken, {
+      await fetchJson(getServiceUrl(service.id), authToken, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ configuration })
       });
 
-      set((state) => ({
-        services: state.services.map((s) =>
-          s.id === id ? { ...s, configuration } : s
-        )
-      }));
+      const updated = { ...service, configuration };
+      set((state) => {
+        const exists = state.services.some((s) => s.id === service.id);
+        return {
+          services: exists
+            ? state.services.map((s) => (s.id === service.id ? updated : s))
+            : [...state.services, updated]
+        };
+      });
     }
   })
 );

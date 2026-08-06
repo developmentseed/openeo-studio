@@ -13,6 +13,9 @@ interface ShareHeaderProps {
   service: BackendService | null;
   onScopeChanged?: (scope: ServiceScope) => void;
   onDeleted?: () => void;
+  actions?: React.ReactNode;
+  /** Pass false when rendering inside a Dialog (avoids focus-trap dismiss). */
+  portalled?: boolean;
 }
 
 export function ShareHeader({
@@ -20,7 +23,9 @@ export function ShareHeader({
   scope,
   service,
   onScopeChanged,
-  onDeleted
+  onDeleted,
+  actions,
+  portalled = true
 }: ShareHeaderProps) {
   return (
     <Flex
@@ -43,8 +48,10 @@ export function ShareHeader({
             onScopeChanged={onScopeChanged}
             onDeleted={onDeleted}
             triggerProps={{ variant: 'outline' }}
+            portalled={portalled}
           />
         )}
+        {actions}
       </Flex>
     </Flex>
   );
