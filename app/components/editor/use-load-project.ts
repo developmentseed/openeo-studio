@@ -7,7 +7,7 @@ import { useProjectsStore } from '$stores/projects-store';
 import {
   deriveConfigFromProject,
   extractCodeFromDescription
-} from '$utils/process-graphs';
+} from '$utils/openeo/user-defined-processes';
 import type { SampleScene } from '$types';
 
 interface UseLoadProjectResult {

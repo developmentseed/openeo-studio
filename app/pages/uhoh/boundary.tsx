@@ -4,7 +4,7 @@ import { useLocation } from 'react-router';
 
 import { AppHeader } from '$components/layout/app-header';
 import { useEffectAfterMount } from '$utils/use-effect-after-mount';
-import { NotFound } from './error';
+import { NotFound } from '$utils/errors';
 import UhOh404 from './404';
 import UhOh500 from './500';
 

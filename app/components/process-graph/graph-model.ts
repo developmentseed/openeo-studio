@@ -61,7 +61,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * Collects the ids referenced by `{from_node: ...}` anywhere in an argument
  * value, without descending into a nested process graph: those references
  * point at siblings inside the subgraph, never at the graph being rendered.
- * Same rule `renameNodeReferences` applies in `$utils/process-graphs`.
+ * Same rule `renameNodeReferences` applies in `$utils/openeo/user-defined-processes`.
  */
 function collectNodeRefs(value: unknown, out: Set<string>): void {
   if (Array.isArray(value)) {

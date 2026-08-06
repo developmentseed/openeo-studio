@@ -2,10 +2,13 @@ import { create } from 'zustand';
 import { useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
 
-import { APIError, fetchJson } from '$utils/api';
-import { getServiceUrl } from '$utils/openeo/services';
-import { listPermanentServices } from '$utils/openeo/permanent-services';
-import type { BackendService } from '$types';
+import { APIError } from '$utils/api';
+import {
+  deletePermanentService,
+  listPermanentServices,
+  updatePermanentServiceConfiguration
+} from '$utils/openeo/permanent-services';
+import type { BackendService, ServiceScope } from '$types';
 
 type ServicesState = {
   services: BackendService[];
@@ -13,8 +16,6 @@ type ServicesState = {
   isSuccess: boolean;
   error: Error | null;
 };
-
-type ServiceScope = 'public' | 'private';
 
 type ServicesActions = {
   fetchServices: (authToken: string) => Promise<void>;
@@ -50,7 +51,7 @@ export const useServicesStore = create<ServicesState & ServicesActions>(
       }
     },
     deleteService: async (authToken, id) => {
-      await fetchJson(getServiceUrl(id), authToken, { method: 'DELETE' });
+      await deletePermanentService(id, authToken);
       set((state) => ({
         services: state.services.filter((s) => s.id !== id)
       }));
@@ -58,13 +59,12 @@ export const useServicesStore = create<ServicesState & ServicesActions>(
     updateServiceScope: async (authToken, service, scope) => {
       // PATCH only replaces first-level fields; send the full configuration.
       const configuration = { ...service.configuration, scope };
-      await fetchJson(getServiceUrl(service.id), authToken, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ configuration })
-      });
+      const updated = await updatePermanentServiceConfiguration(
+        service,
+        authToken,
+        configuration
+      );
 
-      const updated = { ...service, configuration };
       set((state) => {
         const exists = state.services.some((s) => s.id === service.id);
         return {

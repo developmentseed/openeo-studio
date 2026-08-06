@@ -5,14 +5,14 @@ import { useParams } from 'react-router';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
-import { MapPanel } from '$components/layout/map-panel';
+import { MapPanel } from '$components/editor/map-panel';
 import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
 import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
-import { NotFound } from '$pages/uhoh/error';
+import { NotFound } from '$utils/errors';
 
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();

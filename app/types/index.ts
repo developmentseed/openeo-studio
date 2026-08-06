@@ -102,6 +102,11 @@ export interface ValidationError {
 export type UserDefinedProcess = OpenEOProcess;
 
 /**
+ * Permanent service visibility scope.
+ */
+export type ServiceScope = 'public' | 'private';
+
+/**
  * Response payload for GET /process_graphs.
  */
 export interface ProcessGraphsResponse {

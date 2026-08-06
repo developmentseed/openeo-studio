@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 import { appConfig } from '$config/runtime';
 import { APIError, fetchJson } from '$utils/api';
-import { upsertUserDefinedProcess } from '$utils/process-graphs';
+import { upsertUserDefinedProcess } from '$utils/openeo/user-defined-processes';
 import type { UserDefinedProcess, ProcessGraphsResponse } from '$types';
 import type { ProcessGraph, ProcessParameter } from '$types/openeo-process';
 import { useAuth } from 'react-oidc-context';

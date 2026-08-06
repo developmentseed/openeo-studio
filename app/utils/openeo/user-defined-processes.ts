@@ -11,7 +11,7 @@ import type {
   ProcessParameter,
   ProcessArgumentValue
 } from '$types/openeo-process';
-import { fetchJson } from './api';
+import { fetchJson } from '../api';
 
 // Matches the openeo-studio code block embedded in a UDP description.
 const CODE_BLOCK_PATTERN = /```openeo-studio\n([\s\S]*?)```/;

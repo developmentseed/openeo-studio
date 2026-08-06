@@ -4,10 +4,10 @@ import { useCollection } from '@developmentseed/stac-react';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
-import { CollectionDisplay } from '$components/setup/collection-display';
-import { TemporalRangePicker } from '$components/setup/temporal-range-picker';
-import { CloudCoverSlider } from '$components/setup/cloud-cover-slider';
-import { BandArrayBuilder } from '$components/setup/band-array-builder';
+import { CollectionDisplay } from '$components/editor/setup/collection-display';
+import { TemporalRangePicker } from '$components/editor/setup/temporal-range-picker';
+import { CloudCoverSlider } from '$components/editor/setup/cloud-cover-slider';
+import { BandArrayBuilder } from '$components/editor/setup/band-array-builder';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
 import { useEditorStore } from '$stores/editor-store';
 

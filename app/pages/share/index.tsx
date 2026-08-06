@@ -11,14 +11,15 @@ import {
   getServiceScope,
   type ServiceScope
 } from '$components/services/service-scope-badge';
+import { EmptyState } from '$components/common/empty-state';
 import { ShareHeader } from '$components/share/share-header';
-import { APIError, fetchJson } from '$utils/api';
+import { APIError } from '$utils/api';
+import { getPermanentService } from '$utils/openeo/permanent-services';
 import {
   backendServiceToServiceInfo,
   getServiceDisplayName,
   getServiceExtent
 } from '$utils/openeo/service-adapters';
-import { getServiceUrl } from '$utils/openeo/services';
 import { LuMapPinOff } from 'react-icons/lu';
 
 export function SharePage() {
@@ -45,8 +46,8 @@ export function SharePage() {
       setIsLoading(true);
       setError(null);
       try {
-        const details = await fetchJson<BackendService>(
-          getServiceUrl(serviceId),
+        const details = await getPermanentService(
+          serviceId,
           user?.access_token
         );
         setService(details);
@@ -116,27 +117,14 @@ export function SharePage() {
               </VStack>
             </Flex>
           ) : error ? (
-            <Box
-              borderWidth='2px'
-              borderStyle='dashed'
-              borderColor='border'
-              borderRadius='uni'
-              bg='bg'
-              p={6}
-              boxSize='100%'
-            >
-              <VStack gap={2} justify='center' height='100%'>
-                <LuMapPinOff size='4rem' />
-                <VStack gap={2}>
-                  <Text fontWeight='semibold' fontSize='lg'>
-                    Service Unavailable
-                  </Text>
-                  <Text fontSize='sm' textAlign='center'>
-                    {error}
-                  </Text>
-                </VStack>
-              </VStack>
-            </Box>
+            <EmptyState
+              variant='error'
+              icon={<LuMapPinOff size='4rem' />}
+              title='Service Unavailable'
+              description={error}
+              maxH='none'
+              maxW='none'
+            />
           ) : (
             <Flex
               flex={1}

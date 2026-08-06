@@ -1,4 +1,4 @@
-// process-graphs.ts also imports appConfig from $config/runtime, which reads
+// user-defined-processes.ts also imports appConfig from $config/runtime, which reads
 // import.meta.env at module scope — ts-jest can't downlevel import.meta for
 // CommonJS, so that module is mocked here rather than actually loaded. Only
 // deriveConfigFromProject (pure, no config dependency) is under test.
@@ -11,7 +11,7 @@ import {
   deriveConfigFromProject,
   mergeProcessGraphs,
   resolveSharedParameters
-} from '$utils/process-graphs';
+} from '$utils/openeo/user-defined-processes';
 import type { UserDefinedProcess } from '$types';
 import type { ProcessGraph, ProcessParameter } from '$types/openeo-process';
 
