@@ -28,7 +28,7 @@ and drop the editing machinery and the DOM-measurement layer.
 `useEditorStore().services` is a `ServiceInfo[]`, each carrying
 `graphResult.process_graph` (an openEO flat graph) plus `graphResult.parameters`.
 The JSON tab already combines them with `mergeProcessGraphs()` from
-`app/utils/process-graphs.ts`. Types for the whole openEO process model live in
+`app/utils/openeo/user-defined-processes.ts`. Types for the whole openEO process model live in
 `app/types/openeo-process.ts`. No graph library is installed, and nothing in the
 app calls `GET /processes`.
 
@@ -130,7 +130,7 @@ All new code lives in `app/components/process-graph/`:
 
 ### Changes outside the folder
 
-- `app/components/layout/map-panel.tsx` gains a `<Tabs.Content value='visual'>`
+- `app/components/editor/results-panel.tsx` gains a `<Tabs.Content value='visual'>`
   rendering the viewer, and `lazyMount` on its `Tabs.Root`.
 - The merged-graph computation currently inlined in `OutputJson` moves to a
   `useMergedProcessGraph()` hook (in `app/components/layout/`) that reads
@@ -189,7 +189,7 @@ Rules:
 - **Edges.** Walk every argument value collecting `{from_node: id}` references.
   Do not descend into a value containing a `process_graph` key — those
   references point at siblings inside that subgraph, the same rule
-  `renameNodeReferences` in `app/utils/process-graphs.ts` already applies. One
+  `renameNodeReferences` in `app/utils/openeo/user-defined-processes.ts` already applies. One
   argument can yield multiple edges (`array_create` receiving a list of
   references). Each edge is `{source: refId, sourceHandle: 'output', target:
   nodeId, targetHandle: argName}`.

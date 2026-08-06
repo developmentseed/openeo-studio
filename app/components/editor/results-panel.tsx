@@ -29,7 +29,7 @@ const ProcessGraphViewer = lazy(() =>
   }))
 );
 
-function MapPanelComponent() {
+function ResultsPanelComponent() {
   const { bounds, sceneId, services } = useEditorStore(
     useShallow((state) => ({
       bounds: state.selectedConfig.boundingBox,
@@ -111,7 +111,7 @@ function MapPanelComponent() {
   );
 }
 
-export const MapPanel = memo(MapPanelComponent);
+export const ResultsPanel = memo(ResultsPanelComponent);
 
 function NoOutput({ icon, hint }: { icon: ReactNode; hint: string }) {
   return (

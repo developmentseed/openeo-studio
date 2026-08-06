@@ -5,7 +5,7 @@ import { useParams } from 'react-router';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
-import { MapPanel } from '$components/editor/map-panel';
+import { ResultsPanel } from '$components/editor/results-panel';
 import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
@@ -150,7 +150,7 @@ export function EditorPage() {
           borderColor='border'
           borderRadius='uni'
         >
-          <MapPanel />
+          <ResultsPanel />
         </Splitter.Panel>
       </Splitter.Root>
     </Flex>
