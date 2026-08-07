@@ -1,0 +1,140 @@
+name: Lint and Test Charts
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+    paths:
+      # Only run lint/install if the chart or its inputs changed
+      - 'charts/**'
+      - '.github/workflows/check_charts.yml'
+      - 'package.json'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check version
+        run: |
+          package_version=$(node -p "require('./package.json').version")
+          app_version=$(grep '^appVersion:' charts/openeo-studio/Chart.yaml | cut -d: -f2 | tr -d ' "')
+          if [[ "$package_version" != "$app_version" ]]; then
+            echo "::error::package.json version ($package_version) and charts/openeo-studio/Chart.yaml appVersion ($app_version) differ"
+            exit 1
+          fi
+          echo "✅ Versions match: $package_version"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.16.2
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.8.0
+        with:
+          yamale_version: '6.0.0'
+
+      - name: Run helm unittest
+        run: |
+          helm plugin install https://github.com/helm-unittest/helm-unittest --version v0.6.2
+          helm unittest charts/openeo-studio
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --chart-dirs charts --target-branch "${{ github.event.repository.default_branch }}")
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run chart-testing (lint)
+        run: ct lint --chart-dirs charts --target-branch "${{ github.event.repository.default_branch }}" --check-version-increment=false
+
+      - name: Build container
+        uses: docker/build-push-action@v6
+        if: steps.list-changed.outputs.changed == 'true'
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: true
+          tags: "openeo-studio:dev"
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.14.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Load container image in kind cluster
+        if: steps.list-changed.outputs.changed == 'true'
+        run: kind load docker-image openeo-studio:dev --name chart-testing
+
+      - name: Run chart-testing (install)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install --chart-dirs charts --helm-extra-args "--timeout=300s" --skip-clean-up
+
+      - name: Smoke test the deployed app
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          # ct install --skip-clean-up leaves the releases in place. Grab the
+          # first pod by the standard helm label (there is one release per
+          # charts/openeo-studio/ci/*-values.yaml file).
+          for i in $(seq 1 30); do
+            POD=$(kubectl get pods -A -l app.kubernetes.io/name=openeo-studio \
+              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            NS=$(kubectl get pods -A -l app.kubernetes.io/name=openeo-studio \
+              -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null || true)
+            if [[ -n "$POD" ]]; then
+              break
+            fi
+            sleep 2
+          done
+          if [[ -z "${POD:-}" ]]; then
+            echo "No openeo-studio pod found in cluster:"
+            kubectl get pods -A
+            exit 1
+          fi
+          echo "Smoke-testing pod $NS/$POD"
+          kubectl -n "$NS" wait --for=condition=Ready pod/"$POD" --timeout=180s
+          kubectl -n "$NS" port-forward "pod/$POD" 18080:80 &
+          PF_PID=$!
+          trap 'kill $PF_PID 2>/dev/null || true' EXIT
+          # Give kubectl port-forward a moment to establish the tunnel
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:18080/ && break || sleep 1
+          done
+          echo "GET / (index.html, runtime config templated in)"
+          curl -fsS http://127.0.0.1:18080/ | tee /tmp/index.html
+          grep -q '<title>openEO Studio CI</title>' /tmp/index.html
+          grep -q 'window.__APP_CONFIG__' /tmp/index.html
+          echo "GET /assets/<bundle>.js (built asset served)"
+          asset=$(grep -oE '/assets/[^"]+\.js' /tmp/index.html | head -1)
+          curl -fsS -o /dev/null http://127.0.0.1:18080"${asset}"
+          echo "GET /some/deep/route (SPA fallback to index.html)"
+          curl -fsS -o /dev/null http://127.0.0.1:18080/some/deep/route
+
+      - name: Dump diagnostics on failure
+        if: failure() && steps.list-changed.outputs.changed == 'true'
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods -A -o wide || true
+          echo "=== Events ==="
+          kubectl get events -A --sort-by=.lastTimestamp || true
+          echo "=== App logs ==="
+          kubectl logs -A -l app.kubernetes.io/name=openeo-studio --tail=200 || true
