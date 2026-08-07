@@ -29,8 +29,9 @@ resources: {}
 
 env:
   OPENEO_API_URL: https://api.explorer.eopf.copernicus.eu/openeo
+  # The container derives its mount path from this URL (see
+  # docker/90-app-config.sh) - there is no separate PATH_PREFIX variable.
   BASE_URL: ""
-  PATH_PREFIX: ""
   APP_TITLE: openEO Studio
   APP_DESCRIPTION: Interactive code editor for openEO satellite imagery processing
   MAPTILER_KEY: ""

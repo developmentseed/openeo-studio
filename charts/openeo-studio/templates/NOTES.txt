@@ -17,4 +17,4 @@
   echo "Visit http://127.0.0.1:8080"
 {{- end }}
 
-Runtime config is set via values.env (OPENEO_API_URL, MAPTILER_KEY, AUTH_*, PATH_PREFIX, …).
+Runtime config is set via values.env (OPENEO_API_URL, BASE_URL, MAPTILER_KEY, AUTH_*, …).

@@ -1,0 +1,15 @@
+# Second ct install target: exercises the ingress template, which the
+# default ci-values.yaml install (ingress disabled) never renders.
+image:
+  repository: openeo-studio
+  tag: dev
+  pullPolicy: Never
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: openeo-studio.ci.local
+      paths:
+        - path: /
+          pathType: Prefix

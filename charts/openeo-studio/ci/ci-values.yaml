@@ -1,0 +1,10 @@
+# Used by `ct install`/`ct lint` (chart-testing auto-discovers charts/*/ci/*.yaml).
+# Points at the image the CI workflow builds from the repo's own Dockerfile
+# and loads into the kind cluster, instead of pulling from ghcr.io.
+image:
+  repository: openeo-studio
+  tag: dev
+  pullPolicy: Never
+
+env:
+  APP_TITLE: openEO Studio CI
