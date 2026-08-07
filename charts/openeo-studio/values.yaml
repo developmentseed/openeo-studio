@@ -40,6 +40,17 @@ env:
   AUTH_REDIRECT_URI: ""
   ENABLE_NARRATIVE_EXPORT: "false"
 
+# Source any of the above env vars from a pre-existing Secret instead of a
+# literal value in `env`. A name listed here takes over from `env` entirely
+# (its literal value, if any, is dropped in favor of the secretKeyRef).
+# secretKey defaults to `name` when omitted.
+#
+# envFromSecret:
+#   - name: MAPTILER_KEY
+#     secretName: openeo-studio-secrets
+#     secretKey: maptiler-key
+envFromSecret: []
+
 nodeSelector: {}
 tolerations: []
 affinity: {}

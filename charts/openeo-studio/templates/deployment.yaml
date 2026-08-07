@@ -14,7 +14,7 @@ spec:
       labels:
         {{- include "openeo-studio.selectorLabels" . | nindent 8 }}
       annotations:
-        checksum/config: {{ toJson .Values.env | sha256sum }}
+        checksum/config: {{ toJson (dict "env" .Values.env "envFromSecret" .Values.envFromSecret) | sha256sum }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -29,9 +29,22 @@ spec:
               containerPort: 80
               protocol: TCP
           env:
+            {{- $secretKeys := list }}
+            {{- range .Values.envFromSecret }}
+            {{- $secretKeys = append $secretKeys .name }}
+            {{- end }}
             {{- range $key, $value := .Values.env }}
+            {{- if not (has $key $secretKeys) }}
             - name: {{ $key }}
               value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- range .Values.envFromSecret }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey | default .name }}
             {{- end }}
           livenessProbe:
             httpGet:

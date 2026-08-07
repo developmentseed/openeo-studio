@@ -59,6 +59,50 @@ tests:
           content:
             name: PATH_PREFIX
 
+  - it: sources an env var from a secretKeyRef when listed in envFromSecret
+    set:
+      envFromSecret:
+        - name: MAPTILER_KEY
+          secretName: openeo-studio-secrets
+          secretKey: maptiler-key
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MAPTILER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openeo-studio-secrets
+                key: maptiler-key
+
+  - it: does not also render a literal value entry for a key sourced from envFromSecret (no duplicate env name)
+    set:
+      envFromSecret:
+        - name: MAPTILER_KEY
+          secretName: openeo-studio-secrets
+          secretKey: maptiler-key
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MAPTILER_KEY
+            value: ""
+
+  - it: defaults secretKey to the env var name when secretKey is omitted
+    set:
+      envFromSecret:
+        - name: MAPTILER_KEY
+          secretName: openeo-studio-secrets
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MAPTILER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openeo-studio-secrets
+                key: MAPTILER_KEY
+
   - it: probes / on the http port for liveness and readiness
     asserts:
       - equal:
