@@ -10,6 +10,7 @@ import {
   type BackendService
 } from '$types';
 
+import { appConfig } from '$config/runtime';
 import { getInstanceId } from './instance-id';
 
 // Track active services for cleanup
@@ -18,7 +19,7 @@ const activeServices: ServiceInfo[] = [];
 export const EXAMPLE_CODE = trueColorAlgorithm;
 
 // OpenEO API constants
-const OPENEO_API_URL = 'https://api.explorer.eopf.copernicus.eu/openeo';
+const OPENEO_API_URL = appConfig.openeoApiUrl;
 const AUTH_PREFIX = 'Bearer oidc/oidc/';
 
 // Service title conventions for backend-side discovery
