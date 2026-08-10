@@ -129,8 +129,9 @@ function MenuPanel({
       display='flex'
       flexDirection='column'
       alignItems='stretch'
+      bg='bg.subtle'
     >
-      <Box px={3} py={2} bg='bg'>
+      <Box px={3} py={2}>
         <Text fontSize='xs' fontWeight='bold'>
           Menu
         </Text>
@@ -140,7 +141,7 @@ function MenuPanel({
         borderTopRadius='uni'
         borderTop='1px solid'
         borderColor='border'
-        bg='bg.subtle'
+        bg='bg'
       >
         {showOwnerActions && (
           <Stack px={3} py={2} gap={1}>
