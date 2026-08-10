@@ -53,7 +53,6 @@ export function CodeInfoMenu({
             minW='18rem'
             onClick={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
-            bg='bg.subtle'
             p={0}
             gap={1}
             display='flex'
@@ -66,55 +65,65 @@ export function CodeInfoMenu({
               </Text>
             </Box>
 
-            <Stack px={3} py={2} gap={1}>
-              <Text fontSize='sm' fontWeight='bold'>
-                View
-              </Text>
-              <VStack align='stretch' gap={0} asChild>
-                <RadioGroup.Root
-                  size='sm'
-                  value={codeType}
-                  onValueChange={(details) => {
-                    if (
-                      details.value === 'boilerplate' ||
-                      details.value === 'algorithm'
-                    ) {
-                      onCodeTypeChange(details.value);
-                    }
-                  }}
-                >
-                  {(
-                    [
-                      {
-                        value: 'boilerplate',
-                        label: 'Boilerplate (read-only)'
-                      },
-                      { value: 'algorithm', label: 'Algorithm' }
-                    ] as const
-                  ).map((option) => (
-                    <Flex
-                      key={option.value}
-                      align='center'
-                      justify='space-between'
-                      borderRadius='sm'
-                      lineHeight='1.75rem'
-                    >
-                      <Text fontSize='sm' truncate flex={1}>
-                        {option.label}
-                      </Text>
-                      <RadioGroup.Item value={option.value}>
-                        <RadioGroup.ItemHiddenInput />
-                        <RadioGroup.ItemIndicator />
-                      </RadioGroup.Item>
-                    </Flex>
-                  ))}
-                </RadioGroup.Root>
-              </VStack>
+            <Stack
+              gap={1}
+              borderTopRadius='uni'
+              borderTop='1px solid'
+              borderColor='border'
+              bg='bg.subtle'
+            >
+              <Stack px={3} py={2} gap={1}>
+                <Text fontSize='sm' fontWeight='bold'>
+                  View
+                </Text>
+                <VStack align='stretch' gap={0} asChild>
+                  <RadioGroup.Root
+                    size='sm'
+                    value={codeType}
+                    onValueChange={(details) => {
+                      if (
+                        details.value === 'boilerplate' ||
+                        details.value === 'algorithm'
+                      ) {
+                        onCodeTypeChange(details.value);
+                      }
+                    }}
+                  >
+                    {(
+                      [
+                        {
+                          value: 'boilerplate',
+                          label: 'Boilerplate (read-only)'
+                        },
+                        { value: 'algorithm', label: 'Algorithm' }
+                      ] as const
+                    ).map((option) => (
+                      <Flex
+                        key={option.value}
+                        align='center'
+                        justify='space-between'
+                        borderRadius='sm'
+                        lineHeight='1.75rem'
+                        fontWeight='normal'
+                        asChild
+                      >
+                        <RadioGroup.Item value={option.value}>
+                          <RadioGroup.ItemText truncate flex={1}>
+                            {option.label}
+                          </RadioGroup.ItemText>
+                          <RadioGroup.ItemHiddenInput />
+                          <RadioGroup.ItemIndicator />
+                        </RadioGroup.Item>
+                      </Flex>
+                    ))}
+                  </RadioGroup.Root>
+                </VStack>
+              </Stack>
+
+              <Separator />
+
+              <AvailableVariables selectedBands={selectedBands} />
             </Stack>
-
-            <Separator />
-
-            <AvailableVariables selectedBands={selectedBands} />
           </Menu.Content>
         </Menu.Positioner>
       </Portal>

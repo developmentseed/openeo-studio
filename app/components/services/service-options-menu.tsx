@@ -124,7 +124,6 @@ function MenuPanel({
       minW='18rem'
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
-      bg='bg.subtle'
       p={0}
       gap={1}
       display='flex'
@@ -136,91 +135,105 @@ function MenuPanel({
           Menu
         </Text>
       </Box>
-
-      {showOwnerActions && (
-        <Stack px={3} py={2} gap={1}>
-          <Text fontSize='sm' fontWeight='bold'>
-            Scope
-          </Text>
-          <VStack align='stretch' gap={0} asChild>
-            <RadioGroup.Root
-              size='sm'
-              value={scope}
-              disabled={isBusy}
-              onValueChange={(details) => {
-                onScopeChange(details.value as ServiceScope);
-              }}
-            >
-              {(
-                [
-                  { value: 'public', label: 'Public' },
-                  { value: 'private', label: 'Private' }
-                ] as const
-              ).map((option) => (
-                <Flex
-                  key={option.value}
-                  align='center'
-                  justify='space-between'
-                  borderRadius='sm'
-                  lineHeight='1.75rem'
-                >
-                  <Text fontSize='sm' truncate flex={1}>
-                    {option.label}
-                  </Text>
-                  <RadioGroup.Item
-                    value={option.value}
-                    disabled={option.value === 'public'}
-                  >
-                    <RadioGroup.ItemHiddenInput />
-                    <RadioGroup.ItemIndicator />
-                  </RadioGroup.Item>
-                </Flex>
-              ))}
-            </RadioGroup.Root>
-          </VStack>
-        </Stack>
-      )}
-
-      {showOwnerActions && <Separator />}
-
-      <VStack align='stretch' gap={2} px={3} py={2}>
-        <ClipboardField
-          label='XYZ url'
-          value={serviceUrl}
-          aria-label='XYZ tile URL'
-        />
-        {scope === 'public' && (
-          <ClipboardField
-            label='Share url'
-            value={shareUrl}
-            aria-label='Share url'
-          />
-        )}
-      </VStack>
-
-      {(ENABLE_NARRATIVE_EXPORT || showOwnerActions) && (
-        <>
-          <Separator />
-          <Stack gap={0}>
-            {ENABLE_NARRATIVE_EXPORT && <CopyNarrative service={service} />}
-
-            {showOwnerActions && (
-              <Menu.Item
-                as='button'
-                value={DELETE_ACTION}
-                fontWeight='semibold'
-                color='fg.error'
-                _hover={{ bg: 'bg.error', color: 'fg.error' }}
-                _icon={{ w: 4, h: 4 }}
+      <Stack
+        gap={1}
+        borderTopRadius='uni'
+        borderTop='1px solid'
+        borderColor='border'
+        bg='bg.subtle'
+      >
+        {showOwnerActions && (
+          <Stack px={3} py={2} gap={1}>
+            <Text fontSize='sm' fontWeight='bold'>
+              Scope
+            </Text>
+            <VStack align='stretch' gap={0} asChild>
+              <RadioGroup.Root
+                size='sm'
+                value={scope}
                 disabled={isBusy}
-                p={3}
+                onValueChange={(details) => {
+                  if (
+                    details.value === 'public' ||
+                    details.value === 'private'
+                  ) {
+                    void onScopeChange(details.value);
+                  }
+                }}
               >
-                <LuTrash2 /> Delete
-              </Menu.Item>
-            )}
+                {(
+                  [
+                    { value: 'public', label: 'Public' },
+                    { value: 'private', label: 'Private' }
+                  ] as const
+                ).map((option) => (
+                  <Flex
+                    key={option.value}
+                    align='center'
+                    justify='space-between'
+                    borderRadius='sm'
+                    lineHeight='1.75rem'
+                    fontWeight='normal'
+                    asChild
+                  >
+                    <RadioGroup.Item
+                      value={option.value}
+                      disabled={option.value === 'public'}
+                    >
+                      <RadioGroup.ItemText truncate flex={1}>
+                        {option.label}
+                      </RadioGroup.ItemText>
+                      <RadioGroup.ItemHiddenInput />
+                      <RadioGroup.ItemIndicator />
+                    </RadioGroup.Item>
+                  </Flex>
+                ))}
+              </RadioGroup.Root>
+            </VStack>
           </Stack>
-        </>
-      )}
+        )}
+
+        {showOwnerActions && <Separator />}
+
+        <VStack align='stretch' gap={2} px={3} py={2}>
+          <ClipboardField
+            label='XYZ url'
+            value={serviceUrl}
+            aria-label='XYZ tile URL'
+          />
+          {scope === 'public' && (
+            <ClipboardField
+              label='Share url'
+              value={shareUrl}
+              aria-label='Share url'
+            />
+          )}
+        </VStack>
+
+        {(ENABLE_NARRATIVE_EXPORT || showOwnerActions) && (
+          <>
+            <Separator />
+            <Stack gap={0}>
+              {ENABLE_NARRATIVE_EXPORT && <CopyNarrative service={service} />}
+
+              {showOwnerActions && (
+                <Menu.Item
+                  as='button'
+                  value={DELETE_ACTION}
+                  fontWeight='semibold'
+                  color='fg.error'
+                  _hover={{ bg: 'bg.error', color: 'fg.error' }}
+                  _icon={{ w: 4, h: 4 }}
+                  disabled={isBusy}
+                  p={3}
+                >
+                  <LuTrash2 /> Delete
+                </Menu.Item>
+              )}
+            </Stack>
+          </>
+        )}
+      </Stack>
     </Menu.Content>
   );
 }
