@@ -13,6 +13,7 @@ import { SharePage } from '$pages/share-page';
 import { ProjectsPage } from '$pages/projects';
 import { ProjectsSamplesPage } from '$pages/projects/samples';
 import UhOh404 from '$pages/uhoh/404';
+import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -87,6 +88,12 @@ export default function App() {
       <Routes>
         <Route path='/' element={<LandingPage />} />
         <Route path='/docs' element={<DocsPage />} />
+        {import.meta.env.DEV && (
+          <Route
+            path='/sandbox/visual-graph'
+            element={<VisualGraphSandboxPage />}
+          />
+        )}
         <Route element={<RequireAuth />}>
           <Route path='/projects' element={<ProjectsPage />} />
           <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
