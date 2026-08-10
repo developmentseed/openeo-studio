@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Code, Tabs, Text } from '@chakra-ui/react';
+import { Code, Stack, Tabs, Text } from '@chakra-ui/react';
 import { useShallow } from 'zustand/shallow';
 import { useNavigate } from 'react-router';
 
@@ -117,57 +117,80 @@ export function EditorWorkspace({
   };
 
   return (
-    <Tabs.Root
-      variant='subtle'
-      size='sm'
-      display='flex'
-      flex={1}
-      flexDirection='column'
-      minHeight={0}
-      minW={0}
+    <Stack
+      gap={0}
+      flexGrow={1}
+      h='100%'
       position='relative'
-      value={activeTab}
-      onValueChange={({ value }) => setActiveTab(value as EditorTabId)}
+      minW={0}
+      minH={0}
+      asChild
     >
-      <EditorHeader
-        onExecuteClick={handleSaveClick}
-        isExecuting={isExecuting}
-        isReady={isExecutionReady}
-        hasPendingChanges={isDirty}
-        onDeleteClick={onDeleteClick}
-        isDeleteBusy={isDeleteBusy}
-        isDeleteDisabled={isDeleteDisabled || isSampleScene(sceneId)}
-      />
-
-      <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
-        <ConfigurationTab />
-      </Tabs.Content>
-
-      <Tabs.Content
-        value='code'
-        flex={1}
-        display='flex'
-        flexDirection='column'
-        p={0}
-        minHeight={0}
-        overflow='hidden'
+      <Tabs.Root
+        variant='subtle'
+        size='sm'
+        value={activeTab}
+        onValueChange={({ value }) => setActiveTab(value as EditorTabId)}
       >
-        <CodeTab />
-      </Tabs.Content>
-
-      <Tabs.Content value='assistant' flex={1} overflow='auto' p={4}>
-        <AssistantTab />
-      </Tabs.Content>
-
-      {errorMessage && !isErrorDismissed && (
-        <ExecutionErrorAlert
-          message={errorMessage}
-          onDismiss={() => setIsErrorDismissed(true)}
+        <EditorHeader
+          onExecuteClick={handleSaveClick}
+          isExecuting={isExecuting}
+          isReady={isExecutionReady}
+          hasPendingChanges={isDirty}
+          onDeleteClick={onDeleteClick}
+          isDeleteBusy={isDeleteBusy}
+          isDeleteDisabled={isDeleteDisabled || isSampleScene(sceneId)}
         />
-      )}
+        <Stack
+          flexGrow={1}
+          borderTopRadius='uni'
+          borderTop='1px solid'
+          borderColor='border'
+          overflow='hidden'
+        >
+          <Tabs.Content
+            value='configuration'
+            flex={1}
+            overflow='auto'
+            p={4}
+            bg='bg'
+          >
+            <ConfigurationTab />
+          </Tabs.Content>
 
-      {confirmDialog}
-      {alertDialog}
-    </Tabs.Root>
+          <Tabs.Content
+            value='code'
+            flex={1}
+            display='flex'
+            flexDirection='column'
+            p={0}
+            minHeight={0}
+            overflow='hidden'
+          >
+            <CodeTab />
+          </Tabs.Content>
+
+          <Tabs.Content
+            value='assistant'
+            flex={1}
+            overflow='auto'
+            p={4}
+            bg='bg'
+          >
+            <AssistantTab />
+          </Tabs.Content>
+        </Stack>
+
+        {errorMessage && !isErrorDismissed && (
+          <ExecutionErrorAlert
+            message={errorMessage}
+            onDismiss={() => setIsErrorDismissed(true)}
+          />
+        )}
+
+        {confirmDialog}
+        {alertDialog}
+      </Tabs.Root>
+    </Stack>
   );
 }

@@ -9,7 +9,7 @@ import {
   type ReactNode
 } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { LuCodeXml, LuWorkflow } from 'react-icons/lu';
+import { LuCodeXml, LuMap, LuWorkflow } from 'react-icons/lu';
 
 import type { ServiceInfo } from '$types';
 import type { ProcessGraph } from '$types/openeo-process';
@@ -54,51 +54,63 @@ function ResultsPanelComponent() {
   }, [services.length, tileStatus.status]);
 
   return (
-    <Flex flexGrow={1} h='100%' position='relative'>
-      <Tabs.Root defaultValue='map' variant='enclosed' w='100%' lazyMount>
-        <Tabs.List
-          className='chakra-theme dark'
-          colorPalette='neutral'
-          colorScheme='dark'
-          position='absolute'
-          top={4}
-          right={4}
-          zIndex={1}
+    <Stack gap={0} flexGrow={1} h='100%' position='relative' asChild>
+      <Tabs.Root defaultValue='map' variant='subtle' size='sm' lazyMount>
+        <Flex gap={4} alignItems='center' p={4} bg='bg.subtle' flexShrink={0}>
+          <Tabs.List gap={2} alignItems='center'>
+            <Tabs.Trigger value='map'>
+              <LuMap /> Map
+            </Tabs.Trigger>
+            <Tabs.Trigger value='visual'>
+              <LuWorkflow /> Visual
+            </Tabs.Trigger>
+            <Tabs.Trigger value='json'>
+              <LuCodeXml /> JSON{' '}
+            </Tabs.Trigger>
+          </Tabs.List>
+          {/* <Separator orientation='vertical' h={4} ml='auto' />
+          <Button size='sm' variant='outline'>
+            Export <LuDownload />
+          </Button> */}
+        </Flex>
+        <Stack
+          flexGrow={1}
+          borderTopRadius='uni'
+          borderTop='1px solid'
+          borderColor='border'
+          overflow='hidden'
         >
-          <Tabs.Trigger value='map'>Map</Tabs.Trigger>
-          <Tabs.Trigger value='visual'>Visual</Tabs.Trigger>
-          <Tabs.Trigger value='json'>JSON </Tabs.Trigger>
-        </Tabs.List>
-        <Tabs.Content value='map' display='flex' h='100%' p={0}>
-          <Flex
-            flexGrow={1}
-            css={{
-              '& .maplibregl-canvas-container': {
-                position: 'relative',
-                h: '100%',
-                borderRadius: 'uni',
-                overflow: 'hidden'
-              }
-            }}
-          >
-            <MapViewer
-              bounds={bounds}
-              sceneId={sceneId}
-              services={services}
-              onToggleLayer={toggleServiceVisibility}
-              onBoundingBoxChange={setBoundingBox}
-              onTileStatusChange={setTileStatus}
-              onServicePublish={setShareService}
-            />
-          </Flex>
-          {services.length > 0 && <TileStatusAlert status={tileStatus} />}
-        </Tabs.Content>
-        <Tabs.Content value='visual' display='flex' h='100%' p={0}>
-          <OutputVisual graph={mergedGraph} />
-        </Tabs.Content>
-        <Tabs.Content value='json' display='flex' h='100%' p={0}>
-          <OutputJson graph={mergedGraph} />
-        </Tabs.Content>
+          <Tabs.Content value='map' display='flex' h='100%' p={0}>
+            <Flex
+              flexGrow={1}
+              css={{
+                '& .maplibregl-canvas-container': {
+                  position: 'relative',
+                  h: '100%',
+                  borderRadius: 'uni',
+                  overflow: 'hidden'
+                }
+              }}
+            >
+              <MapViewer
+                bounds={bounds}
+                sceneId={sceneId}
+                services={services}
+                onToggleLayer={toggleServiceVisibility}
+                onBoundingBoxChange={setBoundingBox}
+                onTileStatusChange={setTileStatus}
+                onServicePublish={setShareService}
+              />
+            </Flex>
+            {services.length > 0 && <TileStatusAlert status={tileStatus} />}
+          </Tabs.Content>
+          <Tabs.Content value='visual' display='flex' h='100%' p={0}>
+            <OutputVisual graph={mergedGraph} />
+          </Tabs.Content>
+          <Tabs.Content value='json' display='flex' h='100%' p={0}>
+            <OutputJson graph={mergedGraph} />
+          </Tabs.Content>
+        </Stack>
       </Tabs.Root>
       {shareService && (
         <ShareDialog
@@ -107,7 +119,7 @@ function ResultsPanelComponent() {
           onClose={() => setShareService(null)}
         />
       )}
-    </Flex>
+    </Stack>
   );
 }
 
