@@ -1,4 +1,5 @@
-import { Box, Button, Portal, Tooltip } from '@chakra-ui/react';
+import { Tip } from '$components/tooltip';
+import { Box, Button } from '@chakra-ui/react';
 import { LuCheck } from 'react-icons/lu';
 
 interface EditorExecuteProps {
@@ -15,39 +16,29 @@ export function EditorExecute({
   hasPendingChanges
 }: EditorExecuteProps) {
   return (
-    <Tooltip.Root open={isLoading} positioning={{ placement: 'bottom' }}>
-      <Tooltip.Trigger asChild>
-        <Box position='relative' display='inline-block'>
-          <Button
-            size='sm'
-            variant='outline'
-            disabled={disabled}
-            onClick={onExecuteClick}
-            loading={isLoading}
-          >
-            Save <LuCheck />
-          </Button>
-          {hasPendingChanges && (
-            <Box
-              position='absolute'
-              top='-2px'
-              right='-2px'
-              boxSize='8px'
-              borderRadius='full'
-              bg='orange.500'
-              aria-label='Unsaved changes'
-            />
-          )}
-        </Box>
-      </Tooltip.Trigger>
-      <Portal>
-        <Tooltip.Positioner>
-          <Tooltip.Content>
-            <Tooltip.Arrow />
-            Running analysis…
-          </Tooltip.Content>
-        </Tooltip.Positioner>
-      </Portal>
-    </Tooltip.Root>
+    <Tip content='Running analysis…' placement='bottom' open={isLoading}>
+      <Box position='relative' display='inline-block'>
+        <Button
+          size='sm'
+          variant='outline'
+          disabled={disabled}
+          onClick={onExecuteClick}
+          loading={isLoading}
+        >
+          Save <LuCheck />
+        </Button>
+        {hasPendingChanges && (
+          <Box
+            position='absolute'
+            top='-2px'
+            right='-2px'
+            boxSize='8px'
+            borderRadius='full'
+            bg='orange.500'
+            aria-label='Unsaved changes'
+          />
+        )}
+      </Box>
+    </Tip>
   );
 }

@@ -1,4 +1,12 @@
-import { Flex, Spinner, Stack, Tabs, Text } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Separator,
+  Spinner,
+  Stack,
+  Tabs,
+  Text
+} from '@chakra-ui/react';
 import {
   Suspense,
   lazy,
@@ -9,7 +17,7 @@ import {
   type ReactNode
 } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { LuCodeXml, LuMap, LuWorkflow } from 'react-icons/lu';
+import { LuCodeXml, LuDownload, LuMap, LuWorkflow } from 'react-icons/lu';
 
 import type { ServiceInfo } from '$types';
 import type { ProcessGraph } from '$types/openeo-process';
@@ -19,6 +27,7 @@ import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
 import { ShareDialog } from '$components/map/share-dialog';
 import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
+import { Tip } from '$components/tooltip';
 
 import { useMergedProcessGraph } from './use-merged-process-graph';
 
@@ -68,10 +77,12 @@ function ResultsPanelComponent() {
               <LuCodeXml /> JSON{' '}
             </Tabs.Trigger>
           </Tabs.List>
-          {/* <Separator orientation='vertical' h={4} ml='auto' />
-          <Button size='sm' variant='outline'>
-            Export <LuDownload />
-          </Button> */}
+          <Separator orientation='vertical' h={4} ml='auto' />
+          <Tip content='Coming soon'>
+            <Button size='sm' variant='outline' disabled>
+              Export <LuDownload />
+            </Button>
+          </Tip>
         </Flex>
         <Stack
           flexGrow={1}
