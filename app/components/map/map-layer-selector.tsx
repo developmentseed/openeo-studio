@@ -43,9 +43,9 @@ export function MapLayerSelector({
   onBaseChange
 }: MapLayerSelectorProps) {
   return (
-    <Box position='absolute' top={4} left={4} zIndex={1000}>
+    <Box position='absolute' top={4} right={4} zIndex={1000}>
       <Popover.Root
-        positioning={{ placement: 'bottom-start' }}
+        positioning={{ placement: 'bottom-end' }}
         size='xs'
         defaultOpen
       >
