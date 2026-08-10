@@ -11,7 +11,7 @@ import {
   Text,
   VStack
 } from '@chakra-ui/react';
-import { LuSettings2 } from 'react-icons/lu';
+import { LuFileBox } from 'react-icons/lu';
 
 import { AvailableVariables } from '$components/editor/available-variables';
 
@@ -44,7 +44,7 @@ export function CodeInfoMenu({
           bg='colorPalette.contrast'
           {...triggerProps}
         >
-          <LuSettings2 />
+          <LuFileBox />
         </IconButton>
       </Menu.Trigger>
       <Portal>
