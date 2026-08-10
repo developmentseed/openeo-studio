@@ -60,13 +60,14 @@ export function MapLayerSelector({
               <Tabs.Root
                 variant='subtle'
                 defaultValue='data'
+                size='sm'
                 css={{
                   '&': { '--tabs-height': '2rem' }
                 }}
               >
-                <Flex align='center' gap={2} p={4}>
+                <Flex align='center' gap={2} py={2} px={4} bg='bg.subtle'>
                   <Text fontWeight='bold'>Layers</Text>
-                  <Tabs.List ml='auto' h={4}>
+                  <Tabs.List ml='auto' h={4} gap={2}>
                     <Tabs.Trigger value='data' py={1}>
                       Data
                     </Tabs.Trigger>
@@ -82,7 +83,7 @@ export function MapLayerSelector({
 
                 <Tabs.Content
                   value='data'
-                  bg='bg.subtle'
+                  bg='bg'
                   p={4}
                   borderTopRadius='uni'
                   borderTop='1px solid'
@@ -155,7 +156,7 @@ export function MapLayerSelector({
 
                 <Tabs.Content
                   value='base'
-                  bg='bg.subtle'
+                  bg='bg'
                   p={4}
                   borderTopRadius='uni'
                   borderTop='1px solid'
