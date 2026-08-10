@@ -276,11 +276,13 @@ Edge type is `smoothstep`.
 `rankdir: 'TB'`, `nodesep: 24`, `ranksep: 48`.
 
 Node dimensions are **measured, not estimated**. React Flow v12 populates
-`node.measured.width/height` after the first render, so the viewer renders once,
-waits for `useNodesInitialized`, runs dagre with real dimensions, then calls
-`fitView`. This avoids ModelBuilder's `MARGIN + inputs * 15` size guess and the
-spacing errors it produces. Node width is fixed at 220px (ModelBuilder's
-`normalParams`) so only height varies.
+`node.measured.width/height` after the first render. The viewer waits until
+local nodes and `getNodes()` both match the current view **and** every store
+node is measured (including across drill-down, where the previous level can
+linger for one commit), then runs dagre and `fitView`. This avoids
+ModelBuilder's `MARGIN + inputs * 15` size guess and the spacing errors it
+produces. Node width is fixed at 220px (ModelBuilder's `normalParams`) so only
+height varies.
 
 ### Interaction
 

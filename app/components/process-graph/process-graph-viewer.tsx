@@ -8,7 +8,6 @@ import {
   Controls,
   ReactFlow,
   ReactFlowProvider,
-  useNodesInitialized,
   useNodesState,
   useReactFlow,
   type Edge
@@ -37,6 +36,15 @@ type PositionCache = Map<string, Record<string, { x: number; y: number }>>;
 
 function pathKey(path: GraphPathEntry[]): string {
   return path.map((entry) => `${entry.nodeId}:${entry.argPath}`).join('/');
+}
+
+function sameNodeIds(
+  left: readonly { id: string }[],
+  right: readonly { id: string }[]
+): boolean {
+  if (left.length !== right.length) return false;
+  const ids = new Set(left.map((node) => node.id));
+  return right.every((node) => ids.has(node.id));
 }
 
 function Canvas({ graph }: { graph: ProcessGraph }) {
@@ -99,7 +107,6 @@ function Canvas({ graph }: { graph: ProcessGraph }) {
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<ProcessNodeType>(initialNodes);
-  const nodesInitialized = useNodesInitialized();
   const [laidOutKey, setLaidOutKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -111,38 +118,68 @@ function Canvas({ graph }: { graph: ProcessGraph }) {
     }
   }, [initialNodes, currentKey, setNodes, fitView]);
 
-  // Lay out once per level, after React Flow has measured the rendered nodes.
-  // Dimensions come from `getNodes()` rather than the `useNodesState` array:
-  // `nodesInitialized` flips as soon as React Flow's own store has measured
-  // everything, which is before those measurements round-trip back into local
-  // state. Reading local state here would lay the graph out against the
-  // fallback height and overlap every rank.
+  // Lay out once per level, after React Flow has measured the *current*
+  // level's nodes. On a path change, `useNodesInitialized()` can still be
+  // true and `getNodes()` can still hold the previous level for one commit —
+  // laying out then would cache wrong positions under the new path key and
+  // block the real pass. Wait until local + store ids match the view, then
+  // until every store node is measured (rAF), before writing the cache.
   useEffect(() => {
-    if (!nodesInitialized || laidOutKey === currentKey) return;
+    if (laidOutKey === currentKey) return;
+    if (!sameNodeIds(nodes, view.nodes)) return;
 
-    const positions = layoutGraph(
-      getNodes().map((node) => ({
-        id: node.id,
-        width: node.measured?.width ?? NODE_WIDTH,
-        height: node.measured?.height ?? ESTIMATED_NODE_HEIGHT
-      })),
-      view.edges
-    );
-    positionCache.current.set(currentKey, positions);
+    let cancelled = false;
+    let raf = 0;
 
-    setNodes((current) =>
-      current.map((node) => ({
-        ...node,
-        position: positions[node.id] ?? node.position
-      }))
-    );
+    const attempt = () => {
+      if (cancelled) return;
 
-    setLaidOutKey(currentKey);
-    window.requestAnimationFrame(() => fitView(FIT_VIEW_OPTIONS));
+      const storeNodes = getNodes();
+      if (!sameNodeIds(storeNodes, view.nodes)) {
+        raf = window.requestAnimationFrame(attempt);
+        return;
+      }
+      if (
+        !storeNodes.every(
+          (node) =>
+            node.measured?.width != null && node.measured?.height != null
+        )
+      ) {
+        raf = window.requestAnimationFrame(attempt);
+        return;
+      }
+
+      const positions = layoutGraph(
+        storeNodes.map((node) => ({
+          id: node.id,
+          width: node.measured?.width ?? NODE_WIDTH,
+          height: node.measured?.height ?? ESTIMATED_NODE_HEIGHT
+        })),
+        view.edges
+      );
+      positionCache.current.set(currentKey, positions);
+
+      setNodes((current) =>
+        current.map((node) => ({
+          ...node,
+          position: positions[node.id] ?? node.position
+        }))
+      );
+
+      setLaidOutKey(currentKey);
+      window.requestAnimationFrame(() => fitView(FIT_VIEW_OPTIONS));
+    };
+
+    attempt();
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(raf);
+    };
   }, [
-    nodesInitialized,
+    nodes,
     laidOutKey,
     currentKey,
+    view.nodes,
     view.edges,
     setNodes,
     fitView,
