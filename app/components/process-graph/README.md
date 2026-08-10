@@ -176,18 +176,20 @@ positions written into nodes; fitView()
 4. `buildGraphView(currentGraph)` produces the view model.
 5. Nodes are seeded at `{x:0,y:0}` (or restored from the position cache if this
    depth has been visited before) and handed to `useNodesState`.
-6. React Flow renders them, measures DOM sizes into its own store, then flips
-   `useNodesInitialized()` to `true`.
-7. The layout effect reads dimensions from `getNodes()` (React Flow's store,
-   **not** the local `useNodesState` array — see pitfall below), runs dagre,
-   writes positions, caches them under the current path key, and calls
+6. React Flow renders them and measures DOM sizes into its own store.
+7. The layout effect waits until local `nodes` and `getNodes()` both match
+   `view.nodes` **and** every store node has `measured` dimensions (rAF-poll
+   if needed — see pitfall below). Only then it runs dagre, writes positions,
+   caches them under the current path key, and calls
    `fitView({ padding: 0.15, maxZoom: 1 })`.
 
 ### Drill-down
 
 1. A subgraph argument row renders a `⤢ N node(s)` pill.
 2. Click → `onOpenSubgraph` → push `{ nodeId, argPath, graph }` onto `path`.
-3. `currentGraph` switches; steps 4–7 rerun for the subgraph.
+3. `currentGraph` switches; steps 4–7 rerun for the subgraph. The layout effect
+   intentionally skips the first commit after the switch, when the store still
+   holds the previous level.
 4. `GraphBreadcrumb` appears. `onNavigate(0)` returns to the root;
    `onNavigate(k)` truncates to the first `k` entries.
 
@@ -319,3 +321,28 @@ Controls (zoom / fit / reset) are React Flow's `<Controls>` plus a
 viewer wrapper targeting `.react-flow__controls` / `-button`. Theme colours
 still come from React Flow's `colorMode` + `--xy-controls-*` variables.
 
+## Pitfalls
+
+**Layout must wait for the current level's measured nodes — both which and
+when.** Dimensions come from `getNodes()`, not the `useNodesState` array alone:
+measurements live in React Flow's store first.
+
+`useNodesInitialized()` can also stay `true` across a drill-down for one
+commit while `getNodes()` still holds the previous level. Laying out then
+caches wrong ids under the new path key and sets `laidOutKey`, which blocks
+the real pass; re-entering that level keeps reading the bad cache. "Reset
+layout" clears both, which is why it appeared to fix it. The layout effect
+therefore:
+
+1. Bails until local `nodes` ids match `view.nodes` (skips the stale commit).
+2. rAF-polls until `getNodes()` ids match and every node has `measured`.
+3. Only then runs dagre, writes the cache, and sets `laidOutKey`.
+
+**`fitView` is capped at `maxZoom: 1`.** Without it, a one-node callback graph
+zooms to fill the canvas.
+
+**`NODE_TYPES` is module-scoped.** Recreating the object each render makes
+React Flow remount every node.
+
+**Popover / pill clicks need `className='nodrag'`.** Otherwise React Flow
+treats the mousedown as a drag start.
