@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Code, Tabs, Text } from '@chakra-ui/react';
 import { useShallow } from 'zustand/shallow';
+import { useNavigate } from 'react-router';
 
 import { useEditorStore } from '$stores/editor-store';
-import { InfoDialog } from '$components/common/info-dialog';
+import { useAlertDialog } from '$components/common/use-alert-dialog';
+import { useConfirmDialog } from '$components/common/use-confirm-dialog';
+import { isSampleScene, shouldNavigateAfterSave } from '$config/sample-scenes';
 import { useCodeEditor } from './code-editor';
 import { useCodeExecution } from './use-code-execution';
 import { ConfigurationTab } from './configuration-tab';
@@ -24,23 +27,24 @@ export function EditorWorkspace({
   defaultTab,
   autoExecuteOnReady = false
 }: EditorWorkspaceProps) {
+  const navigate = useNavigate();
   const selectedConfig = useEditorStore(
     useShallow((state) => state.selectedConfig)
   );
-  const isDirty = useEditorStore((state) => state.isDirty);
-  const { setServices } = useEditorStore();
+  const { setSceneId, sceneId, isDirty, setServices } = useEditorStore();
 
   const editor = useCodeEditor();
+  const { confirm, dialog: confirmDialog } = useConfirmDialog();
+  const { alert, dialog: alertDialog } = useAlertDialog();
 
   const [activeTab, setActiveTab] = useState<EditorTabId>(defaultTab);
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
   const {
-    executeCode,
+    createServices,
+    saveProjectAndServices,
     isExecuting,
     isReady: isExecutionReady,
-    errorMessage,
-    showNoGraphNotice,
-    dismissNoGraphNotice
+    errorMessage
   } = useCodeExecution(setServices, editor, selectedConfig);
 
   const {
@@ -56,8 +60,8 @@ export function EditorWorkspace({
     if (!isExecutionReady) return;
 
     hasAutoExecutedRef.current = true;
-    executeCode();
-  }, [autoExecuteOnReady, isExecutionReady, executeCode]);
+    createServices();
+  }, [autoExecuteOnReady, isExecutionReady, createServices]);
 
   useEffect(() => {
     setActiveTab(defaultTab);
@@ -68,6 +72,49 @@ export function EditorWorkspace({
       setIsErrorDismissed(false);
     }
   }, [errorMessage]);
+
+  const navigateAfterSaveIfNeeded = (id: string) => {
+    if (!shouldNavigateAfterSave(sceneId)) return;
+    setSceneId(id);
+    navigate(`/editor/${id}`, { replace: true });
+  };
+
+  const handleSaveClick = async () => {
+    if (isSampleScene(sceneId)) {
+      const confirmed = await confirm({
+        title: 'Save to your account',
+        body: (
+          <Text fontSize='sm' color='fg.muted'>
+            This is a sample project and is not on your account yet. Saving will
+            add it as a project you can reopen later.
+          </Text>
+        ),
+        confirmLabel: 'Save',
+        cancelLabel: 'Cancel'
+      });
+      if (!confirmed) return;
+    }
+
+    const result = await saveProjectAndServices();
+    if (result.status === 'no-graph') {
+      await alert({
+        title: 'Nothing to save',
+        body: (
+          <Text fontSize='sm' color='fg.muted' whiteSpace='pre-wrap'>
+            Your code did not produce any layers to save.
+            <br />
+            Review your code and add a layer using{' '}
+            <Code>add_graph_to_map(graph, name)</Code>.
+          </Text>
+        ),
+        okLabel: 'Got it'
+      });
+      return;
+    }
+    if (result.status === 'saved') {
+      navigateAfterSaveIfNeeded(result.id);
+    }
+  };
 
   return (
     <Tabs.Root
@@ -83,13 +130,13 @@ export function EditorWorkspace({
       onValueChange={({ value }) => setActiveTab(value as EditorTabId)}
     >
       <EditorHeader
-        onExecuteClick={executeCode}
+        onExecuteClick={handleSaveClick}
         isExecuting={isExecuting}
         isReady={isExecutionReady}
         hasPendingChanges={isDirty}
         onDeleteClick={onDeleteClick}
         isDeleteBusy={isDeleteBusy}
-        isDeleteDisabled={isDeleteDisabled}
+        isDeleteDisabled={isDeleteDisabled || isSampleScene(sceneId)}
       />
 
       <Tabs.Content value='configuration' flex={1} overflow='auto' p={4}>
@@ -120,19 +167,8 @@ export function EditorWorkspace({
         />
       )}
 
-      <InfoDialog
-        open={showNoGraphNotice}
-        title='Nothing to save'
-        okLabel='Got it'
-        onClose={dismissNoGraphNotice}
-      >
-        <Text fontSize='sm' color='fg.muted' whiteSpace='pre-wrap'>
-          Your code did not produce any layers to save.
-          <br />
-          Review your code and add a layer using{' '}
-          <Code>add_graph_to_map(graph, name)</Code>.
-        </Text>
-      </InfoDialog>
+      {confirmDialog}
+      {alertDialog}
     </Tabs.Root>
   );
 }
