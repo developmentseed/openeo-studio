@@ -205,8 +205,8 @@ positions written into nodes; fitView()
 
 ### Reset layout
 
-The grid icon in `<Controls>` deletes the cache entry for the current path key
-and clears `laidOutKey`, which re-triggers the layout effect.
+The grid icon in the top-right controls deletes the cache entry for the current
+path key and clears `laidOutKey`, which re-triggers the layout effect.
 
 ## Modules
 
@@ -316,10 +316,12 @@ State:
 
 `pathKey` joins `nodeId:argPath` segments with `/`. Empty path → `''` (root).
 
-Controls (zoom / fit / reset) are React Flow's `<Controls>` plus a
-`ControlButton`. Sizing and radius are overridden with Chakra `css` on the
-viewer wrapper targeting `.react-flow__controls` / `-button`. Theme colours
-still come from React Flow's `colorMode` + `--xy-controls-*` variables.
+Controls (zoom / fit / reset) are a custom `<Controls>` stack at `top-right`
+with Lucide icons (`LuPlus`, `LuMinus`, `LuMaximize2`, `LuLayoutGrid`). Default
+React Flow buttons are hidden; zoom in/out disable at `minZoom` / `maxZoom`.
+Sizing and radius are overridden with Chakra `css` on the viewer wrapper
+targeting `.react-flow__controls` / `-button`. Theme colours still come from
+React Flow's `colorMode` + `--xy-controls-*` variables.
 
 ## Pitfalls
 

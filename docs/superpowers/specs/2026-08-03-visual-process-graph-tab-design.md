@@ -313,11 +313,11 @@ with the root labelled "Graph" and each level labelled
 ### Chrome
 
 - `<Background variant='dots' />`.
-- `<Controls showInteractive={false} />` bottom-left (zoom in, zoom out, fit
-  view), with a reset-layout `ControlButton` (grid icon) inside the same stack
-  that re-runs dagre and clears the cached positions for the current level.
-  Button size and control radius are tuned via Chakra `css` on the viewer
-  wrapper (`.react-flow__controls` / `-button`).
+- Custom `<Controls>` at top-right with Lucide icons (`LuPlus`, `LuMinus`,
+  `LuMaximize2`, `LuLayoutGrid`). Default React Flow buttons are hidden;
+  zoom in/out honour `minZoom` / `maxZoom`. Reset layout clears the cached
+  positions for the current level and re-runs dagre. Button size and control
+  radius are tuned via Chakra `css` on the viewer wrapper.
 - No minimap. The panel is too narrow to give up a corner, and the top-right is
   already occupied by the floating `Map | Visual | JSON` tab list at
   `top:4 right:4 zIndex:9999`.

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box } from '@chakra-ui/react';
-import { LuLayoutGrid } from 'react-icons/lu';
+import { LuLayoutGrid, LuMaximize2, LuMinus, LuPlus } from 'react-icons/lu';
 import {
   Background,
   BackgroundVariant,
@@ -10,6 +10,7 @@ import {
   ReactFlowProvider,
   useNodesState,
   useReactFlow,
+  useStore,
   type Edge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -32,6 +33,9 @@ const ESTIMATED_NODE_HEIGHT = 80;
 /** Capped so a single-node callback graph does not fill the whole canvas. */
 const FIT_VIEW_OPTIONS = { padding: 0.15, maxZoom: 1 };
 
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 2;
+
 type PositionCache = Map<string, Record<string, { x: number; y: number }>>;
 
 function pathKey(path: GraphPathEntry[]): string {
@@ -45,6 +49,51 @@ function sameNodeIds(
   if (left.length !== right.length) return false;
   const ids = new Set(left.map((node) => node.id));
   return right.every((node) => ids.has(node.id));
+}
+
+function GraphControls({ onResetLayout }: { onResetLayout: () => void }) {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const zoom = useStore((state) => state.transform[2]);
+
+  return (
+    <Controls
+      showZoom={false}
+      showFitView={false}
+      showInteractive={false}
+      position='top-right'
+    >
+      <ControlButton
+        onClick={() => zoom < MAX_ZOOM && zoomIn()}
+        className={zoom >= MAX_ZOOM ? 'disabled' : ''}
+        title='Zoom in'
+        aria-label='Zoom in'
+      >
+        <LuPlus />
+      </ControlButton>
+      <ControlButton
+        onClick={() => zoom > MIN_ZOOM && zoomOut()}
+        className={zoom <= MIN_ZOOM ? 'disabled' : ''}
+        title='Zoom out'
+        aria-label='Zoom out'
+      >
+        <LuMinus />
+      </ControlButton>
+      <ControlButton
+        onClick={() => fitView(FIT_VIEW_OPTIONS)}
+        title='Fit view'
+        aria-label='Fit view'
+      >
+        <LuMaximize2 />
+      </ControlButton>
+      <ControlButton
+        onClick={onResetLayout}
+        title='Reset layout'
+        aria-label='Reset layout'
+      >
+        <LuLayoutGrid />
+      </ControlButton>
+    </Controls>
+  );
 }
 
 function Canvas({ graph }: { graph: ProcessGraph }) {
@@ -204,14 +253,32 @@ function Canvas({ graph }: { graph: ProcessGraph }) {
         '& .react-flow__controls': {
           borderRadius: 'uni',
           overflow: 'hidden',
+          borderColor: 'border',
+          borderWidth: '1px',
+          boxShadow: 'none',
           m: 4,
           '& .react-flow__controls-button': {
             w: 9,
-            h: 9
+            h: 9,
+            bg: 'bg.subtle',
+            borderColor: 'border',
+            '&:hover': {
+              bg: 'bg.muted'
+            },
+            '&.disabled': {
+              cursor: 'not-allowed',
+              '&:hover': {
+                bg: 'bg.subtle'
+              },
+              '& svg': {
+                opacity: 0.5
+              }
+            }
           },
           '& .react-flow__controls-button svg': {
             maxW: 4,
-            maxH: 4
+            maxH: 4,
+            fill: 'none'
           }
         }
       }}
@@ -229,18 +296,11 @@ function Canvas({ graph }: { graph: ProcessGraph }) {
         deleteKeyCode={null}
         multiSelectionKeyCode={null}
         proOptions={{ hideAttribution: true }}
-        minZoom={0.1}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
-        <Controls showInteractive={false} position='bottom-left'>
-          <ControlButton
-            onClick={resetLayout}
-            title='Reset layout'
-            aria-label='Reset layout'
-          >
-            <LuLayoutGrid />
-          </ControlButton>
-        </Controls>
+        <GraphControls onResetLayout={resetLayout} />
       </ReactFlow>
       <GraphBreadcrumb path={path} onNavigate={handleNavigate} />
     </Box>
