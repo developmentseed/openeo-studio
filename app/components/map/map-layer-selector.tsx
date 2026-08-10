@@ -13,7 +13,7 @@ import {
   Tooltip,
   VStack
 } from '@chakra-ui/react';
-import { LuLayers, LuServer, LuX } from 'react-icons/lu';
+import { LuHardDriveUpload, LuLayers, LuX } from 'react-icons/lu';
 import type { ServiceInfo } from '$types';
 
 interface BaseLayerOption {
@@ -77,7 +77,14 @@ export function MapLayerSelector({
                   </Popover.CloseTrigger>
                 </Flex>
 
-                <Tabs.Content value='data' bg='bg.subtle' p={4}>
+                <Tabs.Content
+                  value='data'
+                  bg='bg.subtle'
+                  p={4}
+                  borderTopRadius='uni'
+                  borderTop='1px solid'
+                  borderColor='border'
+                >
                   {services.length === 0 ? (
                     <Text fontSize='sm'>
                       <Text as='span' fontWeight='bold'>
@@ -90,20 +97,28 @@ export function MapLayerSelector({
                   ) : (
                     <VStack align='stretch' gap={0}>
                       {services.map((service) => (
-                        <Flex
-                          key={service.id}
-                          align='center'
-                          justify='space-between'
-                          gap={2}
-                        >
-                          <Text
-                            fontSize='sm'
-                            color={service.visible ? 'fg' : 'fg.subtle'}
-                            flex={1}
-                            truncate
+                        <Flex key={service.id} align='center' gap={2}>
+                          <Switch.Root
+                            size='sm'
+                            checked={service.visible}
+                            onCheckedChange={() => onToggleLayer(service.id)}
+                            w='100%'
                           >
-                            {service.graphResult.name}
-                          </Text>
+                            <Switch.Label
+                              fontSize='sm'
+                              fontWeight='normal'
+                              color={service.visible ? 'fg' : 'fg.subtle'}
+                              flex={1}
+                              truncate
+                            >
+                              {service.graphResult.name}
+                            </Switch.Label>
+                            <Switch.HiddenInput />
+                            <Switch.Control>
+                              <Switch.Thumb />
+                            </Switch.Control>
+                          </Switch.Root>
+                          <Separator orientation='vertical' h='4' />
                           {onServicePublish && (
                             <Tooltip.Root
                               positioning={{ placement: 'top' }}
@@ -116,7 +131,7 @@ export function MapLayerSelector({
                                   variant='ghost'
                                   onClick={() => onServicePublish(service)}
                                 >
-                                  <LuServer />
+                                  <LuHardDriveUpload />
                                 </IconButton>
                               </Tooltip.Trigger>
                               <Portal>
@@ -129,23 +144,20 @@ export function MapLayerSelector({
                               </Portal>
                             </Tooltip.Root>
                           )}
-                          <Switch.Root
-                            size='sm'
-                            checked={service.visible}
-                            onCheckedChange={() => onToggleLayer(service.id)}
-                          >
-                            <Switch.HiddenInput />
-                            <Switch.Control>
-                              <Switch.Thumb />
-                            </Switch.Control>
-                          </Switch.Root>
                         </Flex>
                       ))}
                     </VStack>
                   )}
                 </Tabs.Content>
 
-                <Tabs.Content value='base' bg='bg.subtle' p={4}>
+                <Tabs.Content
+                  value='base'
+                  bg='bg.subtle'
+                  p={4}
+                  borderTopRadius='uni'
+                  borderTop='1px solid'
+                  borderColor='border'
+                >
                   <VStack align='stretch' gap={0} asChild>
                     <RadioGroup.Root
                       size='sm'
@@ -157,14 +169,19 @@ export function MapLayerSelector({
                           key={option.id}
                           align='center'
                           justify='space-between'
-                          borderRadius='sm'
                           lineHeight='2rem'
+                          asChild
                         >
-                          <Text fontSize='sm' truncate flex={1}>
-                            {option.label}
-                          </Text>
-
                           <RadioGroup.Item value={option.id}>
+                            <RadioGroup.ItemText
+                              fontWeight='normal'
+                              lineHeight='1.75rem'
+                              fontSize='sm'
+                              truncate
+                              flex={1}
+                            >
+                              {option.label}
+                            </RadioGroup.ItemText>
                             <RadioGroup.ItemHiddenInput />
                             <RadioGroup.ItemIndicator />
                           </RadioGroup.Item>
