@@ -19,7 +19,10 @@ import type { ServiceInfo } from '$types';
 interface BaseLayerOption {
   id: string;
   label: string;
-  styleUrl: string;
+  styleUrl: {
+    light: string;
+    dark: string;
+  };
 }
 
 interface MapLayerSelectorProps {

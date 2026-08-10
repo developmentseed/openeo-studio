@@ -7,22 +7,36 @@ import { MapLayerSelector } from './map-layer-selector';
 import { useMapTileStatus, type TileLoadStatus } from './use-map-tile-status';
 import type { ServiceInfo } from '$types';
 import { MAPTILER_KEY } from '$config/constants';
+import { useColorModeValue } from '$contexts/color-mode';
+
+const makeMaptilerStyleUrl = (key: string) => {
+  return `https://api.maptiler.com/maps/${key}/style.json?key=${MAPTILER_KEY}`;
+};
 
 const BASE_LAYERS = [
   {
     id: 'satellite',
     label: 'Satellite',
-    styleUrl: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
+    styleUrl: {
+      light: makeMaptilerStyleUrl('satellite-v4'),
+      dark: makeMaptilerStyleUrl('satellite-v4-dark')
+    }
   },
   {
     id: 'streets',
     label: 'Streets',
-    styleUrl: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
+    styleUrl: {
+      light: makeMaptilerStyleUrl('streets-v4'),
+      dark: makeMaptilerStyleUrl('streets-v4-dark')
+    }
   },
   {
     id: 'topographic',
     label: 'Topographic',
-    styleUrl: `https://api.maptiler.com/maps/topo-v2/style.json?key=${MAPTILER_KEY}`
+    styleUrl: {
+      light: makeMaptilerStyleUrl('topo-v4'),
+      dark: makeMaptilerStyleUrl('topo-v4-dark')
+    }
   }
 ];
 
@@ -50,6 +64,10 @@ export function MapViewer({
   const activeBaseLayer =
     BASE_LAYERS.find((layer) => layer.id === baseLayerId) ?? BASE_LAYERS[0];
   const [isMapReady, setIsMapReady] = useState(false);
+  const activeBaseLayerStyleUrl = useColorModeValue(
+    activeBaseLayer.styleUrl.light,
+    activeBaseLayer.styleUrl.dark
+  );
 
   const applyFitBounds = () => {
     const map = mapRef.current;
@@ -102,7 +120,7 @@ export function MapViewer({
         zoom: 2
       }}
       style={{ flexGrow: 1 }}
-      mapStyle={activeBaseLayer.styleUrl}
+      mapStyle={activeBaseLayerStyleUrl}
     >
       <MapLayers services={services} />
       <MapLayerSelector
