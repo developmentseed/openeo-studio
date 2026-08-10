@@ -41,10 +41,9 @@ export function EditorHeader({
       justifyContent='space-between'
       alignItems='center'
       p={4}
-      bg='bg'
-      borderBottomWidth='1px'
-      borderColor='border'
+      bg='bg.subtle'
       overflowX='auto'
+      flexShrink={0}
     >
       <Heading size='md' minW='5rem' truncate>
         {sceneName}

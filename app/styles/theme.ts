@@ -109,7 +109,15 @@ export const config = defineConfig({
           variant: {
             subtle: {
               trigger: {
-                fontWeight: 'semibold'
+                fontWeight: 'semibold',
+                color: 'fg',
+                transition: 'background-color 160ms ease-in-out',
+                _selected: {
+                  bg: 'colorPalette.muted'
+                },
+                _hover: {
+                  bg: 'colorPalette.subtle'
+                }
               }
             }
           }
