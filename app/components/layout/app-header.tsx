@@ -1,19 +1,16 @@
-import { useState } from 'react';
 import { IconButton, Image, Separator, Stack } from '@chakra-ui/react';
+import { NavLink } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { LuCircleHelp, LuFolder, LuPlus, LuServer } from 'react-icons/lu';
 
 import { UserInfo } from '$components/auth/user-info';
-import { ServicesPanel } from '$components/layout/services-panel';
 import SmartLink from '$utils/smart-link';
 import { ColorModeButton } from '$utils/color-mode';
 
 import logoImg from '../../media/openeo_navbar_logo.png';
-import { NavLink } from 'react-router';
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
-  const [servicesPanelOpen, setServicesPanelOpen] = useState(false);
 
   return (
     <Stack
@@ -54,6 +51,13 @@ export function AppHeader() {
           </IconButton>
         )}
         {isAuthenticated && (
+          <IconButton variant='ghost' size='sm' asChild>
+            <NavLink to='/services'>
+              <LuServer />
+            </NavLink>
+          </IconButton>
+        )}
+        {isAuthenticated && (
           <>
             <Separator orientation='horizontal' w='4' />
             <IconButton variant='outline' size='sm' asChild>
@@ -61,22 +65,6 @@ export function AppHeader() {
                 <LuPlus />
               </SmartLink>
             </IconButton>
-          </>
-        )}
-        {isAuthenticated && (
-          <>
-            <IconButton
-              variant='ghost'
-              size='sm'
-              onClick={() => setServicesPanelOpen(true)}
-              colorPalette='red'
-            >
-              <LuServer />
-            </IconButton>
-            <ServicesPanel
-              open={servicesPanelOpen}
-              onClose={() => setServicesPanelOpen(false)}
-            />
           </>
         )}
       </Stack>

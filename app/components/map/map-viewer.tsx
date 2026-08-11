@@ -34,7 +34,7 @@ interface MapViewerProps {
   sceneId: string | null;
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
-  onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
+  onBoundingBoxChange?: (boundingBox: [number, number, number, number]) => void;
   onTileStatusChange?: (status: TileLoadStatus) => void;
   onServicePublish?: (service: ServiceInfo) => void;
 }
@@ -86,16 +86,16 @@ export function MapViewer({
       }}
       onMoveEnd={(event) => {
         // Skip if programmatic move
-        if (!event.originalEvent) return;
+        if (!event.originalEvent || !onBoundingBoxChange) return;
 
         const map = mapRef.current;
         if (!map) return;
-        const bounds = map.getBounds();
+        const nextBounds = map.getBounds();
         onBoundingBoxChange([
-          bounds.getWest(),
-          bounds.getSouth(),
-          bounds.getEast(),
-          bounds.getNorth()
+          nextBounds.getWest(),
+          nextBounds.getSouth(),
+          nextBounds.getEast(),
+          nextBounds.getNorth()
         ]);
       }}
       reuseMaps

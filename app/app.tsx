@@ -9,9 +9,10 @@ import { RequireAuth } from '$components/auth/require-auth';
 import { LandingPage } from '$pages/landing-page';
 import { EditorPage } from '$pages/editor-page';
 import { DocsPage } from '$pages/docs-page';
-import { SharePage } from '$pages/share-page';
+import { SharePage } from '$pages/share';
 import { ProjectsPage } from '$pages/projects';
 import { ProjectsSamplesPage } from '$pages/projects/samples';
+import { ServicesPage } from '$pages/services';
 import UhOh404 from '$pages/uhoh/404';
 import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
 
@@ -97,6 +98,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path='/projects' element={<ProjectsPage />} />
           <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
+          <Route path='/services' element={<ServicesPage />} />
           <Route path='/editor' element={<EditorPage />} />
           <Route path='/editor/:sceneId' element={<EditorPage />} />
           <Route path='/share/:serviceId' element={<SharePage />} />

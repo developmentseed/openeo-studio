@@ -32,11 +32,15 @@ export function EditorOptionsMenu({
       </Menu.Trigger>
       <Portal>
         <Menu.Positioner>
-          <Menu.Content>
+          <Menu.Content p={0}>
             <Menu.Item
+              as='button'
               value={DELETE_ACTION}
+              fontWeight='semibold'
               color='fg.error'
               _hover={{ bg: 'bg.error', color: 'fg.error' }}
+              _icon={{ w: 4, h: 4 }}
+              p={3}
               disabled={isDeleteDisabled}
             >
               <LuTrash2 /> Delete

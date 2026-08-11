@@ -1,33 +1,39 @@
 import {
   Box,
-  Button,
   Flex,
+  Heading,
   SimpleGrid,
   Stack,
   Text,
   VStack
 } from '@chakra-ui/react';
+import { LuServer, LuServerOff } from 'react-icons/lu';
 
-import { ProjectsHeader } from './header';
-import { useProjects } from '$stores/projects-store';
-import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton';
-import { ProjectCard } from '$components/projects/project-card';
-import SmartLink from '$utils/smart-link';
-import { LuAward, LuFolder, LuFolderX, LuPlus } from 'react-icons/lu';
+import { ServiceCard } from '$components/services/service-card';
+import { ServiceCardSkeleton } from '$components/services/service-card-skeleton';
+import { useServices } from '$stores/services-store';
 
 const SKELETON_COUNT = 6;
 
-export function ProjectsPage() {
-  const { projects, isLoading, error } = useProjects();
+export function ServicesPage() {
+  const { services, isLoading, error } = useServices();
 
   return (
     <Box flex={1}>
-      <Stack h='100%' gap={2}>
-        <ProjectsHeader />
+      <Stack h='100%' gap={4}>
+        <Flex
+          gap={4}
+          justifyContent='space-between'
+          alignItems='center'
+          px={2}
+          py={4}
+        >
+          <Heading size='md'>Permanent Services</Heading>
+        </Flex>
         <Flex px={2} h='100%' justifyContent='stretch'>
           {error ? (
             <Flex w='100%' align='center' justify='center'>
-              <ErrorProjects error={error} />
+              <ErrorServices error={error} />
             </Flex>
           ) : isLoading ? (
             <SimpleGrid
@@ -37,12 +43,12 @@ export function ProjectsPage() {
               width='100%'
             >
               {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-                <ProjectCardSkeleton key={index} />
+                <ServiceCardSkeleton key={index} />
               ))}
             </SimpleGrid>
-          ) : projects.length === 0 ? (
+          ) : services.length === 0 ? (
             <Flex w='100%' align='center' justify='center'>
-              <NoProjects />
+              <NoServices />
             </Flex>
           ) : (
             <SimpleGrid
@@ -51,8 +57,8 @@ export function ProjectsPage() {
               alignSelf='start'
               width='100%'
             >
-              {projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+              {services.map((service) => (
+                <ServiceCard key={service.id} service={service} />
               ))}
             </SimpleGrid>
           )}
@@ -62,13 +68,13 @@ export function ProjectsPage() {
   );
 }
 
-function NoProjects() {
+function NoServices() {
   return (
     <Box
       borderWidth='2px'
       borderStyle='dashed'
       borderColor='border'
-      borderRadius='uni'
+      borderRadius='lg'
       bg='bg'
       p={6}
       boxSize='100%'
@@ -76,33 +82,21 @@ function NoProjects() {
       maxW='80rem'
     >
       <VStack gap={2} justify='center' height='100%'>
-        <LuFolder size='4rem' />
+        <LuServer size='4rem' />
         <VStack gap={2}>
           <Text fontWeight='semibold' fontSize='lg'>
-            You have no projects
+            No permanent services
           </Text>
           <Text fontSize='sm' textAlign='center'>
-            Create a new project or browse the samples
+            Use the export button on a map layer to create one.
           </Text>
-          <Flex gap={4} mt={4}>
-            <Button size='sm' variant='subtle' asChild>
-              <SmartLink to='/editor'>
-                <LuPlus /> Create
-              </SmartLink>
-            </Button>
-            <Button size='sm' variant='subtle' asChild>
-              <SmartLink to='/projects/samples'>
-                <LuAward /> Samples
-              </SmartLink>
-            </Button>
-          </Flex>
         </VStack>
       </VStack>
     </Box>
   );
 }
 
-function ErrorProjects({ error }: { error: Error }) {
+function ErrorServices({ error }: { error: Error }) {
   return (
     <Box
       borderWidth='2px'
@@ -116,10 +110,10 @@ function ErrorProjects({ error }: { error: Error }) {
       maxW='80rem'
     >
       <VStack gap={2} justify='center' height='100%'>
-        <LuFolderX size='4rem' />
+        <LuServerOff size='4rem' />
         <VStack gap={2} color='error.700'>
           <Text fontWeight='semibold' fontSize='lg'>
-            Error loading projects
+            Error loading services
           </Text>
           <Text fontSize='sm' textAlign='center'>
             {error.message}

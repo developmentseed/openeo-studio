@@ -1,22 +1,34 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Button,
-  Clipboard,
   Dialog,
   Flex,
   Heading,
+  IconButton,
+  Portal,
   RadioGroup,
+  Separator,
+  Span,
   Spinner,
+  Stack,
   Text,
   VStack
 } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 
-import { createPermanentService } from '../../utils/code-runner';
-import { buildNarrativeMarkdown } from '../../utils/narrative-export';
-import { ENABLE_NARRATIVE_EXPORT } from '$config/constants';
+import { MapViewer } from '$components/map/map-viewer';
+import { TileStatusAlert } from '$components/map/tile-status-alert';
+import type { TileLoadStatus } from '$components/map/use-map-tile-status';
+import {
+  getServiceScope,
+  type ServiceScope
+} from '$components/services/service-scope-badge';
+import { ShareHeader } from '$pages/share/header';
 import type { BackendService, ServiceInfo } from '$types';
+import { createPermanentService, getServiceUrl } from '$utils/code-runner';
+import { toaster } from '$utils/toaster';
+import { LuX } from 'react-icons/lu';
 
 interface ShareDialogProps {
   service: ServiceInfo;
@@ -24,12 +36,69 @@ interface ShareDialogProps {
   onClose: () => void;
 }
 
+function decodeTileUrl(url: string): string {
+  try {
+    return decodeURIComponent(url);
+  } catch {
+    return url;
+  }
+}
+
+function getDisplayName(service: BackendService): string {
+  return (
+    (typeof service.configuration?.layerName === 'string' &&
+      service.configuration.layerName) ||
+    service.title
+  );
+}
+
+function getExtent(
+  service: BackendService,
+  fallback?: [number, number, number, number]
+): [number, number, number, number] | undefined {
+  const extent = service.configuration?.extent;
+  if (
+    Array.isArray(extent) &&
+    extent.length === 4 &&
+    extent.every((v) => typeof v === 'number')
+  ) {
+    return extent as [number, number, number, number];
+  }
+  return fallback;
+}
+
+function toMapService(
+  service: BackendService,
+  visible: boolean,
+  fallbackName: string
+): ServiceInfo {
+  const name = getDisplayName(service) || fallbackName;
+
+  return {
+    id: service.id,
+    location: getServiceUrl(service.id),
+    tileUrl: decodeTileUrl(service.url),
+    visible,
+    graphResult: {
+      name,
+      process_graph: {},
+      parameters: [],
+      visible
+    }
+  };
+}
+
 export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   const { user } = useAuth();
-  const [scope, setScope] = useState<'public' | 'private'>('public');
+  const [scope, setScope] = useState<'public' | 'private'>('private');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<BackendService | null>(null);
+  const [layerVisible, setLayerVisible] = useState(true);
+  const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
+    pending: 0,
+    status: 'idle'
+  });
 
   const handleCreate = async () => {
     if (!user?.access_token) return;
@@ -45,46 +114,47 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
         bounds
       );
       setCreated(result);
+      toaster.success({ title: 'Service created' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create service');
+      toaster.error({
+        title: 'Failed to create service',
+        description:
+          err instanceof Error
+            ? err.message
+            : 'An unknown error occurred while creating the service'
+      });
     } finally {
       setIsCreating(false);
     }
   };
 
-  const shareUrl = created
-    ? `${window.location.origin}/share/${created.id}`
-    : '';
+  const mapServices = useMemo(() => {
+    if (!created) return [];
+    return [toMapService(created, layerVisible, service.graphResult.name)];
+  }, [created, layerVisible, service.graphResult.name]);
 
-  // The backend url field is already the full XYZ tile URL template.
-  // Decode it so curly-brace tile placeholders ({z}/{x}/{y}) are not shown as %7B…%7D.
-  let tileUrl = created?.url ?? '';
-  try {
-    tileUrl = decodeURIComponent(tileUrl);
-  } catch {
-    /* keep encoded */
-  }
+  const previewBounds = created ? getExtent(created, bounds) : bounds;
+  const previewTitle = created
+    ? getDisplayName(created) || service.graphResult.name
+    : service.graphResult.name;
+  const previewScope = created ? getServiceScope(created.configuration) : scope;
 
-  const narrativeMarkdown =
-    ENABLE_NARRATIVE_EXPORT && created
-      ? (() => {
-          const extent = bounds;
-          const center: [number, number] = extent
-            ? [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2]
-            : [0, 0];
-          const zoom = extent
-            ? Math.round(
-                Math.log2(360 / Math.max(extent[2] - extent[0], 0.001)) + 1
-              )
-            : 6;
-          return buildNarrativeMarkdown({
-            tileUrl,
-            center,
-            zoom,
-            layerName: service.graphResult.name
-          });
-        })()
-      : '';
+  const handleScopeChanged = (nextScope: ServiceScope) => {
+    setCreated((current) =>
+      current
+        ? {
+            ...current,
+            configuration: { ...current.configuration, scope: nextScope }
+          }
+        : current
+    );
+  };
+
+  const handleToggleLayer = (id: string) => {
+    if (created && id === created.id) {
+      setLayerVisible((v) => !v);
+    }
+  };
 
   return (
     <Dialog.Root
@@ -94,151 +164,158 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
       }}
     >
       <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content maxW='md' p={6}>
-          <Dialog.CloseTrigger />
-          <Dialog.Header p={0} mb={4}>
-            <Heading size='md'>
-              {created ? 'Service Created' : 'Export as Permanent Service'}
-            </Heading>
-          </Dialog.Header>
-          <Dialog.Body p={0}>
+      <Portal>
+        <Dialog.Positioner>
+          <Dialog.Content
+            maxW={created ? 'full' : 'md'}
+            w={created ? '90vw' : undefined}
+            h={created ? '85vh' : undefined}
+            p={created ? 4 : 6}
+            display='flex'
+            flexDirection='column'
+            minH={0}
+          >
             {!created ? (
-              <VStack align='stretch' gap={4}>
-                <Text fontSize='sm' color='gray.600'>
-                  Create a permanent XYZ service for{' '}
-                  <strong>{service.graphResult.name}</strong>. This service will
-                  not be automatically cleaned up.
-                </Text>
-                <Box>
-                  <Text fontSize='sm' fontWeight='medium' mb={2}>
-                    Visibility
-                  </Text>
-                  <RadioGroup.Root
-                    value={scope}
-                    onValueChange={(details) =>
-                      setScope(details.value as 'public' | 'private')
-                    }
-                  >
-                    <VStack align='stretch' gap={2}>
-                      <RadioGroup.Item value='public'>
-                        <RadioGroup.ItemHiddenInput />
-                        <RadioGroup.ItemIndicator />
-                        <RadioGroup.ItemText>
-                          Public — accessible without authentication
-                        </RadioGroup.ItemText>
-                      </RadioGroup.Item>
-                      <RadioGroup.Item value='private'>
-                        <RadioGroup.ItemHiddenInput />
-                        <RadioGroup.ItemIndicator />
-                        <RadioGroup.ItemText>
-                          Private — requires authentication
-                        </RadioGroup.ItemText>
-                      </RadioGroup.Item>
-                    </VStack>
-                  </RadioGroup.Root>
-                </Box>
-                {error && (
-                  <Text fontSize='sm' color='red.500'>
-                    {error}
-                  </Text>
-                )}
-                <Flex justify='flex-end' gap={2}>
-                  <Button variant='ghost' size='sm' onClick={onClose}>
-                    Cancel
-                  </Button>
-                  <Button
-                    size='sm'
-                    onClick={handleCreate}
-                    disabled={isCreating}
-                  >
-                    {isCreating ? <Spinner size='sm' /> : 'Create'}
-                  </Button>
-                </Flex>
-              </VStack>
-            ) : (
-              <VStack align='stretch' gap={4}>
-                <Text fontSize='sm' color='green.600'>
-                  Permanent service created successfully.
-                </Text>
-
-                <Box>
-                  <Text fontSize='sm' fontWeight='medium' mb={1}>
-                    XYZ Tile URL
-                  </Text>
-                  <Clipboard.Root value={tileUrl}>
-                    <Flex align='center' gap={2}>
-                      <Clipboard.Input
-                        readOnly
-                        fontSize='xs'
-                        flex={1}
-                        minW={0}
-                      />
-                      <Clipboard.Trigger asChild>
-                        <Button variant='outline' size='xs' flexShrink={0}>
-                          Copy
-                        </Button>
-                      </Clipboard.Trigger>
+              <>
+                <Dialog.Header p={0} mb={4}>
+                  <Heading size='md'>Export as Permanent Service</Heading>
+                </Dialog.Header>
+                <Dialog.Body p={0}>
+                  <VStack align='stretch' gap={4}>
+                    <Text fontSize='sm' color='fg.muted'>
+                      Create a permanent XYZ service for{' '}
+                      <strong>{service.graphResult.name}</strong>.
+                    </Text>
+                    <Stack align='stretch' gap={2}>
+                      <Text fontSize='sm' fontWeight='bold'>
+                        Scope
+                      </Text>
+                      <RadioGroup.Root
+                        size='sm'
+                        value={scope}
+                        onValueChange={(details) =>
+                          setScope(details.value as 'public' | 'private')
+                        }
+                      >
+                        <VStack align='stretch' gap={2}>
+                          <RadioGroup.Item
+                            value='public'
+                            justifyContent='space-between'
+                            disabled
+                          >
+                            <RadioGroup.ItemHiddenInput />
+                            <RadioGroup.ItemText opacity={0.5}>
+                              Public{' '}
+                              <Span fontStyle='italic' color='fg.muted'>
+                                (accessible without authentication)
+                              </Span>
+                            </RadioGroup.ItemText>
+                            <RadioGroup.ItemIndicator />
+                          </RadioGroup.Item>
+                          <RadioGroup.Item
+                            value='private'
+                            justifyContent='space-between'
+                          >
+                            <RadioGroup.ItemHiddenInput />
+                            <RadioGroup.ItemText>
+                              Private{' '}
+                              <Span fontStyle='italic' color='fg.muted'>
+                                (requires authentication)
+                              </Span>
+                            </RadioGroup.ItemText>
+                            <RadioGroup.ItemIndicator />
+                          </RadioGroup.Item>
+                        </VStack>
+                      </RadioGroup.Root>
+                    </Stack>
+                    {error && (
+                      <Text fontSize='sm' color='fg.error'>
+                        {error}
+                      </Text>
+                    )}
+                    <Flex justify='flex-end' gap={2}>
+                      <Button variant='ghost' size='sm' onClick={onClose}>
+                        Cancel
+                      </Button>
+                      <Button
+                        size='sm'
+                        onClick={handleCreate}
+                        disabled={isCreating}
+                      >
+                        {isCreating ? <Spinner size='sm' /> : 'Create'}
+                      </Button>
                     </Flex>
-                  </Clipboard.Root>
-                </Box>
-
-                {scope === 'public' && (
-                  <Box>
-                    <Text fontSize='sm' fontWeight='medium' mb={1}>
-                      Shareable Link
-                    </Text>
-                    <Clipboard.Root value={shareUrl}>
-                      <Flex align='center' gap={2}>
-                        <Clipboard.Input
-                          readOnly
-                          fontSize='xs'
-                          flex={1}
-                          minW={0}
-                        />
-                        <Clipboard.Trigger asChild>
-                          <Button variant='outline' size='xs' flexShrink={0}>
-                            Copy
-                          </Button>
-                        </Clipboard.Trigger>
-                      </Flex>
-                    </Clipboard.Root>
+                  </VStack>
+                </Dialog.Body>
+              </>
+            ) : (
+              <Dialog.Body
+                p={0}
+                flex={1}
+                display='flex'
+                flexDirection='column'
+                minH={0}
+                gap={3}
+              >
+                <Flex align='center' justify='space-between' gap={3} minW={0}>
+                  <Box flex={1} minW={0}>
+                    <ShareHeader
+                      portalled={false}
+                      actions={
+                        <>
+                          <Separator orientation='vertical' height={4} />
+                          <IconButton
+                            size='xs'
+                            variant='ghost'
+                            onClick={onClose}
+                          >
+                            <LuX />
+                          </IconButton>
+                        </>
+                      }
+                      title={previewTitle}
+                      scope={previewScope}
+                      service={created}
+                      onScopeChanged={handleScopeChanged}
+                      onDeleted={onClose}
+                    />
                   </Box>
-                )}
-
-                {ENABLE_NARRATIVE_EXPORT && narrativeMarkdown && (
-                  <Box>
-                    <Text fontSize='sm' fontWeight='medium' mb={1}>
-                      Narrative Embed
-                    </Text>
-                    <Clipboard.Root value={narrativeMarkdown}>
-                      <Flex align='center' gap={2}>
-                        <Clipboard.Input
-                          readOnly
-                          fontSize='xs'
-                          flex={1}
-                          minW={0}
-                        />
-                        <Clipboard.Trigger asChild>
-                          <Button variant='outline' size='xs' flexShrink={0}>
-                            Copy
-                          </Button>
-                        </Clipboard.Trigger>
-                      </Flex>
-                    </Clipboard.Root>
-                  </Box>
-                )}
-
-                <Flex justify='flex-end'>
-                  <Button size='sm' onClick={onClose}>
-                    Done
-                  </Button>
                 </Flex>
-              </VStack>
+
+                <Flex
+                  flex={1}
+                  minH={0}
+                  w='100%'
+                  position='relative'
+                  borderWidth='1px'
+                  borderColor='border'
+                  borderRadius='uni'
+                  overflow='hidden'
+                  css={{
+                    '& .maplibregl-canvas-container': {
+                      position: 'relative',
+                      h: '100%',
+                      borderRadius: 'uni',
+                      overflow: 'hidden'
+                    }
+                  }}
+                >
+                  <MapViewer
+                    sceneId={created.id}
+                    bounds={previewBounds}
+                    services={mapServices}
+                    onToggleLayer={handleToggleLayer}
+                    onTileStatusChange={setTileStatus}
+                  />
+                  {mapServices.length > 0 && (
+                    <TileStatusAlert status={tileStatus} />
+                  )}
+                </Flex>
+              </Dialog.Body>
             )}
-          </Dialog.Body>
-        </Dialog.Content>
-      </Dialog.Positioner>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
     </Dialog.Root>
   );
 }
