@@ -110,10 +110,18 @@ function ResultsPanelComponent() {
                 onToggleLayer={toggleServiceVisibility}
                 onBoundingBoxChange={setBoundingBox}
                 onTileStatusChange={setTileStatus}
-                onServicePublish={setShareService}
+                onServicePublish={(v) => setShareService(v)}
               />
             </Flex>
             {services.length > 0 && <TileStatusAlert status={tileStatus} />}
+
+            {shareService && (
+              <ShareDialog
+                service={shareService}
+                bounds={bounds}
+                onClose={() => setShareService(null)}
+              />
+            )}
           </Tabs.Content>
           <Tabs.Content value='visual' display='flex' h='100%' p={0}>
             <OutputVisual graph={mergedGraph} />
@@ -123,13 +131,6 @@ function ResultsPanelComponent() {
           </Tabs.Content>
         </Stack>
       </Tabs.Root>
-      {shareService && (
-        <ShareDialog
-          service={shareService}
-          bounds={bounds}
-          onClose={() => setShareService(null)}
-        />
-      )}
     </Stack>
   );
 }
