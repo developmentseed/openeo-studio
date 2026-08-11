@@ -16,6 +16,7 @@ import {
   VStack
 } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
+import { LuX } from 'react-icons/lu';
 
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
@@ -25,6 +26,7 @@ import {
   type ServiceScope
 } from '$components/services/service-scope-badge';
 import { ShareHeader } from '$components/share/share-header';
+import { Tip } from '$components/tooltip';
 import type { BackendService, ServiceInfo } from '$types';
 import { createPermanentService } from '$utils/openeo/permanent-services';
 import {
@@ -33,7 +35,6 @@ import {
   getServiceExtent
 } from '$utils/openeo/service-adapters';
 import { toaster } from '$utils/toaster';
-import { LuX } from 'react-icons/lu';
 
 interface ShareDialogProps {
   service: ServiceInfo;
@@ -157,20 +158,22 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                         }
                       >
                         <VStack align='stretch' gap={2}>
-                          <RadioGroup.Item
-                            value='public'
-                            justifyContent='space-between'
-                            disabled
-                          >
-                            <RadioGroup.ItemHiddenInput />
-                            <RadioGroup.ItemText opacity={0.5}>
-                              Public{' '}
-                              <Span fontStyle='italic' color='fg.muted'>
-                                (accessible without authentication)
-                              </Span>
-                            </RadioGroup.ItemText>
-                            <RadioGroup.ItemIndicator />
-                          </RadioGroup.Item>
+                          <Tip content='Coming soon...'>
+                            <RadioGroup.Item
+                              value='public'
+                              justifyContent='space-between'
+                              disabled
+                            >
+                              <RadioGroup.ItemHiddenInput />
+                              <RadioGroup.ItemText opacity={0.5}>
+                                Public{' '}
+                                <Span fontStyle='italic' color='fg.muted'>
+                                  (accessible without authentication)
+                                </Span>
+                              </RadioGroup.ItemText>
+                              <RadioGroup.ItemIndicator />
+                            </RadioGroup.Item>
+                          </Tip>
                           <RadioGroup.Item
                             value='private'
                             justifyContent='space-between'

@@ -23,6 +23,7 @@ import {
   getServiceScope,
   type ServiceScope
 } from '$components/services/service-scope-badge';
+import { Tip } from '$components/tooltip';
 import { ENABLE_NARRATIVE_EXPORT } from '$config/constants';
 import { useServicesStore } from '$stores/services-store';
 import { buildNarrativeMarkdown } from '$utils/narrative-export';
@@ -154,41 +155,42 @@ function MenuPanel({
                 value={scope}
                 disabled={isBusy}
                 onValueChange={(details) => {
-                  if (
-                    details.value === 'public' ||
-                    details.value === 'private'
-                  ) {
-                    void onScopeChange(details.value);
-                  }
+                  onScopeChange(details.value as ServiceScope);
                 }}
               >
-                {(
-                  [
-                    { value: 'public', label: 'Public' },
-                    { value: 'private', label: 'Private' }
-                  ] as const
-                ).map((option) => (
+                <Tip placement='right' content='Coming soon...'>
                   <Flex
-                    key={option.value}
                     align='center'
                     justify='space-between'
-                    borderRadius='sm'
                     lineHeight='1.75rem'
                     fontWeight='normal'
+                    opacity={0.5}
                     asChild
                   >
-                    <RadioGroup.Item
-                      value={option.value}
-                      disabled={option.value === 'public'}
-                    >
+                    <RadioGroup.Item value='public' disabled>
                       <RadioGroup.ItemText truncate flex={1}>
-                        {option.label}
+                        Public
                       </RadioGroup.ItemText>
                       <RadioGroup.ItemHiddenInput />
                       <RadioGroup.ItemIndicator />
                     </RadioGroup.Item>
                   </Flex>
-                ))}
+                </Tip>
+                <Flex
+                  align='center'
+                  justify='space-between'
+                  lineHeight='1.75rem'
+                  fontWeight='normal'
+                  asChild
+                >
+                  <RadioGroup.Item value='private'>
+                    <RadioGroup.ItemText truncate flex={1}>
+                      Private
+                    </RadioGroup.ItemText>
+                    <RadioGroup.ItemHiddenInput />
+                    <RadioGroup.ItemIndicator />
+                  </RadioGroup.Item>
+                </Flex>
               </RadioGroup.Root>
             </VStack>
           </Stack>
