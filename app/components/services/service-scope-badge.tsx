@@ -28,5 +28,5 @@ export function ServiceScopeBadge({ scope }: ServiceScopeBadgeProps) {
 export function getServiceScope(
   configuration: Record<string, unknown> | undefined
 ): ServiceScope {
-  return configuration?.scope === 'private' ? 'private' : 'public';
+  return configuration?.scope === 'public' ? 'public' : 'private';
 }

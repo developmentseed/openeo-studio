@@ -154,9 +154,7 @@ function MenuPanel({
               value={scope}
               disabled={isBusy}
               onValueChange={(details) => {
-                if (details.value === 'public' || details.value === 'private') {
-                  void onScopeChange(details.value);
-                }
+                onScopeChange(details.value as ServiceScope);
               }}
             >
               {(
@@ -175,7 +173,10 @@ function MenuPanel({
                   <Text fontSize='sm' truncate flex={1}>
                     {option.label}
                   </Text>
-                  <RadioGroup.Item value={option.value}>
+                  <RadioGroup.Item
+                    value={option.value}
+                    disabled={option.value === 'public'}
+                  >
                     <RadioGroup.ItemHiddenInput />
                     <RadioGroup.ItemIndicator />
                   </RadioGroup.Item>

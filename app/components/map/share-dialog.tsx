@@ -90,7 +90,7 @@ function toMapService(
 
 export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   const { user } = useAuth();
-  const [scope, setScope] = useState<'public' | 'private'>('public');
+  const [scope, setScope] = useState<'public' | 'private'>('private');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<BackendService | null>(null);
@@ -201,9 +201,10 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                           <RadioGroup.Item
                             value='public'
                             justifyContent='space-between'
+                            disabled
                           >
                             <RadioGroup.ItemHiddenInput />
-                            <RadioGroup.ItemText>
+                            <RadioGroup.ItemText opacity={0.5}>
                               Public{' '}
                               <Span fontStyle='italic' color='fg.muted'>
                                 (accessible without authentication)
