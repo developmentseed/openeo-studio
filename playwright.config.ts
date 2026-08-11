@@ -3,6 +3,9 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Frontend integration test configuration with mocked backend APIs.
  * See https://playwright.dev/docs/test-configuration.
+ *
+ * Starts Vite directly (not `pnpm dev`) so the suite never runs `pnpm clean`
+ * and wipe a live Vite cache. Locally reuses an existing server on :9000.
  */
 export default defineConfig({
   testDir: './test/integration',
@@ -27,11 +30,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm dev',
+    command: 'vite',
     url: 'http://localhost:9000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     env: {
+      NODE_ENV: 'development',
       VITE_BASE_URL: 'http://localhost:9000',
       VITE_APP_TITLE: process.env.VITE_APP_TITLE || 'title',
       VITE_APP_DESCRIPTION: process.env.VITE_APP_DESCRIPTION || 'description'

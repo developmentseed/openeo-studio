@@ -94,20 +94,37 @@ test.describe('Visual tab', () => {
       fulfillJson(route, { errors: [] })
     );
     await authenticatedPage.route('**/services', (route) => {
-      if (route.request().method() === 'POST') {
+      const method = route.request().method();
+      if (method === 'POST') {
         return fulfillJson(route, null, {
           status: 201,
           headers: { Location: 'https://openeo.test/services/svc1' }
         });
       }
+      if (method === 'GET') {
+        return fulfillJson(route, { services: [] });
+      }
+      if (method === 'DELETE' || method === 'OPTIONS') {
+        return fulfillJson(route, null, { status: 204 });
+      }
       return fulfillJson(route, { services: [] });
     });
-    await authenticatedPage.route('**/services/svc1', (route) =>
-      fulfillJson(route, { url: 'https://tiles.test/{z}/{x}/{y}.png' })
-    );
-    // Saving the project as a UDP runs after the services are created.
-    await authenticatedPage.route('**/process_graphs/**', (route) =>
-      fulfillJson(route, null, { status: 204 })
+    await authenticatedPage.route('**/services/svc1', (route) => {
+      if (route.request().method() === 'DELETE') {
+        return fulfillJson(route, null, { status: 204 });
+      }
+      return fulfillJson(route, { url: 'https://tiles.test/{z}/{x}/{y}.png' });
+    });
+    // Auto-execute may request tiles; keep them from hanging the page.
+    await authenticatedPage.route('https://tiles.test/**', (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'image/png' },
+        body: Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+          'base64'
+        )
+      })
     );
   });
 
@@ -116,19 +133,12 @@ test.describe('Visual tab', () => {
   }) => {
     await authenticatedPage.goto('/editor/sentinel-2-apa');
 
-    // Save stays disabled until the editor has unsaved changes. Insert a
-    // comment at the very top so the script stays valid Python.
-    await authenticatedPage.getByRole('tab', { name: /python/i }).click();
-    await authenticatedPage
-      .locator('.cm-content[contenteditable="true"]')
-      .click();
-    await authenticatedPage.keyboard.press('Meta+ArrowUp');
-    await authenticatedPage.keyboard.type('# trigger dirty state\n');
-    await authenticatedPage.waitForTimeout(350);
-
-    await authenticatedPage
-      .getByRole('button', { name: /save/i })
-      .click({ timeout: 60_000 });
+    // Sample scenes auto-execute once Pyodide is ready; wait for the stubbed
+    // layer instead of going through Save (which opens a claim dialog and
+    // navigates away from the sample route).
+    await expect(authenticatedPage.getByText('Test Layer')).toBeVisible({
+      timeout: 30_000
+    });
 
     await authenticatedPage.getByRole('tab', { name: 'Visual' }).click();
 

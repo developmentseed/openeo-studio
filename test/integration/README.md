@@ -4,6 +4,10 @@ Frontend integration tests using Playwright with mocked backend APIs and authent
 
 ## Running Tests
 
+Playwright starts Vite on port 9000 when needed (or reuses one already
+running). Prefer an existing `pnpm dev` session locally — Playwright will
+attach to it instead of starting another process.
+
 ```bash
 # Run all tests (headless)
 pnpm test:integration
