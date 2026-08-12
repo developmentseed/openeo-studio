@@ -65,7 +65,14 @@ function ResultsPanelComponent() {
   return (
     <Stack gap={0} flexGrow={1} h='100%' position='relative' asChild>
       <Tabs.Root defaultValue='map' variant='subtle' size='sm' lazyMount>
-        <Flex gap={4} alignItems='center' p={4} bg='bg.subtle' flexShrink={0}>
+        <Flex
+          gap={4}
+          alignItems='center'
+          p={4}
+          bg='bg.subtle'
+          flexShrink={0}
+          overflowX='auto'
+        >
           <Tabs.List gap={2} alignItems='center'>
             <Tabs.Trigger value='map'>
               <LuMap /> Map

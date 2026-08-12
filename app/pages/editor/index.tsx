@@ -112,7 +112,7 @@ export function EditorPage() {
   }
 
   return (
-    <Flex flexDirection='column' flex={1} maxH='calc(100vh - 1rem)'>
+    <Flex flexDirection='column' flex={1} maxH='calc(100vh - 1rem)' minW={0}>
       <Splitter.Root
         defaultSize={[50, 50]}
         panels={[

@@ -3,34 +3,22 @@ import remarkGfm from 'remark-gfm';
 import {
   Box,
   Blockquote,
-  Button,
   Heading,
   Link,
   List,
   Table,
   Text,
-  chakra
+  chakra,
+  IconButton,
+  Clipboard
 } from '@chakra-ui/react';
-import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
+
+import {
+  EditorLanguage,
+  ReadOnlyCodeEditor
+} from '$components/editor/readonly-code-editor';
 
 const mdPlugins = [remarkGfm];
-
-async function copyCodeToClipboard(button: HTMLButtonElement, text: string) {
-  const originalLabel = button.textContent || 'Copy';
-
-  try {
-    await navigator.clipboard.writeText(text);
-    button.textContent = 'Copied';
-  } catch {
-    button.textContent = 'Copy failed';
-  }
-
-  button.disabled = true;
-  window.setTimeout(() => {
-    button.textContent = originalLabel;
-    button.disabled = false;
-  }, 1200);
-}
 
 const mdComponents: Components = {
   p: (props) => <Text lineHeight='tall' mb={4} {...props} />,
@@ -55,10 +43,10 @@ const mdComponents: Components = {
   ),
   pre: ({ children }) => <>{children}</>,
   code: ({ className, children, ...props }) => {
-    const match = /language-(\w+)/.exec(className || '');
+    const [, lang] = /language-(\w+)/.exec(className || '') ?? [];
     const code = String(children).replace(/\n$/, '');
 
-    if (match) {
+    if (lang) {
       return (
         <Box
           mb={4}
@@ -67,19 +55,21 @@ const mdComponents: Components = {
           bg='bg.subtle'
           position='relative'
         >
-          <Button
-            size='xs'
+          <Clipboard.Root
+            value={code}
             position='absolute'
             top={2}
             right={2}
-            zIndex={1}
-            variant='outline'
-            onClick={(event) => copyCodeToClipboard(event.currentTarget, code)}
+            zIndex={100}
           >
-            Copy
-          </Button>
-          {match[1] === 'python' ? (
-            <ReadOnlyCodeEditor code={code} />
+            <Clipboard.Trigger asChild>
+              <IconButton variant='surface' size='xs'>
+                <Clipboard.Indicator />
+              </IconButton>
+            </Clipboard.Trigger>
+          </Clipboard.Root>
+          {['python', 'json'].includes(lang) ? (
+            <ReadOnlyCodeEditor code={code} language={lang as EditorLanguage} />
           ) : (
             <chakra.pre
               p={4}
