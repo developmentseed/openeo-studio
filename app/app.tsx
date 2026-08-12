@@ -7,6 +7,8 @@ import { useServiceCleanup } from '$components/services/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
 import { AuthLoading } from '$components/auth/auth-loading';
 import { RequireAuth } from '$components/auth/require-auth';
+import { MobileWarn } from '$components/common/mobile-warn';
+
 import { LandingPage } from '$pages/landing';
 import { EditorPage } from '$pages/editor';
 import { DocsPage } from '$pages/docs';
@@ -93,12 +95,14 @@ export default function App() {
           />
         )}
         <Route element={<RequireAuth />}>
+          <Route element={<MobileWarn />}>
+            <Route path='/editor' element={<EditorPage />} />
+            <Route path='/editor/:sceneId' element={<EditorPage />} />
+            <Route path='/share/:serviceId' element={<SharePage />} />
+          </Route>
           <Route path='/projects' element={<ProjectsPage />} />
           <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
           <Route path='/services' element={<ServicesPage />} />
-          <Route path='/editor' element={<EditorPage />} />
-          <Route path='/editor/:sceneId' element={<EditorPage />} />
-          <Route path='/share/:serviceId' element={<SharePage />} />
         </Route>
         <Route path='*' element={<UhOh404 />} />
       </Routes>

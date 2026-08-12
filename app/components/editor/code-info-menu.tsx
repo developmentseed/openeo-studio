@@ -39,8 +39,9 @@ export function CodeInfoMenu({
       <Menu.Trigger asChild>
         <IconButton
           aria-label='More options'
-          size='xs'
+          size='sm'
           variant='outline'
+          shadow='md'
           bg='colorPalette.contrast'
           {...triggerProps}
         >

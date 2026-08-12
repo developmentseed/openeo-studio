@@ -14,7 +14,7 @@ import {
   githubLight
 } from '$styles/codemirror-theme';
 
-type EditorLanguage = 'python' | 'json';
+export type EditorLanguage = 'python' | 'json';
 
 interface ReadOnlyCodeEditorProps {
   code: string;

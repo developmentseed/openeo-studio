@@ -23,7 +23,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
           <Card.Body gap={4} p={4} pe={10}>
             <Stack gap={2}>
               <Stack align='start' gap={2} minW={0}>
-                <Heading size='md' truncate>
+                <Heading size='md' truncate maxW='100%'>
                   {title}
                 </Heading>
                 <ServiceScopeBadge scope={scope} />

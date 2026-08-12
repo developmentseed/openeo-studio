@@ -49,7 +49,12 @@ export function MapLayerSelector({
         defaultOpen
       >
         <Popover.Trigger asChild>
-          <IconButton size='sm' aria-label='Select map layers' variant='subtle'>
+          <IconButton
+            size='sm'
+            shadow='md'
+            aria-label='Select map layers'
+            variant='subtle'
+          >
             <LuLayers />
           </IconButton>
         </Popover.Trigger>

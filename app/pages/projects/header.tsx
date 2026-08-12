@@ -1,4 +1,4 @@
-import { Button, Flex, Heading } from '@chakra-ui/react';
+import { Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { LuPlus, LuAward, LuUser } from 'react-icons/lu';
 import { NavLink } from 'react-router';
 
@@ -17,17 +17,17 @@ export function ProjectsHeader() {
       <Flex gap={2}>
         <Button size='sm' variant='ghost' asChild>
           <NavLink to='/projects' end>
-            <LuUser /> My projects
+            <LuUser /> <Text hideBelow='sm'>My projects</Text>
           </NavLink>
         </Button>
         <Button size='sm' variant='ghost' asChild>
           <NavLink to='/projects/samples'>
-            <LuAward /> Samples
+            <LuAward /> <Text hideBelow='sm'>Samples</Text>
           </NavLink>
         </Button>
         <Button size='sm' variant='outline' asChild>
           <SmartLink to='/editor'>
-            <LuPlus /> Create
+            <LuPlus /> <Text hideBelow='sm'>Create</Text>
           </SmartLink>
         </Button>
       </Flex>
