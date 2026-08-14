@@ -100,6 +100,19 @@ docker run -p 8888:80 -e BASE_URL=http://localhost:8888/subpath openeo-studio
 
 The image is built once with a relative asset base and configured per-container via environment variables (`BASE_URL`, `OPENEO_API_URL`, `APP_TITLE`, etc. — see `Dockerfile` for the full list). The entrypoint script derives the mount path from `BASE_URL` and writes it into nginx's rewrite rules, the page's `<base>` tag, and `window.__APP_CONFIG__` at container start — so the same image can be redeployed under a different `BASE_URL` or `OPENEO_API_URL` without rebuilding.
 
+### Kubernetes (Helm)
+
+A Helm chart is provided under [`charts/openeo-studio`](charts/openeo-studio):
+
+```sh
+helm install my-studio charts/openeo-studio \
+  --set env.OPENEO_API_URL=https://openeo.example.org \
+  --set ingress.enabled=true \
+  --set ingress.hosts[0].host=studio.example.org
+```
+
+See [`charts/openeo-studio/README.md`](charts/openeo-studio/README.md) for the full list of values.
+
 ## Made possible by
 openEO Studio began as a Development Seed Labs project, exploring what a lightweight interactive openEO client could look like. Continued development has been made possible by support from [EOPF](https://explorer.eopf.copernicus.eu/), [EOEPCA+](https://eoepca.org/eoepcaplus) and [APEx](https://apex.esa.int/).
 

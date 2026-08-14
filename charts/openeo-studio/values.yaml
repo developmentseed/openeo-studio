@@ -1,0 +1,56 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/developmentseed/openeo-studio
+  # Defaults to Chart.appVersion when empty
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: openeo-studio.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources: {}
+
+env:
+  OPENEO_API_URL: https://api.explorer.eopf.copernicus.eu/openeo
+  # The container derives its mount path from this URL (see
+  # docker/90-app-config.sh) - there is no separate PATH_PREFIX variable.
+  BASE_URL: ""
+  APP_TITLE: openEO Studio
+  APP_DESCRIPTION: Interactive code editor for openEO satellite imagery processing
+  MAPTILER_KEY: ""
+  AUTH_AUTHORITY: ""
+  AUTH_CLIENT_ID: ""
+  AUTH_REDIRECT_URI: ""
+  ENABLE_NARRATIVE_EXPORT: "false"
+
+# Source any of the above env vars from a pre-existing Secret instead of a
+# literal value in `env`. A name listed here takes over from `env` entirely
+# (its literal value, if any, is dropped in favor of the secretKeyRef).
+# secretKey defaults to `name` when omitted.
+#
+# envFromSecret:
+#   - name: MAPTILER_KEY
+#     secretName: openeo-studio-secrets
+#     secretKey: maptiler-key
+envFromSecret: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,67 @@
+suite: ingress
+
+templates:
+  - templates/ingress.yaml
+
+tests:
+  - it: renders nothing when ingress is disabled (the default)
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders a rule per host/path when enabled
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.hosts:
+        - host: studio.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+      - equal:
+          path: spec.rules[0].host
+          value: studio.example.org
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 80
+
+  - it: renders tls when configured
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: studio.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+      ingress.tls:
+        - hosts:
+            - studio.example.org
+          secretName: studio-tls
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: studio-tls
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: studio.example.org
+
+  - it: applies ingress annotations when set
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: studio.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+      ingress.annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+    asserts:
+      - equal:
+          path: metadata.annotations["cert-manager.io/cluster-issuer"]
+          value: letsencrypt

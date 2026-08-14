@@ -1,0 +1,170 @@
+suite: deployment
+
+templates:
+  - templates/deployment.yaml
+
+tests:
+  - it: sets replica count from values
+    set:
+      replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: defaults the image tag to Chart.appVersion when image.tag is empty
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/developmentseed/openeo-studio:0.1.1
+
+  - it: uses image.tag when set, overriding appVersion
+    set:
+      image.tag: "1.2.3"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/developmentseed/openeo-studio:1.2.3
+
+  - it: exposes container port 80 named http
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 80
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: http
+
+  - it: renders every entry of values.env as a container env var
+    set:
+      env:
+        FOO: bar
+        BASE_URL: https://example.org/studio
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FOO
+            value: bar
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BASE_URL
+            value: https://example.org/studio
+
+  - it: does not render a PATH_PREFIX env var (it is derived from BASE_URL at runtime, not a real setting)
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PATH_PREFIX
+
+  - it: sources an env var from a secretKeyRef when listed in envFromSecret
+    set:
+      envFromSecret:
+        - name: MAPTILER_KEY
+          secretName: openeo-studio-secrets
+          secretKey: maptiler-key
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MAPTILER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openeo-studio-secrets
+                key: maptiler-key
+
+  - it: does not also render a literal value entry for a key sourced from envFromSecret (no duplicate env name)
+    set:
+      envFromSecret:
+        - name: MAPTILER_KEY
+          secretName: openeo-studio-secrets
+          secretKey: maptiler-key
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MAPTILER_KEY
+            value: ""
+
+  - it: defaults secretKey to the env var name when secretKey is omitted
+    set:
+      envFromSecret:
+        - name: MAPTILER_KEY
+          secretName: openeo-studio-secrets
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MAPTILER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openeo-studio-secrets
+                key: MAPTILER_KEY
+
+  - it: probes / on the http port for liveness and readiness
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: http
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: omits imagePullSecrets by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.imagePullSecrets
+
+  - it: sets imagePullSecrets when provided
+    set:
+      imagePullSecrets:
+        - name: my-registry-secret
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: my-registry-secret
+
+  - it: applies resources, nodeSelector, tolerations and affinity
+    set:
+      resources:
+        requests:
+          cpu: 100m
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: openeo
+          effect: NoSchedule
+      affinity:
+        nodeAffinity: {}
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            kubernetes.io/os: linux
+      - equal:
+          path: spec.template.spec.tolerations[0].key
+          value: dedicated
+      - isNotNull:
+          path: spec.template.spec.affinity.nodeAffinity
+
+  - it: stamps a sha256 config checksum annotation so env changes trigger a rollout
+    set:
+      env:
+        BASE_URL: https://example.org/studio
+    asserts:
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: "^[a-f0-9]{64}$"

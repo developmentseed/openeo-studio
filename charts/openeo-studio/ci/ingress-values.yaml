@@ -1,0 +1,20 @@
+# Second ct install target: exercises the ingress template, which the
+# default ci-values.yaml install (ingress disabled) never renders.
+image:
+  repository: openeo-studio
+  tag: dev
+  pullPolicy: Never
+
+# Same marker as ci-values.yaml: the smoke test doesn't know which of the
+# two ct-installed releases' pods it will find first, so both must agree.
+env:
+  APP_TITLE: openEO Studio CI
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: openeo-studio.ci.local
+      paths:
+        - path: /
+          pathType: Prefix

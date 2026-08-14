@@ -1,0 +1,13 @@
+apiVersion: v2
+name: openeo-studio
+description: Interactive code editor for openEO satellite imagery processing
+type: application
+version: 0.1.0
+appVersion: "0.1.1"
+icon: https://raw.githubusercontent.com/developmentseed/openeo-studio/main/public/meta/favicon.png
+home: https://github.com/developmentseed/openeo-studio
+sources:
+  - https://github.com/developmentseed/openeo-studio
+maintainers:
+  - name: developmentseed
+    url: https://developmentseed.org
