@@ -1,12 +1,16 @@
 import { expect } from '@playwright/test';
 import { test } from './__fixtures__';
+import { gotoSceneOrFail, SCENE_IDS, sceneEditorPath } from './support/scenes';
+
+const CUMBRE_VIEJA_PATH = sceneEditorPath(SCENE_IDS.CUMBRE_VIEJA);
+const NDCI_PATH = sceneEditorPath(SCENE_IDS.NDCI);
 
 test.describe('Persistence', () => {
   test.describe('User-Typed Code Persistence', () => {
     test('user-typed code persists across page reloads', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.CUMBRE_VIEJA);
 
       // Switch to code tab
       await authenticatedPage.getByRole('tab', { name: /code/i }).click();
@@ -24,7 +28,7 @@ test.describe('Persistence', () => {
 
       // Reload page
       await authenticatedPage.reload();
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await authenticatedPage.waitForURL(CUMBRE_VIEJA_PATH);
 
       // Switch back to code tab after reload
       await authenticatedPage.getByRole('tab', { name: /code/i }).click();
@@ -36,7 +40,7 @@ test.describe('Persistence', () => {
     test('user-typed code persists when switching between tabs', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.CUMBRE_VIEJA);
 
       // Switch to code tab and add marker
       await authenticatedPage.getByRole('tab', { name: /code/i }).click();
@@ -124,18 +128,15 @@ test.describe('Persistence', () => {
     test('scene selection persists across page reload', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.CUMBRE_VIEJA);
 
       // Verify scene title is visible
-      const sceneTitle = authenticatedPage.getByText(
-        /Monitoring Aquatic Plants and Algae/i
-      );
+      const sceneTitle = authenticatedPage.getByText(/Cumbre Vieja|SWIR/i);
       await expect(sceneTitle).toBeVisible();
 
       // Reload
       await authenticatedPage.reload();
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await authenticatedPage.waitForURL(CUMBRE_VIEJA_PATH);
 
       // Verify scene is still loaded (URL + title visible)
       await expect(sceneTitle).toBeVisible();
@@ -144,17 +145,16 @@ test.describe('Persistence', () => {
     test('switching scenes updates editor state', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.CUMBRE_VIEJA);
 
       // Verify first scene is loaded
       await expect(
-        authenticatedPage.getByText(/Monitoring Aquatic Plants and Algae/i)
+        authenticatedPage.getByText(/Cumbre Vieja|SWIR/i)
       ).toBeVisible();
 
       // Navigate to different scene
-      await authenticatedPage.goto('/editor/sentinel-2-ndci');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-ndci');
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.NDCI);
+      await authenticatedPage.waitForURL(NDCI_PATH);
 
       // Verify different scene loaded (URL changed)
       await expect(authenticatedPage).toHaveURL(/sentinel-2-ndci/);
@@ -173,7 +173,7 @@ test.describe('Persistence', () => {
     test('navigating to landing clears editor state', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await gotoSceneOrFail(authenticatedPage, SCENE_IDS.CUMBRE_VIEJA);
 
       // Switch to code tab and add custom code
       await authenticatedPage.getByRole('tab', { name: /code/i }).click();
@@ -189,11 +189,14 @@ test.describe('Persistence', () => {
       await authenticatedPage.waitForURL('/');
 
       // Select the same scene again
-      const sceneLink = authenticatedPage
-        .getByRole('link')
-        .filter({ hasText: /Aquatic Plants and Algae/i })
-        .first();
-      await sceneLink.click();
+      const sceneLink = authenticatedPage.locator(
+        `a[href="${CUMBRE_VIEJA_PATH}"]`
+      );
+      await expect(
+        sceneLink.first(),
+        `Expected scene link ${CUMBRE_VIEJA_PATH} to exist on landing page`
+      ).toBeVisible();
+      await sceneLink.first().click();
       await authenticatedPage.waitForURL(/\/editor\/.+/);
 
       // Switch to code tab
