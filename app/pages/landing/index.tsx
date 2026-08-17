@@ -4,6 +4,7 @@ import {
   Button,
   Flex,
   Heading,
+  Image,
   SimpleGrid,
   Stack,
   Text
@@ -18,6 +19,10 @@ import { useEditorStore } from '$stores/editor-store';
 import { LoginButton } from '$components/auth/login-button';
 import { SceneCard } from '$pages/projects/scene-card';
 
+import herolightImg from './heroillu-light.svg';
+import herodarkImg from './heroillu-dark.svg';
+import { useColorModeValue } from '$contexts/color-mode';
+
 export function LandingPage() {
   const { clearEditor } = useEditorStore();
   const { isAuthenticated } = useAuth();
@@ -26,6 +31,8 @@ export function LandingPage() {
   useEffect(() => {
     clearEditor();
   }, [clearEditor]);
+
+  const heroImg = useColorModeValue(herolightImg, herodarkImg);
 
   return (
     <Box flex={1}>
@@ -42,10 +49,10 @@ export function LandingPage() {
             <LoginButton hideIfAuthenticated />
           </Flex>
         </Flex>
-        <Stack p={4} gap={12}>
-          <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
+        <Stack p={4} gap={12} maxWidth='8xl' mx='auto'>
+          <SimpleGrid columns={12} gap={8} w='100%'>
             <Stack
-              gridColumn='1 / span 8'
+              gridColumn='2 / span 5'
               gap={4}
               align='start'
               justify='center'
@@ -66,46 +73,21 @@ export function LandingPage() {
                 </NavLink>
               </Button>
             </Stack>
-            <Box bg='neutral.300' gridColumn='9 / span 4' aspectRatio={1} />
+            <Flex gridColumn='8 / span 4' justify='center'>
+              <Image src={heroImg} />
+            </Flex>
           </SimpleGrid>
 
-          {/* <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
-            <Heading gridColumn='1 / -1' size='2xl'>
-              Features
-            </Heading>
+          <SimpleGrid columns={12} gap={8} w='100%'>
+            <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='2 / span 3' />
+            <SceneCard scene={SAMPLE_SCENES[1]} gridColumn='span 3' />
 
-            <Box bg='neutral.300' gridColumn='1 / span 5' aspectRatio={1} />
             <Stack
-              gridColumn='6 / span 7'
+              gridColumn='8 / span 3'
               gap={4}
               align='start'
               justify='center'
             >
-              <Heading as='h3'>Feature Lorem Ipsum</Heading>
-              <Text>Some description about this</Text>
-            </Stack>
-
-            <Stack
-              gridColumn='1 / span 7'
-              gap={4}
-              align='start'
-              justify='center'
-            >
-              <Heading as='h3'>Feature Lorem Ipsum</Heading>
-              <Text>Some description about this</Text>
-            </Stack>
-            <Box bg='neutral.300' gridColumn='8 / span 5' aspectRatio={1} />
-          </SimpleGrid> */}
-
-          <SimpleGrid columns={12} gap={8} maxW='56rem' mx='auto' w='100%'>
-            <Heading gridColumn='1 / -1' size='2xl'>
-              Algorithm catalog
-            </Heading>
-
-            <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='span 4' />
-            <SceneCard scene={SAMPLE_SCENES[1]} gridColumn='span 4' />
-
-            <Stack gridColumn='span 4' gap={4} align='start' justify='center'>
               <Heading as='h3'>Access an extensive algorithm catalog</Heading>
               <Text>
                 These are some of the sample scenes you&apos;ll have access to
@@ -113,7 +95,12 @@ export function LandingPage() {
               </Text>
             </Stack>
 
-            <Stack gridColumn='span 4' gap={4} align='start' justify='center'>
+            <Stack
+              gridColumn='2 / span 3'
+              gap={4}
+              align='start'
+              justify='center'
+            >
               <Heading as='h3'>Develop your own</Heading>
               <Text>
                 Start from scratch or use one of the existing examples as a
@@ -126,13 +113,13 @@ export function LandingPage() {
               </Button>
             </Stack>
 
-            <SceneCard scene={SAMPLE_SCENES[2]} gridColumn='5 / span 4' />
-            <SceneCard scene={SAMPLE_SCENES[3]} gridColumn='span 4' />
+            <SceneCard scene={SAMPLE_SCENES[2]} gridColumn='span 3' />
+            <SceneCard scene={SAMPLE_SCENES[3]} gridColumn='span 3' />
 
-            <SceneCard scene={SAMPLE_SCENES[4]} gridColumn='5 / span 4' />
+            <SceneCard scene={SAMPLE_SCENES[4]} gridColumn='5 / span 3' />
 
             {!isAuthenticated && (
-              <Stack gridColumn='span 4' gap={4} align='start' justify='center'>
+              <Stack gridColumn='span 3' gap={4} align='start' justify='center'>
                 <Heading as='h3'>Login and get started</Heading>
                 <Text>
                   Start from scratch or use one of the existing examples as a
