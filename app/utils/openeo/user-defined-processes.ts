@@ -99,7 +99,7 @@ function findParameterDefault(
   return parameters?.find((p) => p.name === name)?.default;
 }
 
-function findLoadCollectionId(
+export function findLoadCollectionId(
   processGraph: ProcessGraph | undefined
 ): string | undefined {
   if (!processGraph) return undefined;
