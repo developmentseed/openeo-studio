@@ -12,6 +12,7 @@ import {
   mergeProcessGraphs,
   resolveSharedParameters
 } from '$utils/openeo/user-defined-processes';
+import { shouldNavigateAfterSave } from '$config/sample-scenes';
 import type { ExecutionConfig, GraphResult, ServiceInfo } from '$types';
 import { useEditorStore } from '$stores/editor-store';
 import { useProjectsStore } from '$stores/projects-store';
@@ -35,7 +36,7 @@ export function useCodeExecution(
   const { pyodide } = usePyodide();
   const { user } = useAuth();
 
-  const { sceneName, markClean } = useEditorStore();
+  const { sceneId, sceneName, markClean } = useEditorStore();
   const saveProject = useProjectsStore((state) => state.saveProject);
 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -85,7 +86,10 @@ export function useCodeExecution(
           return { status: 'no-graph' };
         }
 
-        const id = kebabCase(sceneName);
+        const id =
+          !shouldNavigateAfterSave(sceneId) && sceneId
+            ? sceneId
+            : kebabCase(sceneName);
         await saveProject(user?.access_token ?? '', {
           id,
           summary: sceneName,
@@ -113,6 +117,7 @@ export function useCodeExecution(
       editor,
       runAndCreateServices,
       markClean,
+      sceneId,
       sceneName,
       saveProject,
       user?.access_token
