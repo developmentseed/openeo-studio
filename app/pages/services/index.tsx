@@ -2,6 +2,7 @@ import { Box, Flex, Heading, SimpleGrid, Stack } from '@chakra-ui/react';
 import { LuServer, LuServerOff } from 'react-icons/lu';
 
 import { EmptyState } from '$components/common/empty-state';
+import { InfoPopoverButton } from '$components/common/info-popover-button';
 import { ServiceCard } from '$components/services/service-card';
 import { ServiceCardSkeleton } from '$components/services/service-card-skeleton';
 import { useServices } from '$stores/services-store';
@@ -21,7 +22,16 @@ export function ServicesPage() {
           px={2}
           py={4}
         >
-          <Heading size='md'>Permanent Services</Heading>
+          <Flex gap={1} alignItems='center'>
+            <Heading size='md'>Permanent Services</Heading>
+            <InfoPopoverButton
+              storageKey='services'
+              label='About permanent services'
+            >
+              Permanent services are the result of openEO processes published
+              from a map layer in the editor.
+            </InfoPopoverButton>
+          </Flex>
         </Flex>
         <Flex px={2} h='100%' justifyContent='stretch'>
           {error ? (

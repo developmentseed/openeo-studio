@@ -3,6 +3,7 @@ import { LuPlus, LuAward, LuUser } from 'react-icons/lu';
 import { NavLink } from 'react-router';
 
 import SmartLink from '$components/common/smart-link';
+import { InfoPopoverButton } from '$components/common/info-popover-button';
 
 export function ProjectsHeader() {
   return (
@@ -13,7 +14,12 @@ export function ProjectsHeader() {
       px={2}
       py={4}
     >
-      <Heading size='md'>Browse</Heading>
+      <Flex gap={1} alignItems='center'>
+        <Heading size='md'>Projects</Heading>
+        <InfoPopoverButton storageKey='projects' label='About projects'>
+          Projects are the process graphs you build in the editor.
+        </InfoPopoverButton>
+      </Flex>
       <Flex gap={2}>
         <Button size='sm' variant='ghost' asChild>
           <NavLink to='/projects' end>
