@@ -1,8 +1,14 @@
 /**
  * STAC Band Parsing Utilities
  *
- * Extract band metadata from STAC items for display in the editor.
- * Supports Sentinel-2 L2A reflectance band structure.
+ * Extract band metadata from STAC collections for display in the editor.
+ * Backends publish band info in different, both-valid shapes:
+ *   - summaries.bands: rich per-band objects (seen from the EOPF explorer
+ *     backend) - handled by extractBandsFromSummaries.
+ *   - cube:dimensions.<name>.values on a "bands"-type dimension: a bare
+ *     list of band-name strings (the openEO datacube extension, seen from
+ *     other openEO backends e.g. openeo.ds.io) - handled by
+ *     extractBandsFromCubeDimensions.
  */
 import type { StacCollection } from 'stac-ts';
 
@@ -16,29 +22,20 @@ interface CollectionBand {
   'eo:full_width_half_max'?: number;
 }
 
-/**
- * Extract band variables from a STAC collection's summaries.
- *
- * @param stacCollection - STAC collection containing summaries with band metadata
- * @returns Array of band variables with metadata, or empty array if not found
- *
- * @example
- * ```typescript
- * const bands = extractBandsFromStac(collection);
- * // [
- * //   { name: "b02", label: "Blue", ... },
- * //   { name: "b03", label: "Green", ... }
- * // ]
- * ```
- */
-export function extractBandsFromStac(
-  stacCollection: StacCollection | null | undefined
+interface CubeDimension {
+  type?: string;
+  values?: unknown;
+}
+
+function extractBandsFromSummaries(
+  stacCollection: StacCollection
 ): BandVariable[] {
-  if (!stacCollection?.summaries?.bands) {
+  const summariesBands = stacCollection.summaries?.bands;
+  if (!Array.isArray(summariesBands)) {
     return [];
   }
 
-  const reflectanceBands = stacCollection.summaries.bands as CollectionBand[];
+  const reflectanceBands = summariesBands as CollectionBand[];
   return reflectanceBands.map((band: CollectionBand) => {
     // Extract label from description: "Blue (band 2)" -> "Blue"
     const label = band.description?.match(/^([^(]+)/)?.[1]?.trim() || band.name;
@@ -71,4 +68,60 @@ export function extractBandsFromStac(
       wavelength
     };
   });
+}
+
+function extractBandsFromCubeDimensions(
+  stacCollection: StacCollection
+): BandVariable[] {
+  const dimensions = stacCollection['cube:dimensions'] as
+    | Record<string, CubeDimension>
+    | undefined;
+  const bandsDimension = Object.values(dimensions ?? {}).find(
+    (dim) => dim?.type === 'bands' && Array.isArray(dim.values)
+  );
+  if (!bandsDimension) {
+    return [];
+  }
+
+  return (bandsDimension.values as string[]).map((name) => {
+    // These band names often carry their resolution as a suffix, e.g.
+    // "B04_20m" - pull it out for display, but keep `name` unchanged since
+    // it's the literal identifier openEO process graphs must reference.
+    const resolutionMatch = name.match(/_(\d+m)$/i);
+    return {
+      name,
+      label: resolutionMatch ? name.slice(0, resolutionMatch.index) : name,
+      resolution: resolutionMatch?.[1]
+    };
+  });
+}
+
+/**
+ * Extract band variables from a STAC collection.
+ *
+ * @param stacCollection - STAC collection containing band metadata
+ * @returns Array of band variables with metadata, or empty array if not found
+ *
+ * @example
+ * ```typescript
+ * const bands = extractBandsFromStac(collection);
+ * // [
+ * //   { name: "b02", label: "Blue", ... },
+ * //   { name: "b03", label: "Green", ... }
+ * // ]
+ * ```
+ */
+export function extractBandsFromStac(
+  stacCollection: StacCollection | null | undefined
+): BandVariable[] {
+  if (!stacCollection) {
+    return [];
+  }
+
+  const summaryBands = extractBandsFromSummaries(stacCollection);
+  if (summaryBands.length > 0) {
+    return summaryBands;
+  }
+
+  return extractBandsFromCubeDimensions(stacCollection);
 }
