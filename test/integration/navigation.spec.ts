@@ -73,8 +73,8 @@ test.describe('Navigation', () => {
       await page.goto('/');
       await expect(page).toHaveURL('/');
 
-      // Navigate to docs via Learn More CTA
-      await page.getByRole('link', { name: /learn more/i }).click();
+      // Navigate to docs via Learn More CTA (page has multiple; use the hero one)
+      await page.getByRole('link', { name: /learn more/i }).first().click();
       await page.waitForURL('/docs');
 
       // Navigate home
