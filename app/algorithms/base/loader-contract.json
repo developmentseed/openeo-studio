@@ -1,0 +1,93 @@
+{
+  "$comment": "Machine-readable description of the Python environment that openEO Studio gives to user code. Studio sends this file to the agent in the AG-UI `context` field. Keep it in sync with loader.py; test/utils/loader-contract.test.ts checks this.",
+  "ref": "loader-contract@1.0",
+  "version": "1.0",
+  "language": "python",
+  "summary": "Studio joins three parts before it runs the code: a RUN_CONFIG object, the loader script, then the code of the user. The agent must return the third part only.",
+  "symbols": [
+    {
+      "name": "datacube",
+      "type": "openeo.rest.datacube.DataCube",
+      "description": "The result of load_collection, with the four parameters applied."
+    },
+    {
+      "name": "reduced",
+      "type": "openeo.rest.datacube.DataCube",
+      "description": "The data cube after apply_pixel_selection with pixel_selection='first'."
+    },
+    {
+      "name": "add_graph_to_map",
+      "type": "function",
+      "signature": "add_graph_to_map(graph, name=None)",
+      "description": "Add a process graph to the map. The code must call this function at least once, or the run produces no layer."
+    },
+    {
+      "name": "bounding_box",
+      "type": "openeo.api.process.Parameter",
+      "description": "The spatial extent of the project. subtype: bounding-box."
+    },
+    {
+      "name": "time",
+      "type": "openeo.api.process.Parameter",
+      "description": "The temporal extent of the project. subtype: temporal-interval."
+    },
+    {
+      "name": "bands",
+      "type": "openeo.api.process.Parameter",
+      "description": "The band names of the project."
+    },
+    {
+      "name": "cloud_cover_max",
+      "type": "openeo.api.process.Parameter",
+      "description": "The maximum cloud cover. The loader uses it in an eo:cloud_cover property filter."
+    },
+    {
+      "name": "parameters",
+      "type": "list",
+      "description": "The four Parameter objects above, in the order used by the saved user-defined process."
+    }
+  ],
+  "imports": {
+    "openeo.processes": [
+      "array_create",
+      "absolute",
+      "and_",
+      "clip",
+      "if_",
+      "linear_scale_range",
+      "process",
+      "sqrt"
+    ],
+    "openeo.internal.graph_building": ["PGNode"],
+    "openeo.rest.datacube": ["DataCube"],
+    "openeo.rest.result": ["SaveResult"],
+    "openeo.api.process": ["Parameter"],
+    "stdlib": ["json"]
+  },
+  "rules": [
+    {
+      "id": "no-connect",
+      "level": "error",
+      "description": "Do not open a connection to a backend. Studio supplies the data cube.",
+      "forbidden": ["openeo.connect", "connect("]
+    },
+    {
+      "id": "no-batch-job",
+      "level": "error",
+      "description": "Do not start a batch job and do not download a result. Studio runs the code in the browser.",
+      "forbidden": ["execute_batch", "download(", "create_job"]
+    },
+    {
+      "id": "single-collection",
+      "level": "error",
+      "description": "Do not load a second collection. Studio supports one load_collection only. Refer to issue #85.",
+      "forbidden": ["load_collection"]
+    },
+    {
+      "id": "must-add-layer",
+      "level": "error",
+      "description": "Call add_graph_to_map(graph, name) at least once.",
+      "required": ["add_graph_to_map"]
+    }
+  ]
+}
