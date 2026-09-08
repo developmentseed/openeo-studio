@@ -131,7 +131,6 @@ export interface StudioContextDocument {
   parameters: ProcessParameter[];
   code: {
     userCode: string;
-    loaderContractRef: string;
   };
   layers: StudioLayer[];
   diagnostics: StudioDiagnostics;

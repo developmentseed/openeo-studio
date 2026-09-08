@@ -51,7 +51,8 @@ Two rules complete the decision:
 This repository carries the contract only, not the implementation:
 
 - `app/types/agent.ts` — the contract types: the Studio context document, `Proposal`, `ToolDecision`, `TriggerDescriptor`, and the AG-UI events that Studio reads.
-- `app/algorithms/base/loader-contract.json` — the Python environment that Studio gives to user code. Studio sends this file to the agent, so the agent returns code that runs here. This answers issue #86. Nothing imports it yet.
+
+Issue #86 asks how to separate our boilerplate from the code that the agent writes. The answer is in the design chapter, not in a file here. Studio runs three parts together: a configuration object, `app/algorithms/base/loader.py`, then the code of the user. The agent returns the third part only. When Studio starts a run, it sends the loader source itself in the AG-UI `context` field, so the agent sees the symbols that the code can use. We do not keep a second description of that environment, because `loader.py` is already the exact one.
 
 The implementation is separate work. It needs a projection layer, an agent session store, a `revision` counter on the editor store, and the execution and lint diagnostics lifted into state so that the error triggers can read them.
 
