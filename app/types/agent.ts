@@ -135,6 +135,12 @@ export interface StudioContextDocument {
   layers: StudioLayer[];
   diagnostics: StudioDiagnostics;
   backend: StudioBackend;
+  /**
+   * The catalogue providers that this deployment enables, for example
+   * `json` or `apex`. The agent can propose an item from these providers
+   * only. Studio refuses an item from any other provider.
+   */
+  sources: string[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -157,7 +163,24 @@ export type ProposalStatus =
   | 'superseded'
   | 'failed';
 
-export type ProposalKind = 'loadCollection' | 'parameters' | 'code' | 'project';
+export type ProposalKind =
+  | 'loadCollection'
+  | 'parameters'
+  | 'code'
+  | 'project'
+  | 'catalogueItem';
+
+/**
+ * A reference to one item of a catalogue provider.
+ *
+ * The agent sends a reference, not a copy. Studio reads the item through the
+ * same provider that a user browses, so the result is the project that the
+ * user gets when the user opens the item directly.
+ */
+export interface CatalogueItemRef {
+  providerId: string;
+  sourceRef: string;
+}
 
 /**
  * `risk` controls the display only. It does not control the approval.
@@ -177,9 +200,15 @@ export interface Proposal {
   rationale: string;
   /** The project revision used for the calculation. */
   baseRevision: number;
+  /**
+   * The change, as Studio calculated it. The agent sends arguments only.
+   * Studio builds this patch and the preview that the user sees.
+   */
   patch: JsonPatchOperation[];
   /** The two versions of the code, for a proposal of kind `code`. */
   preview?: { before: string; after: string };
+  /** The item to open, for a proposal of kind `catalogueItem`. */
+  reference?: CatalogueItemRef;
   risk: ProposalRisk;
   status: ProposalStatus;
   createdAt: string;
