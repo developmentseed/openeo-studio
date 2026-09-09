@@ -217,14 +217,14 @@ const decodeCursor = (s: string): JsonCursor => JSON.parse(atob(s));
 function createStaticJsonProvider(config: {
   id: string;
   url: string;
-}): SampleSourceProvider {
-  let cached: SampleScene[] | undefined; // loaded/parsed once per instance, reused across calls
+}): SampleSceneProvider {
+  let cachedPromise: Promise<SampleScene[]> | undefined; // in-flight/resolved fetch, shared across calls
 
-  async function loadAll(): Promise<SampleScene[]> {
-    cached ??= (await fetch(config.url).then((r) => r.json())).map(
-      mapToSampleScene
-    );
-    return cached;
+  function loadAll(): Promise<SampleScene[]> {
+    cachedPromise ??= fetch(config.url)
+      .then((r) => r.json())
+      .then((data) => data.map(mapToSampleScene));
+    return cachedPromise;
   }
 
   return {
