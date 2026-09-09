@@ -5,13 +5,13 @@ decision-makers: @emmanuelmathot @danielfdsilva
 informed: OpenEO Studio contributors
 ---
 
-# Provider-based catalogue architecture for sample scenes
+# Provider-based catalogue architecture
 
 ## Context and Problem Statement
 
-Sample scenes come from one static file, `app/config/sample-scenes.ts`. Adding a sample means editing code and shipping a release, and every sample is coupled to whichever openEO backend is configured: a scene's `collectionId` and band names only make sense for one backend.
+Scenes come from one static file, `app/config/sample-scenes.ts`. Adding a scene means editing code and shipping a release, and every scene is coupled to whichever openEO backend is configured: a scene's `collectionId` and band names only make sense for one backend.
 
-We want to load catalogue entries from more than one source (a local static list, the APEx Algorithm Catalogue, public UDPs from the connected openEO backend), without hardcoding a hand-maintained list of everything. The "sample" framing itself is being reconsidered in favor of a catalogue with text/tag search and pagination.
+We want to load scenes from more than one source (a local static list, the APEx Algorithm Catalogue, public UDPs from the connected openEO backend), without hardcoding a hand-maintained list of everything. This replaces the "sample" framing with a catalogue that supports text/tag search and pagination.
 
 
 ## Decision Drivers
@@ -20,13 +20,13 @@ We want to load catalogue entries from more than one source (a local static list
 - Support providers that call out over the network and paginate on their own terms (e.g. APEx).
 - Support providers that have no real pagination at all (the local static list).
 - Support filtering by provider, free text, and tags.
-- Support resolving one entry directly, for editor deep-links.
+- Support resolving one scene directly, for editor deep-links.
 - The deployer decides which providers are active.
 - One failing provider must not break the rest of the catalogue.
 
 ## Considered Options
 
-- Full-list interface: `listScenes(): Promise<SampleScene[]>`, no query argument.
+- Full-list interface: `listScenes(): Promise<Scene[]>`, no query argument.
 - Capability-based interface: a minimal base contract plus an optional, richer search/paginate capability some providers implement and others don't.
 - Required `listScenes(query, cursor)` + `getScene(id)`, with each provider managing its own pagination cursor independently (chosen).
 
@@ -44,12 +44,12 @@ Chosen option: "Required `listScenes(query, cursor)` + `getScene(id)`", because 
 
 ## Pros and Cons of the Options
 
-### Full-list interface (`listScenes(): Promise<SampleScene[]>`)
+### Full-list interface (`listScenes(): Promise<Scene[]>`)
 
 - Good: simplest possible contract.
 - Good: trivial to implement for the local static list.
 - Bad: a provider like the APEx one would have to fetch its entire catalogue up front, or invent an out-of-band paging mechanism the interface doesn't express, which defeats the purpose of the catalogue's own pagination.
-- Bad: filter could only happen after getting all the entries.
+- Bad: filter could only happen after getting all the scenes.
 
 ### Capability-based interface
 
@@ -91,16 +91,16 @@ interface CatalogueQuery {
   providerIds?: string[]; // registry-only: restrict fan-out to these providers
 }
 
-interface SampleSourceProvider {
+interface SceneProvider {
   id: string; // 'json' | 'apex' | 'openeo-udp' | ...
   listScenes(
     query: CatalogueQuery,
     cursor?: string
   ): Promise<{
-    items: SampleScene[];
+    items: Scene[];
     nextCursor?: string;
   }>;
-  getScene(id: string): Promise<SampleScene | undefined>;
+  getScene(id: string): Promise<Scene | undefined>;
 }
 ```
 
@@ -113,15 +113,15 @@ The registry owns the list of active providers. It is built once, from an explic
 ```ts
 interface ProviderPage {
   providerId: string;
-  items: SampleScene[];
+  items: Scene[];
   nextCursor?: string;
   error?: unknown; // set, with items omitted, if this provider's call failed
 }
 
-interface SampleRegistry {
+interface SceneRegistry {
   listScenes(query: CatalogueQuery, providerIds?: string[]): Promise<ProviderPage[]>;
   loadMore(providerId: string, query: CatalogueQuery, cursor: string): Promise<ProviderPage>;
-  getScene(id: string): Promise<SampleScene | undefined>;
+  getScene(id: string): Promise<Scene | undefined>;
 }
 
 const scopeId = (providerId: string, localId: string) => `${providerId}:${localId}`;
@@ -131,17 +131,17 @@ function splitScopedId(scopedId: string): [providerId: string, localId: string] 
   return i === -1 ? undefined : [scopedId.slice(0, i), scopedId.slice(i + 1)];
 }
 
-const scopeScene = (providerId: string, scene: SampleScene): SampleScene => ({
+const scopeScene = (providerId: string, scene: Scene): Scene => ({
   ...scene,
   id: scopeId(providerId, scene.id)
 });
 
-function createSampleRegistry(providers: SampleSourceProvider[]): SampleRegistry {
+function createSceneRegistry(providers: SceneProvider[]): SceneRegistry {
   const providersById = new Map(providers.map((p) => [p.id, p]));
 
-  function resolve(providerIds?: string[]): SampleSourceProvider[] {
+  function resolve(providerIds?: string[]): SceneProvider[] {
     return providerIds
-      ? providerIds.map((id) => providersById.get(id)).filter((p): p is SampleSourceProvider => !!p)
+      ? providerIds.map((id) => providersById.get(id)).filter((p): p is SceneProvider => !!p)
       : providers;
   }
 
@@ -188,8 +188,8 @@ function createSampleRegistry(providers: SampleSourceProvider[]): SampleRegistry
 ```
 
 ```ts
-// app/config/sample-providers.ts
-export const sampleRegistry = createSampleRegistry([jsonProvider]);
+// app/config/scene-providers.ts
+export const sceneRegistry = createSceneRegistry([jsonProvider]);
 // a deployment enables apex/openeo-udp by adding them to this array
 ```
 
@@ -217,13 +217,13 @@ const decodeCursor = (s: string): JsonCursor => JSON.parse(atob(s));
 function createStaticJsonProvider(config: {
   id: string;
   url: string;
-}): SampleSceneProvider {
-  let cachedPromise: Promise<SampleScene[]> | undefined; // in-flight/resolved fetch, shared across calls
+}): SceneProvider {
+  let cachedPromise: Promise<Scene[]> | undefined; // in-flight/resolved fetch, shared across calls
 
-  function loadAll(): Promise<SampleScene[]> {
+  function loadAll(): Promise<Scene[]> {
     cachedPromise ??= fetch(config.url)
       .then((r) => r.json())
-      .then((data) => data.map(mapToSampleScene));
+      .then((data) => data.map(mapToScene));
     return cachedPromise;
   }
 
@@ -253,10 +253,10 @@ function createStaticJsonProvider(config: {
 ```
 
 ```ts
-// app/config/sample-providers.ts
-export const sampleRegistry = createSampleRegistry([
-  createStaticJsonProvider({ id: 'json', url: '/samples/official.json' }),
-  createStaticJsonProvider({ id: 'community-json', url: '/samples/community.json' })
+// app/config/scene-providers.ts
+export const sceneRegistry = createSceneRegistry([
+  createStaticJsonProvider({ id: 'json', url: '/scenes/official.json' }),
+  createStaticJsonProvider({ id: 'community-json', url: '/scenes/community.json' })
 ]);
 ```
 
