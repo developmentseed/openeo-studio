@@ -39,8 +39,8 @@ Chosen option: "Required `listScenes(query, cursor)` + `getScene(id)`", because 
 - Good: adding a provider for a new deployment means implementing two methods.
 - Good: the registry can drop a failing provider without affecting the others.
 - Good: id namespacing (below) means an editor deep-link resolves with exactly one provider call, not a fan-out over every active provider.
-- Bad: the catalogue UI cannot show one combined "page 3 of 47" across all sources. It must treat each provider as an independently-paginated section instead (see below).
-- Bad: existing static-list consumers (`EditorPage`, `samples.tsx`, the landing page) move from synchronous access to hooks with a loading state.
+- Note: the catalogue UI merges pages from all providers into one feed (e.g. `S1 p1, S2 p1, S1 p2, S1 p3`) instead of one combined "page 3 of 47" count. Each provider still tracks its own cursor; the UI decides which provider to advance next, and can offer a filter-by-source option.
+- Bad: existing static-list consumers (`EditorPage`, `samples.tsx`, the landing page) move from synchronous access to hooks with a loading state (tracked in #111).
 
 ## Pros and Cons of the Options
 
