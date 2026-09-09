@@ -2,7 +2,7 @@
  * Types for the openEO Studio agent contract.
  *
  * The contract has three parts:
- *  - the Studio context document, an openEO view of the project that the
+ *  - the Studio state document, an openEO view of the project that the
  *    agent reads;
  *  - the proposal, the only way for the agent to change the project;
  *  - the AG-UI events that Studio reads from the agent.
@@ -11,13 +11,13 @@
  * `propagation/openeo_studio_agent.qmd`.
  */
 
-import type { ProcessGraph, ProcessParameter } from './openeo-process';
+import type { ProcessParameter } from './openeo-process';
 
 /** Version of this contract. Studio sends it in every run. */
 export const AGENT_CONTRACT_VERSION = '1.0';
 
 /* -------------------------------------------------------------------------- */
-/* Studio context document                                                    */
+/* Studio state document                                                     */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -39,21 +39,6 @@ export interface SpatialExtent {
  * `null` means an open limit. The editor store uses an empty string instead.
  */
 export type TemporalExtent = [string | null, string | null];
-
-/** A metadata property filter, as `load_collection` expects it. */
-export type PropertyFilter = { process_graph: ProcessGraph };
-
-/**
- * The arguments of the `load_collection` process.
- * This is the openEO description of the data that the project reads.
- */
-export interface LoadCollectionArgs {
-  id: string;
-  spatial_extent: SpatialExtent | null;
-  temporal_extent: TemporalExtent;
-  bands: string[];
-  properties: Record<string, PropertyFilter>;
-}
 
 /** Where the project comes from. This replaces the old scene concept. */
 export interface ProjectOrigin {
@@ -124,10 +109,11 @@ export interface StudioBackend {
  * It is a projection of the project, in openEO terms. It is not a copy of the
  * editor store.
  */
-export interface StudioContextDocument {
+export interface StudioStateDocument {
   contractVersion: string;
   project: StudioProject;
-  loadCollection: LoadCollectionArgs;
+  /** The collection that the project reads. */
+  collectionId: string;
   parameters: ProcessParameter[];
   code: {
     userCode: string;
@@ -150,7 +136,7 @@ export interface StudioContextDocument {
 /** One RFC 6902 operation. Studio accepts a small subset of the paths. */
 export interface JsonPatchOperation {
   op: 'add' | 'remove' | 'replace';
-  /** A JSON Pointer, for example `/loadCollection/temporal_extent/0`. */
+  /** A JSON Pointer, for example `/parameters/time/default`. */
   path: string;
   value?: unknown;
 }
@@ -164,7 +150,7 @@ export type ProposalStatus =
   | 'failed';
 
 export type ProposalKind =
-  | 'loadCollection'
+  | 'collection'
   | 'parameters'
   | 'code'
   | 'project'
@@ -261,8 +247,8 @@ export interface TriggerDescriptor {
    * because it is a rule of the contract.
    */
   activation: 'user-gesture';
-  /** The paths of the context document that this trigger sends. */
-  contextScope: string[];
+  /** The paths of the state document that this trigger makes relevant. */
+  stateScope: string[];
 }
 
 /* -------------------------------------------------------------------------- */
