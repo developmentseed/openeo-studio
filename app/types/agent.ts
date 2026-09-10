@@ -20,25 +20,15 @@ export const AGENT_CONTRACT_VERSION = '1.0';
 /* Studio state document                                                     */
 /* -------------------------------------------------------------------------- */
 
-/**
- * A spatial extent in openEO format.
- * openEO uses an object, not the [west, south, east, north] array that the
- * editor store holds.
+/*
+ * This file does not declare the shape of a parameter value. openEO declares
+ * those shapes already, as subtypes. The `schema` of each parameter names the
+ * subtype, and openEO publishes the definitions here:
+ * https://processes.openeo.org/meta/subtype-schemas.json
+ *
+ * The project uses `bounding-box`, `temporal-interval`, `band-name`, and
+ * `collection-id`. A second declaration of them would be a copy.
  */
-export interface SpatialExtent {
-  west: number;
-  south: number;
-  east: number;
-  north: number;
-  /** EPSG code. openEO uses 4326 when the field is absent. */
-  crs?: number;
-}
-
-/**
- * A temporal extent in openEO format. Each limit is an RFC 3339 string.
- * `null` means an open limit. The editor store uses an empty string instead.
- */
-export type TemporalExtent = [string | null, string | null];
 
 /** Where the project comes from. This replaces the old scene concept. */
 export interface ProjectOrigin {

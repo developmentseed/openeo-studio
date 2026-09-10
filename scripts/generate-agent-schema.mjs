@@ -28,10 +28,39 @@ export const GENERATOR_CONFIG = {
   additionalProperties: false
 };
 
+/** The canonical definition of a JSON Schema. Validators ship this one. */
+const JSON_SCHEMA_META = 'http://json-schema.org/draft-07/schema#';
+
+/**
+ * Replaces the copy of the JSON Schema meta-schema with a reference.
+ *
+ * The TypeScript types pull in `JSONSchema7`, so the generator writes the
+ * whole meta-schema into this file. openEO defines the `schema` of a
+ * parameter as a JSON Schema with one added keyword, `subtype`. A reference
+ * says the same and holds no copy.
+ */
+function referenceJsonSchemaMeta(schema) {
+  const definitions = schema.definitions;
+
+  definitions.OpenEOJsonSchema = {
+    description:
+      'A JSON Schema, with the openEO `subtype` keyword. openEO lists the ' +
+      'subtypes at https://processes.openeo.org/meta/subtype-schemas.json',
+    allOf: [{ $ref: JSON_SCHEMA_META }],
+    properties: { subtype: { type: 'string' } }
+  };
+
+  for (const name of Object.keys(definitions)) {
+    if (name.startsWith('JSONSchema7')) delete definitions[name];
+  }
+
+  return schema;
+}
+
 /** Builds the schema object. The test uses this function too. */
 export function buildAgentSchema() {
-  const schema = createGenerator(GENERATOR_CONFIG).createSchema(
-    GENERATOR_CONFIG.type
+  const schema = referenceJsonSchemaMeta(
+    createGenerator(GENERATOR_CONFIG).createSchema(GENERATOR_CONFIG.type)
   );
 
   return {
