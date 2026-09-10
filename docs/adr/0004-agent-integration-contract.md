@@ -50,7 +50,10 @@ Two rules complete the decision:
 
 This repository carries the contract only, not the implementation:
 
-- `app/types/agent.ts` — the contract types: the Studio context document, `Proposal`, `ToolDecision`, `TriggerDescriptor`, and the AG-UI events that Studio reads.
+- `app/types/agent.ts` — the contract types: the Studio state document, `Proposal`, `ToolDecision`, `TriggerDescriptor`, and the AG-UI events that Studio reads. This file is the one source.
+- `app/types/agent-contract.schema.json` — the same contract as JSON Schema. The TypeScript types serve a TypeScript client only, and the design accepts an agent in any language. JSON Schema is language-neutral, so any agent can validate the state document and its own tool arguments against it. AG-UI also requires JSON Schema for the parameters of a tool, so Studio has to produce it in any case.
+
+The schema is generated, never edited by hand. `pnpm schema:agent` writes it, and `test/types/agent-schema.test.ts` fails when the committed file is older than the types. A schema that is written by hand is a second copy, and a second copy goes stale.
 
 Issue #86 asks how to separate our boilerplate from the code that the agent writes. The answer is in the design chapter, not in a file here. Studio runs three parts together: a configuration object, `app/algorithms/base/loader.py`, then the code of the user. The agent returns the third part only. When Studio starts a run, it sends the loader source itself in the AG-UI `context` field, so the agent sees the symbols that the code can use. We do not keep a second description of that environment, because `loader.py` is already the exact one.
 

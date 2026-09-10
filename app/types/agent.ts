@@ -54,7 +54,12 @@ export interface StudioProject {
   id: string | null;
   title: string;
   origin: ProjectOrigin;
-  isDirty: boolean;
+  /**
+   * True when the project holds work that Studio did not save to the backend
+   * yet. The agent reads this before it proposes to replace the whole
+   * project. Studio calls this `isDirty` internally.
+   */
+  hasUnsavedChanges: boolean;
   revision: number;
 }
 
@@ -94,14 +99,14 @@ export interface StudioDiagnostics {
   lint: LintDiagnostic[];
 }
 
+/**
+ * The backend that Studio is connected to.
+ *
+ * The document holds the address only. The agent reads the collections and
+ * the processes from the backend itself, so Studio does not copy them here.
+ */
 export interface StudioBackend {
   openeoApiUrl: string;
-  collection: {
-    id: string;
-    bands: string[];
-    temporalExtent?: TemporalExtent;
-    spatialExtent?: SpatialExtent;
-  } | null;
 }
 
 /**

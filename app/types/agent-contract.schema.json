@@ -1,0 +1,795 @@
+{
+  "$id": "https://github.com/developmentseed/openeo-studio/agent-contract.schema.json",
+  "title": "openEO Studio agent contract",
+  "description": "Generated from app/types/agent.ts. Do not edit by hand. Run `pnpm schema:agent`.",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "SpatialExtent": {
+      "type": "object",
+      "properties": {
+        "west": { "type": "number" },
+        "south": { "type": "number" },
+        "east": { "type": "number" },
+        "north": { "type": "number" },
+        "crs": {
+          "type": "number",
+          "description": "EPSG code. openEO uses 4326 when the field is absent."
+        }
+      },
+      "required": ["west", "south", "east", "north"],
+      "additionalProperties": false,
+      "description": "A spatial extent in openEO format. openEO uses an object, not the [west, south, east, north] array that the editor store holds."
+    },
+    "TemporalExtent": {
+      "type": "array",
+      "items": { "type": ["string", "null"] },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "A temporal extent in openEO format. Each limit is an RFC 3339 string. `null` means an open limit. The editor store uses an empty string instead."
+    },
+    "ProjectOrigin": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["blank", "catalogue", "user"] },
+        "providerId": {
+          "type": "string",
+          "description": "The catalogue provider, for example `json`, `apex`, or `openeo-udp`."
+        },
+        "sourceRef": {
+          "type": "string",
+          "description": "The identifier of the item in that provider."
+        }
+      },
+      "required": ["kind"],
+      "additionalProperties": false,
+      "description": "Where the project comes from. This replaces the old scene concept."
+    },
+    "StudioProject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": ["string", "null"],
+          "description": "The user-defined process id. It is null while the project is not saved."
+        },
+        "title": { "type": "string" },
+        "origin": { "$ref": "#/definitions/ProjectOrigin" },
+        "hasUnsavedChanges": {
+          "type": "boolean",
+          "description": "True when the project holds work that Studio did not save to the backend yet. The agent reads this before it proposes to replace the whole project. Studio calls this `isDirty` internally."
+        },
+        "revision": { "type": "number" }
+      },
+      "required": ["id", "title", "origin", "hasUnsavedChanges", "revision"],
+      "additionalProperties": false
+    },
+    "StudioLayer": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "visible": { "type": "boolean" }
+      },
+      "required": ["id", "name", "visible"],
+      "additionalProperties": false
+    },
+    "LintDiagnostic": {
+      "type": "object",
+      "properties": {
+        "line": { "type": "number" },
+        "column": { "type": "number" },
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "severity": { "type": "string", "enum": ["error", "warning"] }
+      },
+      "required": ["line", "column", "message", "severity"],
+      "additionalProperties": false,
+      "description": "One message from the code editor linter."
+    },
+    "ExecutionDiagnostic": {
+      "type": "object",
+      "properties": {
+        "message": { "type": "string" },
+        "traceback": {
+          "type": "string",
+          "description": "The full Python traceback, when there is one."
+        },
+        "at": { "type": "string" }
+      },
+      "required": ["message", "at"],
+      "additionalProperties": false,
+      "description": "The result of a failed run."
+    },
+    "ValidationDiagnostic": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "path": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "description": "One error from the openEO `/validation` endpoint."
+    },
+    "StudioDiagnostics": {
+      "type": "object",
+      "properties": {
+        "execution": {
+          "anyOf": [
+            { "$ref": "#/definitions/ExecutionDiagnostic" },
+            { "type": "null" }
+          ]
+        },
+        "validation": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ValidationDiagnostic" }
+        },
+        "lint": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/LintDiagnostic" }
+        }
+      },
+      "required": ["execution", "validation", "lint"],
+      "additionalProperties": false
+    },
+    "StudioBackend": {
+      "type": "object",
+      "properties": { "openeoApiUrl": { "type": "string" } },
+      "required": ["openeoApiUrl"],
+      "additionalProperties": false,
+      "description": "The backend that Studio is connected to.\n\nThe document holds the address only. The agent reads the collections and the processes from the backend itself, so Studio does not copy them here."
+    },
+    "StudioStateDocument": {
+      "type": "object",
+      "properties": {
+        "contractVersion": { "type": "string" },
+        "project": { "$ref": "#/definitions/StudioProject" },
+        "collectionId": {
+          "type": "string",
+          "description": "The collection that the project reads."
+        },
+        "parameters": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ProcessParameter" }
+        },
+        "code": {
+          "type": "object",
+          "properties": { "userCode": { "type": "string" } },
+          "required": ["userCode"],
+          "additionalProperties": false
+        },
+        "layers": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/StudioLayer" }
+        },
+        "diagnostics": { "$ref": "#/definitions/StudioDiagnostics" },
+        "backend": { "$ref": "#/definitions/StudioBackend" },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The catalogue providers that this deployment enables, for example `json` or `apex`. The agent can propose an item from these providers only. Studio refuses an item from any other provider."
+        }
+      },
+      "required": [
+        "contractVersion",
+        "project",
+        "collectionId",
+        "parameters",
+        "code",
+        "layers",
+        "diagnostics",
+        "backend",
+        "sources"
+      ],
+      "additionalProperties": false,
+      "description": "The state object that Studio sends to the agent in every run. It is a projection of the project, in openEO terms. It is not a copy of the editor store."
+    },
+    "ProcessParameter": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "schema": { "$ref": "#/definitions/OpenEOProcessSchema" },
+        "optional": { "type": "boolean" },
+        "deprecated": { "type": "boolean" },
+        "experimental": { "type": "boolean" },
+        "default": {}
+      },
+      "required": ["name", "description", "schema"],
+      "additionalProperties": false,
+      "description": "Describes a single parameter accepted by a process."
+    },
+    "OpenEOProcessSchema": {
+      "anyOf": [
+        { "$ref": "#/definitions/OpenEOJsonSchema" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/definitions/OpenEOJsonSchema" }
+        }
+      ],
+      "description": "A single data type, or a list of alternative data types."
+    },
+    "OpenEOJsonSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "subtype": { "type": "string" },
+        "$id": { "type": "string" },
+        "$ref": { "type": "string" },
+        "$schema": { "$ref": "#/definitions/JSONSchema7Version" },
+        "$comment": { "type": "string" },
+        "$defs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "type": {
+          "anyOf": [
+            { "$ref": "#/definitions/JSONSchema7TypeName" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/JSONSchema7TypeName" }
+            }
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Type" }
+        },
+        "const": { "$ref": "#/definitions/JSONSchema7Type" },
+        "multipleOf": { "type": "number" },
+        "maximum": { "type": "number" },
+        "exclusiveMaximum": { "type": "number" },
+        "minimum": { "type": "number" },
+        "exclusiveMinimum": { "type": "number" },
+        "maxLength": { "type": "number" },
+        "minLength": { "type": "number" },
+        "pattern": { "type": "string" },
+        "items": {
+          "anyOf": [
+            { "$ref": "#/definitions/JSONSchema7Definition" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+            }
+          ]
+        },
+        "additionalItems": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "maxItems": { "type": "number" },
+        "minItems": { "type": "number" },
+        "uniqueItems": { "type": "boolean" },
+        "contains": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "maxProperties": { "type": "number" },
+        "minProperties": { "type": "number" },
+        "required": { "type": "array", "items": { "type": "string" } },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "patternProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "additionalProperties": {
+          "$ref": "#/definitions/JSONSchema7Definition"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              { "$ref": "#/definitions/JSONSchema7Definition" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        },
+        "propertyNames": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "if": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "then": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "else": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "allOf": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+        },
+        "anyOf": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+        },
+        "oneOf": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+        },
+        "not": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "format": { "type": "string" },
+        "contentMediaType": { "type": "string" },
+        "contentEncoding": { "type": "string" },
+        "definitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "default": { "$ref": "#/definitions/JSONSchema7Type" },
+        "readOnly": { "type": "boolean" },
+        "writeOnly": { "type": "boolean" },
+        "examples": { "$ref": "#/definitions/JSONSchema7Type" }
+      },
+      "description": "JSON Schema (draft-07) used by the openEO API to describe process parameter and return value data types, extended with the openEO-specific `subtype` keyword (e.g. \"raster-cube\", \"process-graph\", \"bounding-box\")."
+    },
+    "JSONSchema7Version": {
+      "type": "string",
+      "description": "Meta schema\n\nRecommended values:\n- 'http://json-schema.org/schema#'\n- 'http://json-schema.org/hyper-schema#'\n- 'http://json-schema.org/draft-07/schema#'\n- 'http://json-schema.org/draft-07/hyper-schema#'"
+    },
+    "JSONSchema7Definition": {
+      "anyOf": [{ "$ref": "#/definitions/JSONSchema7" }, { "type": "boolean" }],
+      "description": "JSON Schema v7"
+    },
+    "JSONSchema7": {
+      "type": "object",
+      "properties": {
+        "$id": { "type": "string" },
+        "$ref": { "type": "string" },
+        "$schema": { "$ref": "#/definitions/JSONSchema7Version" },
+        "$comment": { "type": "string" },
+        "$defs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "type": {
+          "anyOf": [
+            { "$ref": "#/definitions/JSONSchema7TypeName" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/JSONSchema7TypeName" }
+            }
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Type" }
+        },
+        "const": { "$ref": "#/definitions/JSONSchema7Type" },
+        "multipleOf": { "type": "number" },
+        "maximum": { "type": "number" },
+        "exclusiveMaximum": { "type": "number" },
+        "minimum": { "type": "number" },
+        "exclusiveMinimum": { "type": "number" },
+        "maxLength": { "type": "number" },
+        "minLength": { "type": "number" },
+        "pattern": { "type": "string" },
+        "items": {
+          "anyOf": [
+            { "$ref": "#/definitions/JSONSchema7Definition" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+            }
+          ]
+        },
+        "additionalItems": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "maxItems": { "type": "number" },
+        "minItems": { "type": "number" },
+        "uniqueItems": { "type": "boolean" },
+        "contains": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "maxProperties": { "type": "number" },
+        "minProperties": { "type": "number" },
+        "required": { "type": "array", "items": { "type": "string" } },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "patternProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "additionalProperties": {
+          "$ref": "#/definitions/JSONSchema7Definition"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              { "$ref": "#/definitions/JSONSchema7Definition" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        },
+        "propertyNames": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "if": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "then": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "else": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "allOf": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+        },
+        "anyOf": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+        },
+        "oneOf": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JSONSchema7Definition" }
+        },
+        "not": { "$ref": "#/definitions/JSONSchema7Definition" },
+        "format": { "type": "string" },
+        "contentMediaType": { "type": "string" },
+        "contentEncoding": { "type": "string" },
+        "definitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/JSONSchema7Definition"
+          }
+        },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "default": { "$ref": "#/definitions/JSONSchema7Type" },
+        "readOnly": { "type": "boolean" },
+        "writeOnly": { "type": "boolean" },
+        "examples": { "$ref": "#/definitions/JSONSchema7Type" }
+      },
+      "additionalProperties": false
+    },
+    "JSONSchema7TypeName": {
+      "type": "string",
+      "enum": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "object",
+        "array",
+        "null"
+      ],
+      "description": "Primitive type"
+    },
+    "JSONSchema7Type": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "$ref": "#/definitions/JSONSchema7Object" },
+        { "$ref": "#/definitions/JSONSchema7Array" },
+        { "type": "null" }
+      ],
+      "description": "Primitive type"
+    },
+    "JSONSchema7Object": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/JSONSchema7Type" }
+    },
+    "JSONSchema7Array": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/JSONSchema7Type" }
+    },
+    "JsonPatchOperation": {
+      "type": "object",
+      "properties": {
+        "op": { "type": "string", "enum": ["add", "remove", "replace"] },
+        "path": {
+          "type": "string",
+          "description": "A JSON Pointer, for example `/parameters/time/default`."
+        },
+        "value": {}
+      },
+      "required": ["op", "path"],
+      "additionalProperties": false,
+      "description": "One RFC 6902 operation. Studio accepts a small subset of the paths."
+    },
+    "ProposalStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "applying",
+        "accepted",
+        "rejected",
+        "superseded",
+        "failed"
+      ]
+    },
+    "ProposalKind": {
+      "type": "string",
+      "enum": ["collection", "parameters", "code", "project", "catalogueItem"]
+    },
+    "CatalogueItemRef": {
+      "type": "object",
+      "properties": {
+        "providerId": { "type": "string" },
+        "sourceRef": { "type": "string" }
+      },
+      "required": ["providerId", "sourceRef"],
+      "additionalProperties": false,
+      "description": "A reference to one item of a catalogue provider.\n\nThe agent sends a reference, not a copy. Studio reads the item through the same provider that a user browses, so the result is the project that the user gets when the user opens the item directly."
+    },
+    "ProposalRisk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "`risk` controls the display only. It does not control the approval. The user must approve every proposal."
+    },
+    "Proposal": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "threadId": { "type": "string" },
+        "runId": { "type": "string" },
+        "toolCallId": {
+          "type": "string",
+          "description": "The tool call that waits for the decision of the user."
+        },
+        "origin": { "$ref": "#/definitions/TriggerKind" },
+        "kind": { "$ref": "#/definitions/ProposalKind" },
+        "rationale": {
+          "type": "string",
+          "description": "One line. The user interface shows this text."
+        },
+        "baseRevision": {
+          "type": "number",
+          "description": "The project revision used for the calculation."
+        },
+        "patch": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JsonPatchOperation" },
+          "description": "The change, as Studio calculated it. The agent sends arguments only. Studio builds this patch and the preview that the user sees."
+        },
+        "preview": {
+          "type": "object",
+          "properties": {
+            "before": { "type": "string" },
+            "after": { "type": "string" }
+          },
+          "required": ["before", "after"],
+          "additionalProperties": false,
+          "description": "The two versions of the code, for a proposal of kind `code`."
+        },
+        "reference": {
+          "$ref": "#/definitions/CatalogueItemRef",
+          "description": "The item to open, for a proposal of kind `catalogueItem`."
+        },
+        "risk": { "$ref": "#/definitions/ProposalRisk" },
+        "status": { "$ref": "#/definitions/ProposalStatus" },
+        "createdAt": { "type": "string" },
+        "resolvedAt": { "type": "string" },
+        "failure": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" }
+          },
+          "required": ["code", "message"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "threadId",
+        "runId",
+        "toolCallId",
+        "origin",
+        "kind",
+        "rationale",
+        "baseRevision",
+        "patch",
+        "risk",
+        "status",
+        "createdAt"
+      ],
+      "additionalProperties": false
+    },
+    "TriggerKind": {
+      "type": "string",
+      "enum": [
+        "user.prompt",
+        "editor.executionError",
+        "editor.validationError",
+        "editor.lintDiagnostic",
+        "home.kickstart"
+      ]
+    },
+    "ToolDecisionKind": {
+      "type": "string",
+      "enum": ["accepted", "rejected", "superseded", "invalid"]
+    },
+    "ToolDecision": {
+      "type": "object",
+      "properties": {
+        "decision": { "$ref": "#/definitions/ToolDecisionKind" },
+        "proposalId": { "type": "string" },
+        "reason": {
+          "type": "string",
+          "description": "Why the proposal did not apply."
+        },
+        "appliedRevision": {
+          "type": ["number", "null"],
+          "description": "The new project revision, when the user accepted the proposal."
+        }
+      },
+      "required": ["decision", "proposalId", "appliedRevision"],
+      "additionalProperties": false,
+      "description": "Studio sends this object back to the agent in an AG-UI ToolMessage."
+    },
+    "TriggerDescriptor": {
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/definitions/TriggerKind" },
+        "enabled": {
+          "type": "boolean",
+          "description": "An APEx operator sets this value in the deployment configuration."
+        },
+        "activation": {
+          "type": "string",
+          "const": "user-gesture",
+          "description": "A trigger always needs an action from the user. A trigger must never start a run on its own. The value is constant, but it is explicit here because it is a rule of the contract."
+        },
+        "stateScope": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The paths of the state document that this trigger makes relevant."
+        }
+      },
+      "required": ["kind", "enabled", "activation", "stateScope"],
+      "additionalProperties": false
+    },
+    "AgentSessionStatus": {
+      "type": "string",
+      "enum": ["idle", "running", "awaiting_user", "error"]
+    },
+    "AgentMessage": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "role", "content", "createdAt"],
+      "additionalProperties": false
+    },
+    "AgentEvent": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "RUN_STARTED" },
+            "threadId": { "type": "string" },
+            "runId": { "type": "string" }
+          },
+          "required": ["type", "threadId", "runId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "RUN_FINISHED" },
+            "threadId": { "type": "string" },
+            "runId": { "type": "string" }
+          },
+          "required": ["type", "threadId", "runId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "RUN_ERROR" },
+            "message": { "type": "string" },
+            "code": { "type": "string" }
+          },
+          "required": ["type", "message"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TEXT_MESSAGE_START" },
+            "messageId": { "type": "string" },
+            "role": { "type": "string", "const": "assistant" }
+          },
+          "required": ["type", "messageId", "role"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TEXT_MESSAGE_CONTENT" },
+            "messageId": { "type": "string" },
+            "delta": { "type": "string" }
+          },
+          "required": ["type", "messageId", "delta"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TEXT_MESSAGE_END" },
+            "messageId": { "type": "string" }
+          },
+          "required": ["type", "messageId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TOOL_CALL_START" },
+            "toolCallId": { "type": "string" },
+            "toolCallName": { "type": "string" },
+            "parentMessageId": { "type": "string" }
+          },
+          "required": ["type", "toolCallId", "toolCallName"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TOOL_CALL_ARGS" },
+            "toolCallId": { "type": "string" },
+            "delta": { "type": "string" }
+          },
+          "required": ["type", "toolCallId", "delta"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TOOL_CALL_END" },
+            "toolCallId": { "type": "string" }
+          },
+          "required": ["type", "toolCallId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "TOOL_CALL_RESULT" },
+            "messageId": { "type": "string" },
+            "toolCallId": { "type": "string" },
+            "content": { "type": "string" }
+          },
+          "required": ["type", "messageId", "toolCallId", "content"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "STATE_SNAPSHOT" },
+            "snapshot": {}
+          },
+          "required": ["type", "snapshot"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "const": "STATE_DELTA" },
+            "delta": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/JsonPatchOperation" }
+            }
+          },
+          "required": ["type", "delta"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "The AG-UI events that Studio reads. The agent can send more events. Studio ignores the events that it does not know."
+    },
+    "AgentCard": {
+      "type": "object",
+      "properties": {
+        "protocol": { "type": "string" },
+        "contractVersions": { "type": "array", "items": { "type": "string" } },
+        "capabilities": { "type": "array", "items": { "type": "string" } },
+        "models": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["protocol", "contractVersions"],
+      "additionalProperties": false,
+      "description": "The description that the agent publishes at /.well-known/agent-card."
+    }
+  }
+}
