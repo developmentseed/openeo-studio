@@ -160,7 +160,10 @@
           "type": "array",
           "items": { "$ref": "#/definitions/StudioLayer" }
         },
-        "diagnostics": { "$ref": "#/definitions/StudioDiagnostics" },
+        "diagnostics": {
+          "$ref": "#/definitions/StudioDiagnostics",
+          "description": "Present for the error triggers only. A traceback is large, and a normal question does not need it. There is no tool to read it: the trigger controls the decision."
+        },
         "backend": { "$ref": "#/definitions/StudioBackend" },
         "sources": {
           "type": "array",
@@ -175,7 +178,6 @@
         "parameters",
         "code",
         "layers",
-        "diagnostics",
         "backend",
         "sources"
       ],
@@ -632,7 +634,7 @@
         "stateScope": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "The paths of the state document that this trigger makes relevant."
+          "description": "The paths that Studio adds to the state document for this trigger. Studio always sends the rest of the document. It adds these paths only when the trigger needs them, because they can be large."
         }
       },
       "required": ["kind", "enabled", "activation", "stateScope"],

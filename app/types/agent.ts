@@ -124,7 +124,12 @@ export interface StudioStateDocument {
     userCode: string;
   };
   layers: StudioLayer[];
-  diagnostics: StudioDiagnostics;
+  /**
+   * Present for the error triggers only. A traceback is large, and a normal
+   * question does not need it. There is no tool to read it: the trigger
+   * controls the decision.
+   */
+  diagnostics?: StudioDiagnostics;
   backend: StudioBackend;
   /**
    * The catalogue providers that this deployment enables, for example
@@ -252,7 +257,11 @@ export interface TriggerDescriptor {
    * because it is a rule of the contract.
    */
   activation: 'user-gesture';
-  /** The paths of the state document that this trigger makes relevant. */
+  /**
+   * The paths that Studio adds to the state document for this trigger.
+   * Studio always sends the rest of the document. It adds these paths only
+   * when the trigger needs them, because they can be large.
+   */
   stateScope: string[];
 }
 
