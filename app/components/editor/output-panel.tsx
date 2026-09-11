@@ -1,46 +1,36 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { List, Text } from '@chakra-ui/react';
 
 import { usePyodide } from '$contexts/pyodide-context';
 
 export function OutputPanel() {
-  const { log, pyodide } = usePyodide();
+  const { log } = usePyodide();
+
+  if (log.length === 0) {
+    return null;
+  }
 
   return (
-    <Flex flexDirection='column' gap={2} flexGrow={1} minHeight={0}>
-      {/* Status */}
-      {!pyodide ? (
-        <Text fontSize='xs' color='base.500'>
-          Loading Python environment...
-        </Text>
-      ) : (
-        <Text fontSize='xs' color='green.500'>
-          ✓ Python ready
-        </Text>
-      )}
-
-      {/* Logs */}
-      {log.length > 0 && (
-        <Flex flexGrow={1} gap={2} flexDirection='column' overflowY='auto'>
-          {log.map((l, index) => (
-            <Text
-              // eslint-disable-next-line react/no-array-index-key
-              key={index}
-              fontFamily='monospace'
-              fontSize='xs'
-              color={
-                l.type === 'info'
-                  ? 'base.500'
-                  : l.type === 'success'
-                    ? 'green.500'
-                    : 'red.500'
-              }
-              m={0}
-            >
-              {l.message}
-            </Text>
-          ))}
-        </Flex>
-      )}
-    </Flex>
+    <List.Root variant='plain' gap={3} p={4}>
+      {log.map((l, index) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <List.Item key={index}>
+          <Text
+            fontFamily='monospace'
+            color={
+              l.type === 'info'
+                ? 'fg'
+                : l.type === 'success'
+                  ? 'fg.success'
+                  : 'fg.error'
+            }
+            pl={l.type !== 'success' ? 4 : 0}
+            m={0}
+          >
+            {l.type === 'success' ? '✓ ' : l.type === 'error' ? '✗ ' : ''}
+            {l.message}
+          </Text>
+        </List.Item>
+      ))}
+    </List.Root>
   );
 }

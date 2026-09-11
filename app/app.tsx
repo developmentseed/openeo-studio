@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate
-} from 'react-router';
+import { Flex } from '@chakra-ui/react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 
+import { useServiceCleanup } from '$components/services/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
-import { LandingPage } from '$pages/landing-page';
-import { EditorPage } from '$pages/editor-page';
-import { DocsPage } from '$pages/docs-page';
-import { SharePage } from '$pages/share-page';
-import { useServiceCleanup } from './hooks/use-service-cleanup';
+import { AuthLoading } from '$components/auth/auth-loading';
+import { RequireAuth } from '$components/auth/require-auth';
+import { MobileWarn } from '$components/common/mobile-warn';
+
+import { LandingPage } from '$pages/landing';
+import { EditorPage } from '$pages/editor';
+import { DocsPage } from '$pages/docs';
+import { SharePage } from '$pages/share';
+import { ProjectsPage } from '$pages/projects';
+import { ProjectsSamplesPage } from '$pages/projects/samples';
+import { ServicesPage } from '$pages/services';
+import UhOh404 from '$pages/uhoh/404';
+import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -72,32 +75,36 @@ export default function App() {
   // Show loading during auth callback processing to prevent landing-page flash
   if (isAuthCallback && !hasNavigated.current) {
     return (
-      <Flex flexDirection='column' height='100vh'>
+      <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
         <AppHeader />
-        <VStack
-          as='main'
-          h='100%'
-          gap={4}
-          alignItems='center'
-          justifyContent='center'
-        >
-          <Heading size='xl'>Signing you in…</Heading>
-          <Spinner size='lg' />
-        </VStack>
+        <AuthLoading message='Signing you in…' />
       </Flex>
     );
   }
 
   return (
-    <Flex flexDirection='column' height='100vh'>
+    <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
       <AppHeader />
       <Routes>
         <Route path='/' element={<LandingPage />} />
         <Route path='/docs' element={<DocsPage />} />
-        <Route path='/editor' element={<EditorPage />} />
-        <Route path='/editor/:sceneId' element={<EditorPage />} />
-        <Route path='/share/:serviceId' element={<SharePage />} />
-        <Route path='*' element={<Navigate to='/' replace />} />
+        {import.meta.env.DEV && (
+          <Route
+            path='/sandbox/visual-graph'
+            element={<VisualGraphSandboxPage />}
+          />
+        )}
+        <Route element={<RequireAuth />}>
+          <Route element={<MobileWarn />}>
+            <Route path='/editor' element={<EditorPage />} />
+            <Route path='/editor/:sceneId' element={<EditorPage />} />
+            <Route path='/share/:serviceId' element={<SharePage />} />
+          </Route>
+          <Route path='/projects' element={<ProjectsPage />} />
+          <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
+          <Route path='/services' element={<ServicesPage />} />
+        </Route>
+        <Route path='*' element={<UhOh404 />} />
       </Routes>
     </Flex>
   );

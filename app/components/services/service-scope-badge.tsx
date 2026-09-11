@@ -1,0 +1,34 @@
+import { Badge } from '@chakra-ui/react';
+import { LuGlobe, LuLock } from 'react-icons/lu';
+
+import type { ServiceScope } from '$types';
+
+export type { ServiceScope };
+
+interface ServiceScopeBadgeProps {
+  scope: ServiceScope;
+}
+
+export function ServiceScopeBadge({ scope }: ServiceScopeBadgeProps) {
+  const isPublic = scope === 'public';
+
+  return (
+    <Badge
+      size='sm'
+      colorPalette={isPublic ? 'success' : 'quaternary'}
+      flexShrink={0}
+      display='inline-flex'
+      alignItems='center'
+      gap={1}
+    >
+      {isPublic ? <LuGlobe /> : <LuLock />}
+      {isPublic ? 'PUBLIC' : 'PRIVATE'}
+    </Badge>
+  );
+}
+
+export function getServiceScope(
+  configuration: Record<string, unknown> | undefined
+): ServiceScope {
+  return configuration?.scope === 'public' ? 'public' : 'private';
+}

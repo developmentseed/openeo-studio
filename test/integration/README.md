@@ -4,6 +4,10 @@ Frontend integration tests using Playwright with mocked backend APIs and authent
 
 ## Running Tests
 
+Playwright starts Vite on port 9000 when needed (or reuses one already
+running). Prefer an existing `pnpm dev` session locally — Playwright will
+attach to it instead of starting another process.
+
 ```bash
 # Run all tests (headless)
 pnpm test:integration
@@ -37,7 +41,7 @@ pnpm test:integration auth.spec.ts
 
 ### Python Runtime
 
-- **Pyodide Mock** (`test/integration/__fixtures__/index.ts`) - Mocks `window.loadPyodide` to prevent WebAssembly memory allocation errors during tests
+- **Pyodide Mock** (`test/integration/__fixtures__/index.ts`) - Mocks `window.loadPyodide` to prevent WebAssembly memory allocation errors during tests; `PyodideProvider` prefers this override and skips CDN/package setup
 - Applied to all tests via the `page` fixture override
 
 ### Other APIs

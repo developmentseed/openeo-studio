@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import * as path from 'path';
 
 import pkg from './package.json';
-import { parseBaseUrl } from './app/config/baseUrl';
+import { parseBaseUrl } from './app/config/base-url';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 

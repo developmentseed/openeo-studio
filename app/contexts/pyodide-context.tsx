@@ -40,12 +40,35 @@ function createLogEntry(
 async function initializePyodide(
   onLog: (entry: LogEntry) => void
 ): Promise<PyodideAPI> {
-  // Load Pyodide runtime from CDN (matching local package version)
-  onLog(createLogEntry('Loading Pyodide runtime...'));
-  const pyodideInstance = await loadPyodide({
+  // Playwright tests inject window.loadPyodide to avoid WebAssembly OOM.
+  // Prefer that override when present and skip CDN/package setup.
+  const windowLoader =
+    typeof window !== 'undefined'
+      ? (
+          window as Window & {
+            loadPyodide?: typeof loadPyodide;
+          }
+        ).loadPyodide
+      : undefined;
+  const isTestMock = typeof windowLoader === 'function';
+
+  onLog(createLogEntry('Python ready', 'success'));
+
+  onLog(
+    createLogEntry(
+      isTestMock
+        ? 'Loading mock Pyodide runtime...'
+        : 'Loading Pyodide runtime...'
+    )
+  );
+  const pyodideInstance = await (windowLoader ?? loadPyodide)({
     indexURL: `https://cdn.jsdelivr.net/pyodide/v${version}/full/`
   });
   onLog(createLogEntry('Pyodide loaded successfully', 'success'));
+
+  if (isTestMock) {
+    return pyodideInstance;
+  }
 
   // Install OpenEO package.
   // Pinned to <0.50 because openeo 0.50.0 added geopandas as a hard
@@ -80,6 +103,8 @@ export function PyodideProvider({ children }: { children: ReactNode }) {
     };
 
     async function load() {
+      addLog(createLogEntry('Loading Python environment...'));
+
       try {
         const pyodideInstance = await initializePyodide(addLog);
 

@@ -6,11 +6,14 @@ test.describe('Navigation', () => {
     test('landing page loads and displays main content', async ({ page }) => {
       await page.goto('/');
 
-      // Verify page title/heading is visible (h1 is main title)
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      // Verify page heading and supporting copy are visible
+      await expect(
+        page.getByRole('heading', { name: /Author openEO python code/i })
+      ).toBeVisible();
 
-      // Verify main sections are present
-      await expect(page.getByText(/explore|analyze|satellite/i)).toBeVisible();
+      await expect(
+        page.getByText(/process cloud-native data/i)
+      ).toBeVisible();
     });
 
     test('editor page loads when authenticated', async ({
@@ -26,26 +29,42 @@ test.describe('Navigation', () => {
         })
       ).toBeVisible();
       await expect(
-        authenticatedPage.getByRole('tab', { name: /code/i, selected: false })
+        authenticatedPage.getByRole('tab', {
+          name: /python/i,
+          selected: false
+        })
       ).toBeVisible();
 
-      // Verify no auth modal is shown
+      // Verify no restricted-page gate is shown
       await expect(
         authenticatedPage.getByRole('heading', {
-          name: /authentication required/i
+          name: 'Restricted'
         })
       ).not.toBeVisible();
     });
 
-    test('docs page loads and displays content', async ({ page }) => {
-      await page.goto('/docs');
+    test('docs page loads and displays content', async ({
+      authenticatedPage
+    }) => {
+      await authenticatedPage.goto('/docs');
 
       // Verify documentation content is rendered
       await expect(
-        page.getByRole('heading', { name: /documentation/i })
+        authenticatedPage.getByRole('heading', { name: /documentation/i })
       ).toBeVisible();
 
-      await expect(page.locator('p')).toBeTruthy();
+      await expect(authenticatedPage.locator('p')).toBeTruthy();
+    });
+
+    test('docs route is public when logged out', async ({ page }) => {
+      await page.goto('/docs');
+
+      await expect(
+        page.getByRole('heading', { name: /documentation/i })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Restricted' })
+      ).not.toBeVisible();
     });
   });
 
@@ -54,8 +73,8 @@ test.describe('Navigation', () => {
       await page.goto('/');
       await expect(page).toHaveURL('/');
 
-      // Navigate to docs
-      await page.getByRole('button', { name: /read the docs/i }).click();
+      // Navigate to docs via Learn More CTA (page has multiple; use the hero one)
+      await page.getByRole('link', { name: /learn more/i }).first().click();
       await page.waitForURL('/docs');
 
       // Navigate home
@@ -82,25 +101,32 @@ test.describe('Navigation', () => {
           await expect(authenticatedPage).toHaveURL(href);
         }
 
-        // Verify editor is loaded
+        // Verify editor is loaded with Python tab selected for scenes
         await expect(
-          authenticatedPage.getByRole('tab', { name: /code/i, selected: true })
+          authenticatedPage.getByRole('tab', {
+            name: /python/i,
+            selected: true
+          })
         ).toBeVisible();
       }
     });
 
-    test('back button returns to landing page from editor', async ({
+    test('home link returns to landing page from editor', async ({
       authenticatedPage
     }) => {
       await authenticatedPage.goto('/editor');
 
-      // Click back button
-      await authenticatedPage.getByRole('link', { name: /back/i }).click();
+      // Click home logo in the header
+      await authenticatedPage
+        .getByRole('link', { name: 'Home', exact: true })
+        .click();
 
       // Verify landed on home page
       await expect(authenticatedPage).toHaveURL('/');
       await expect(
-        authenticatedPage.getByRole('heading', { level: 1 })
+        authenticatedPage.getByRole('heading', {
+          name: /Author openEO python code/i
+        })
       ).toBeVisible();
     });
   });
@@ -135,7 +161,9 @@ test.describe('Navigation', () => {
       await expect(page).toHaveURL('/editor');
     });
 
-    test('back/forward preserves scroll position', async ({ page }) => {
+    test('back/forward preserves scroll position', async ({
+      authenticatedPage: page
+    }) => {
       await page.goto('/docs');
 
       // Scroll down to specific position
@@ -196,16 +224,16 @@ test.describe('Navigation', () => {
       // Reload page (F5 or ctrl+R)
       await authenticatedPage.reload();
 
-      // Verify still authenticated (login dialog not visible)
+      // Verify still authenticated (restricted-page gate not visible)
       await expect(
         authenticatedPage.getByRole('heading', {
-          name: /authentication required/i
+          name: 'Restricted'
         })
       ).not.toBeVisible();
 
-      // Verify logout button is visible (indicates authenticated)
+      // Verify user avatar logout control is visible (indicates authenticated)
       await expect(
-        authenticatedPage.getByRole('button', { name: /logout/i })
+        authenticatedPage.getByRole('button', { name: /user image/i })
       ).toBeVisible();
     });
 
@@ -217,7 +245,7 @@ test.describe('Navigation', () => {
 
       // Verify authenticated
       await expect(
-        authenticatedPage.getByRole('button', { name: /logout/i })
+        authenticatedPage.getByRole('button', { name: /user image/i })
       ).toBeVisible();
 
       // Navigate to /docs
@@ -234,23 +262,34 @@ test.describe('Navigation', () => {
 
       // Verify still authenticated throughout
       await expect(
-        authenticatedPage.getByRole('button', { name: /logout/i })
+        authenticatedPage.getByRole('button', { name: /user image/i })
       ).toBeVisible();
     });
   });
 
   test.describe('URL Integrity', () => {
-    test('direct URL navigation works', async ({ page }) => {
+    test('direct URL navigation works when authenticated', async ({
+      authenticatedPage
+    }) => {
       // Navigate directly to /editor
-      await page.goto('/editor');
+      await authenticatedPage.goto('/editor');
       await expect(
-        page.getByRole('tab', { name: /configuration/i })
+        authenticatedPage.getByRole('tab', { name: /configuration/i })
       ).toBeVisible();
 
       // Navigate directly to /docs
-      await page.goto('/docs');
+      await authenticatedPage.goto('/docs');
       await expect(
-        page.getByRole('heading', { name: /documentation/i })
+        authenticatedPage.getByRole('heading', { name: /documentation/i })
+      ).toBeVisible();
+    });
+
+    test('direct URL navigation to gated route requires sign-in when logged out', async ({
+      page
+    }) => {
+      await page.goto('/editor');
+      await expect(
+        page.getByRole('heading', { name: 'Restricted' })
       ).toBeVisible();
     });
   });

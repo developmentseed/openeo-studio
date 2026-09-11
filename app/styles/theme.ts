@@ -1,141 +1,147 @@
-import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react';
+import {
+  createSystem,
+  defaultConfig,
+  defineConfig,
+  defineGlobalStyles,
+  defineSlotRecipe
+} from '@chakra-ui/react';
+import { tabsAnatomy, toastAnatomy } from '@ark-ui/react';
+
+import { colors, semanticColors } from './colors';
 
 export const config = defineConfig({
+  globalCss: defineGlobalStyles({
+    html: {
+      colorPalette: 'neutral',
+      color: 'fg'
+    }
+  }),
   theme: {
     tokens: {
       /* ---------------------------------- */
-      /* Colors                              */
+      /* Colors                             */
       /* ---------------------------------- */
-      colors: {
-        foreground: {
-          50: { value: '#f5f7f8' },
-          100: { value: '#ebeef0' },
-          200: { value: '#d6dee2' },
-          300: { value: '#adbdc4' },
-          400: { value: '#5c7b89' },
-          500: { value: '#182555' },
-          600: { value: '#00283c' },
-          700: { value: '#002130' },
-          800: { value: '#001925' },
-          900: { value: '#00111a' },
-
-          '50A': { value: '#1825550a' },
-          '100A': { value: '#18255514' },
-          '200A': { value: '#18255528' },
-          '300A': { value: '#18255551' },
-          '400A': { value: '#182555a3' }
-        },
-
-        background: {
-          500: { value: '#ffffff' },
-          '50A': { value: '#ffffff0a' },
-          '100A': { value: '#ffffff14' },
-          '200A': { value: '#ffffff28' },
-          '300A': { value: '#ffffff51' },
-          '400A': { value: '#ffffffa3' }
-        },
-
-        primary: {
-          50: { value: '#f7fafc' },
-          100: { value: '#f0f4f9' },
-          200: { value: '#e0eaf3' },
-          300: { value: '#c2d5e7' },
-          400: { value: '#85abcf' },
-          500: { value: '#407bb4' },
-          600: { value: '#366797' },
-          700: { value: '#2c547a' },
-          800: { value: '#21405e' },
-          900: { value: '#172c41' },
-
-          '50A': { value: '#407bb40a' },
-          '100A': { value: '#407bb414' },
-          '200A': { value: '#407bb428' },
-          '300A': { value: '#407bb451' },
-          '400A': { value: '#407bb4a3' }
-        },
-
-        secondary: {
-          50: { value: '#f9f7f6' },
-          100: { value: '#f2f0ee' },
-          200: { value: '#e6e1dc' },
-          300: { value: '#ccc3b9' },
-          400: { value: '#998773' },
-          500: { value: '#604325' },
-          600: { value: '#51381f' },
-          700: { value: '#412e19' },
-          800: { value: '#322313' },
-          900: { value: '#23180d' },
-
-          '50A': { value: '#6043250a' },
-          '100A': { value: '#60432514' },
-          '200A': { value: '#60432528' },
-          '300A': { value: '#60432551' },
-          '400A': { value: '#604325a3' }
-        },
-
-        state: {
-          danger: { 500: { value: '#ff331f' } },
-          warning: { 500: { value: '#ffa400' } },
-          success: { 500: { value: '#32936f' } },
-          info: { 500: { value: '#407bb4' } }
-        }
-      },
+      colors,
 
       /* ---------------------------------- */
-      /* Spacing                             */
-      /* ---------------------------------- */
-      spacing: {
-        none: { value: '0px' },
-        xxs: { value: '2px' },
-        xs: { value: '4px' },
-        sm: { value: '8px' },
-        md: { value: '12px' },
-        lg: { value: '16px' },
-        xl: { value: '24px' },
-        '2xl': { value: '32px' },
-        '3xl': { value: '48px' },
-        '4xl': { value: '64px' },
-        '5xl': { value: '96px' }
-      },
-
-      /* ---------------------------------- */
-      /* Radii                               */
-      /* ---------------------------------- */
-      radii: {
-        none: { value: '0px' },
-        xs: { value: '2px' },
-        sm: { value: '4px' },
-        md: { value: '8px' },
-        lg: { value: '16px' },
-        xl: { value: '32px' },
-        full: { value: '9999px' }
-      },
-
-      /* ---------------------------------- */
-      /* Sizes                               */
-      /* ---------------------------------- */
-      sizes: {
-        '7xl': { value: '1280px' },
-        '8xl': { value: '1440px' },
-        '9xl': { value: '1536px' },
-        '10xl': { value: '1920px' }
-      },
-
-      /* ---------------------------------- */
-      /* Borders                             */
+      /* Borders                            */
       /* ---------------------------------- */
       borderWidths: {
-        global: { value: '1px' } // globalBorderpos
+        global: { value: '1px' }
       },
 
       /* ---------------------------------- */
-      /* Typography                          */
+      /* Typography                         */
       /* ---------------------------------- */
       fonts: {
         heading: { value: 'Inter' },
         body: { value: 'Inter' },
         mono: { value: 'Roboto Mono' }
       }
+    },
+    semanticTokens: {
+      colors: semanticColors,
+      radii: {
+        uni: { value: '{radii.lg}' }
+      }
+    },
+    recipes: {
+      button: {
+        base: {
+          borderRadius: 'uni',
+          fontWeight: 'semibold',
+          colorPalette: 'neutral'
+        },
+        variants: {
+          // React router adds an active class to the links but buttons do not
+          // have default styles for an active state. They do have styles for
+          // the expanded state which is pretty much the same.
+          // Here we map those styles to the active class.
+          variant: {
+            solid: {
+              '&.active':
+                defaultConfig.theme?.recipes?.button.variants?.variant.solid
+                  ._expanded
+            },
+            subtle: {
+              '&.active':
+                defaultConfig.theme?.recipes?.button.variants?.variant.subtle
+                  ._expanded
+            },
+            surface: {
+              '&.active':
+                defaultConfig.theme?.recipes?.button.variants?.variant.surface
+                  ._expanded
+            },
+            outline: {
+              '&.active':
+                defaultConfig.theme?.recipes?.button.variants?.variant.outline
+                  ._expanded
+            },
+            ghost: {
+              '&.active':
+                defaultConfig.theme?.recipes?.button.variants?.variant.ghost
+                  ._expanded
+            }
+          }
+        }
+      },
+      heading: {
+        base: {
+          fontWeight: 'bold'
+        }
+      },
+      code: {
+        base: {
+          borderRadius: 'uni'
+        }
+      }
+    },
+    slotRecipes: {
+      tabs: defineSlotRecipe({
+        slots: tabsAnatomy.keys(),
+        base: {
+          root: {
+            '--tabs-trigger-radius': 'radii.uni'
+          }
+        },
+        variants: {
+          variant: {
+            subtle: {
+              trigger: {
+                fontWeight: 'semibold',
+                color: 'fg',
+                transition: 'background-color 160ms ease-in-out',
+                _selected: {
+                  bg: 'colorPalette.muted'
+                },
+                _hover: {
+                  bg: 'colorPalette.subtle'
+                }
+              }
+            }
+          }
+        }
+      }),
+      toaster: defineSlotRecipe({
+        slots: toastAnatomy.keys(),
+        base: {
+          root: {
+            '&[data-type=warning]': {
+              bg: 'warning.solid',
+              color: 'warning.contrast'
+            },
+            '&[data-type=success]': {
+              bg: 'success.solid',
+              color: 'success.contrast'
+            },
+            '&[data-type=error]': {
+              bg: 'error.solid',
+              color: 'error.contrast'
+            }
+          }
+        }
+      })
     }
   }
 });
