@@ -52,7 +52,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
     // Create update listener plugin to track changes with debouncing
     const updateListener = ViewPlugin.fromClass(
       class {
-        debounceTimer: number | null = null;
+        debounceTimer: ReturnType<typeof setTimeout> | null = null;
         destroyed = false;
 
         update(update: ViewUpdate) {

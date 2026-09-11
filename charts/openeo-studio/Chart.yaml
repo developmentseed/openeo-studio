@@ -3,7 +3,7 @@ name: openeo-studio
 description: Interactive code editor for openEO satellite imagery processing
 type: application
 version: 0.1.0
-appVersion: "0.1.1"
+appVersion: "1.0.0"
 icon: https://raw.githubusercontent.com/developmentseed/openeo-studio/main/public/meta/favicon.png
 home: https://github.com/developmentseed/openeo-studio
 sources:
