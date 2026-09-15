@@ -14,6 +14,7 @@ export interface AppConfig {
   authClientId: string;
   authRedirectUri: string;
   enableNarrativeExport: boolean;
+  partnerLogoUrl: string;
 }
 
 declare global {
@@ -64,5 +65,9 @@ export const appConfig: AppConfig = {
   ),
   enableNarrativeExport:
     runtime.enableNarrativeExport ??
-    import.meta.env.VITE_ENABLE_NARRATIVE_EXPORT === 'true'
+    import.meta.env.VITE_ENABLE_NARRATIVE_EXPORT === 'true',
+  partnerLogoUrl: pick(
+    runtime.partnerLogoUrl,
+    import.meta.env.VITE_PARTNER_LOGO_URL
+  )
 };
