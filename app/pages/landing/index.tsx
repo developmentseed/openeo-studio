@@ -79,7 +79,7 @@ export function LandingPage() {
               </Button>
             </Stack>
             <Flex gridColumn='8 / span 4' justify='center'>
-              <Image src={heroImg} />
+              <Image src={heroImg} objectFit='contain' />
             </Flex>
           </SimpleGrid>
 
