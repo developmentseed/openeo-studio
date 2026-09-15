@@ -5,6 +5,7 @@ import { useAuth } from 'react-oidc-context';
 
 import { useServiceCleanup } from '$components/services/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
+import { PartnerLogo } from '$components/layout/partner-logo';
 import { AuthLoading } from '$components/auth/auth-loading';
 import { RequireAuth } from '$components/auth/require-auth';
 import { MobileWarn } from '$components/common/mobile-warn';
@@ -77,6 +78,7 @@ export default function App() {
     return (
       <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
         <AppHeader />
+        <PartnerLogo />
         <AuthLoading message='Signing you in…' />
       </Flex>
     );
@@ -85,6 +87,7 @@ export default function App() {
   return (
     <Flex minH='100vh' p={2} gap={2} bg='bg.subtle'>
       <AppHeader />
+      <PartnerLogo />
       <Routes>
         <Route path='/' element={<LandingPage />} />
         <Route path='/docs' element={<DocsPage />} />
