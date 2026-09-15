@@ -2,6 +2,10 @@ import { Flex, Image } from '@chakra-ui/react';
 
 import { appConfig } from '$config/runtime';
 
+// Width other top-right page toolbars (landing header, editor results
+// panel) must reserve so their content never sits under the fixed logo.
+export const PARTNER_LOGO_RESERVED_SPACE = '9rem';
+
 export function PartnerLogo() {
   if (!appConfig.partnerLogoUrl) return null;
 
