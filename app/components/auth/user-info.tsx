@@ -15,17 +15,22 @@ async function hash(string: string) {
   return hashHex;
 }
 
+export function useEmailHash(email: string | undefined) {
+  const [userEmailHash, setUserEmailHash] = useState<string>('');
+  useEffect(() => {
+    if (email) {
+      hash(email).then(setUserEmailHash);
+    }
+  }, [email]);
+
+  return userEmailHash;
+}
+
 export function UserInfo(props: LoginButtonProps) {
   const { isAuthenticated, user, removeUser } = useAuth();
 
   const profile = user?.profile;
-
-  const [userEmailHash, setUserEmailHash] = useState<string>('');
-  useEffect(() => {
-    if (profile?.email) {
-      hash(profile.email).then(setUserEmailHash);
-    }
-  }, [profile?.email]);
+  const userEmailHash = useEmailHash(profile?.email);
 
   if (!isAuthenticated || !profile) {
     return <LoginButton {...props} />;

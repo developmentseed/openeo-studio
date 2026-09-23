@@ -14,8 +14,6 @@ import { useAuth } from 'react-oidc-context';
 import { LuArrowRight } from 'react-icons/lu';
 
 import { APP_TITLE } from '$config/constants';
-import { appConfig } from '$config/runtime';
-import { PARTNER_LOGO_RESERVED_SPACE } from '$components/layout/partner-logo';
 import { SAMPLE_SCENES } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 import { LoginButton } from '$components/auth/login-button';
@@ -45,9 +43,7 @@ export function LandingPage() {
           alignItems='center'
           px={2}
           py={4}
-          // Reserve room so the fixed top-right PartnerLogo (app.tsx) never
-          // overlaps the login button.
-          pr={appConfig.partnerLogoUrl ? PARTNER_LOGO_RESERVED_SPACE : 2}
+          pr={2}
         >
           <Heading size='md'>Welcome to {APP_TITLE}</Heading>
           <Flex gap={2}>
