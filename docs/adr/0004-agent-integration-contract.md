@@ -18,7 +18,7 @@ The full design is a chapter in the APEx design book, `propagation/openeo_studio
 
 ## Decision Drivers
 
-- The user must stay in control. The agent must not change code or configuration on its own.
+- The user must stay in control. Every change must be visible and reversible.
 - We must be able to connect a different agent later. No supplier lock-in.
 - The interface should use openEO terms, so that the agent works against a published standard.
 - The contract must survive our own refactors, in particular the catalogue work in #102.
@@ -36,11 +36,14 @@ Chosen option: **AG-UI, with a proposal model on top**, because AG-UI is an open
 Two rules complete the decision:
 
 1. **Studio declares the tools for each run.** AG-UI sends the tool list in `RunAgentInput.tools`. The agent cannot call a function that Studio does not declare, so Studio controls the set of possible changes.
-2. **The agent proposes, the user decides.** Every change to code or configuration becomes a `Proposal`. The tool call waits until the user accepts or rejects it. This replaces the rule in issue #82, which let simple configuration changes apply on their own.
+2. **Every change is a proposal, and an apply mode decides who resolves it.** Every change to code or configuration becomes a `Proposal`. The tool call waits for the decision. In the default mode `ask`, the user accepts or rejects each one. In `auto-low` or `auto`, Studio accepts the covered proposals for the user and offers a one step undo. A proposal that replaces the project always waits for the user. This replaces the rule in issue #82, which let simple configuration changes apply on their own with no record and no undo.
+
+The apply mode answers review feedback on `apex_design` PR #25: an approval for every change becomes a habit, so a user then accepts without reading. The mode keeps one mechanism and one state machine, and moves the choice to the user.
 
 ### Consequences
 
-- Good: the user always sees a change before it happens.
+- Good: every change is recorded as a proposal, whoever accepts it.
+- Bad: the modes `auto-low` and `auto` need an undo. Studio has no undo today, and an undo of a configuration change must also remove the map layers and stop the backend calls that the change started. The first version builds `ask` only.
 - Good: any agent that speaks AG-UI works with Studio.
 - Good: the agent reads openEO terms (`load_collection` arguments and openEO `Parameter` objects), not our internal `EditorConfigValues`.
 - Bad: a proposal can become old while the user keeps typing. The design answers this with a `revision` counter and a `superseded` state.

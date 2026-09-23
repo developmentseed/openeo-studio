@@ -100,6 +100,23 @@ export interface StudioBackend {
 }
 
 /**
+ * How Studio resolves a proposal.
+ *
+ *  - `ask`      the user decides every proposal. This is the default.
+ *  - `auto-low` Studio accepts a proposal with `risk: 'low'` at once.
+ *  - `auto`     Studio accepts every proposal that it can undo at once.
+ *
+ * A proposal of kind `project` or `catalogueItem` replaces the whole project.
+ * It waits for the user in every mode, because a one step undo cannot return
+ * work that the user did not save.
+ *
+ * A proposal that Studio accepts is still a proposal: Studio builds it,
+ * records it, and reports the decision to the agent. Only the source of the
+ * decision changes.
+ */
+export type ApplyMode = 'ask' | 'auto-low' | 'auto';
+
+/**
  * The state object that Studio sends to the agent in every run.
  * It is a projection of the project, in openEO terms. It is not a copy of the
  * editor store.
@@ -127,6 +144,11 @@ export interface StudioStateDocument {
    * only. Studio refuses an item from any other provider.
    */
   sources: string[];
+  /**
+   * The mode of this session. The agent reads it, so that it knows if a
+   * person reads a proposal before it applies.
+   */
+  applyMode: ApplyMode;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -145,6 +167,8 @@ export type ProposalStatus =
   | 'pending'
   | 'applying'
   | 'accepted'
+  /** The user pushed Undo after Studio applied the proposal. */
+  | 'undone'
   | 'rejected'
   | 'superseded'
   | 'failed';
@@ -169,8 +193,8 @@ export interface CatalogueItemRef {
 }
 
 /**
- * `risk` controls the display only. It does not control the approval.
- * The user must approve every proposal.
+ * `risk` has two functions. It controls the display, and the apply mode reads
+ * it: `auto-low` accepts a proposal with `risk: 'low'` only.
  */
 export type ProposalRisk = 'low' | 'medium' | 'high';
 
@@ -191,12 +215,20 @@ export interface Proposal {
    * Studio builds this patch and the preview that the user sees.
    */
   patch: JsonPatchOperation[];
+  /**
+   * The patch that returns the project to the state before this proposal.
+   * Studio calculates it when it applies the patch. The undo is one step: a
+   * new accepted proposal, or an edit of the user, ends the undo.
+   */
+  inversePatch?: JsonPatchOperation[];
   /** The two versions of the code, for a proposal of kind `code`. */
   preview?: { before: string; after: string };
   /** The item to open, for a proposal of kind `catalogueItem`. */
   reference?: CatalogueItemRef;
   risk: ProposalRisk;
   status: ProposalStatus;
+  /** `policy` when the apply mode accepted the proposal for the user. */
+  decidedBy?: 'user' | 'policy';
   createdAt: string;
   resolvedAt?: string;
   failure?: { code: string; message: string };
@@ -206,6 +238,11 @@ export type ToolDecisionKind =
   | 'accepted'
   | 'rejected'
   | 'superseded'
+  /**
+   * Sent after an `accepted` decision for the same proposal, when the user
+   * pushes Undo. The agent must not repeat the proposal.
+   */
+  | 'undone'
   | 'invalid';
 
 /** Studio sends this object back to the agent in an AG-UI ToolMessage. */
@@ -214,8 +251,10 @@ export interface ToolDecision {
   proposalId: string;
   /** Why the proposal did not apply. */
   reason?: string;
-  /** The new project revision, when the user accepted the proposal. */
+  /** The new project revision, when the proposal was accepted. */
   appliedRevision: number | null;
+  /** Who made the decision. `policy` means the apply mode made it. */
+  decidedBy: 'user' | 'policy';
 }
 
 /* -------------------------------------------------------------------------- */

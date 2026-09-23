@@ -114,6 +114,11 @@
       "additionalProperties": false,
       "description": "The backend that Studio is connected to.\n\nThe document holds the address only. The agent reads the collections and the processes from the backend itself, so Studio does not copy them here."
     },
+    "ApplyMode": {
+      "type": "string",
+      "enum": ["ask", "auto-low", "auto"],
+      "description": "How Studio resolves a proposal.\n\n - `ask`      the user decides every proposal. This is the default.  - `auto-low` Studio accepts a proposal with `risk: 'low'` at once.  - `auto`     Studio accepts every proposal that it can undo at once.\n\nA proposal of kind `project` or `catalogueItem` replaces the whole project. It waits for the user in every mode, because a one step undo cannot return work that the user did not save.\n\nA proposal that Studio accepts is still a proposal: Studio builds it, records it, and reports the decision to the agent. Only the source of the decision changes."
+    },
     "StudioStateDocument": {
       "type": "object",
       "properties": {
@@ -146,6 +151,10 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "The catalogue providers that this deployment enables, for example `json` or `apex`. The agent can propose an item from these providers only. Studio refuses an item from any other provider."
+        },
+        "applyMode": {
+          "$ref": "#/definitions/ApplyMode",
+          "description": "The mode of this session. The agent reads it, so that it knows if a person reads a proposal before it applies."
         }
       },
       "required": [
@@ -156,7 +165,8 @@
         "code",
         "layers",
         "backend",
-        "sources"
+        "sources",
+        "applyMode"
       ],
       "additionalProperties": false,
       "description": "The state object that Studio sends to the agent in every run. It is a projection of the project, in openEO terms. It is not a copy of the editor store."
@@ -211,6 +221,7 @@
         "pending",
         "applying",
         "accepted",
+        "undone",
         "rejected",
         "superseded",
         "failed"
@@ -233,7 +244,7 @@
     "ProposalRisk": {
       "type": "string",
       "enum": ["low", "medium", "high"],
-      "description": "`risk` controls the display only. It does not control the approval. The user must approve every proposal."
+      "description": "`risk` has two functions. It controls the display, and the apply mode reads it: `auto-low` accepts a proposal with `risk: 'low'` only."
     },
     "Proposal": {
       "type": "object",
@@ -260,6 +271,11 @@
           "items": { "$ref": "#/definitions/JsonPatchOperation" },
           "description": "The change, as Studio calculated it. The agent sends arguments only. Studio builds this patch and the preview that the user sees."
         },
+        "inversePatch": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/JsonPatchOperation" },
+          "description": "The patch that returns the project to the state before this proposal. Studio calculates it when it applies the patch. The undo is one step: a new accepted proposal, or an edit of the user, ends the undo."
+        },
         "preview": {
           "type": "object",
           "properties": {
@@ -276,6 +292,11 @@
         },
         "risk": { "$ref": "#/definitions/ProposalRisk" },
         "status": { "$ref": "#/definitions/ProposalStatus" },
+        "decidedBy": {
+          "type": "string",
+          "enum": ["user", "policy"],
+          "description": "`policy` when the apply mode accepted the proposal for the user."
+        },
         "createdAt": { "type": "string" },
         "resolvedAt": { "type": "string" },
         "failure": {
@@ -316,7 +337,7 @@
     },
     "ToolDecisionKind": {
       "type": "string",
-      "enum": ["accepted", "rejected", "superseded", "invalid"]
+      "enum": ["accepted", "rejected", "superseded", "undone", "invalid"]
     },
     "ToolDecision": {
       "type": "object",
@@ -329,10 +350,15 @@
         },
         "appliedRevision": {
           "type": ["number", "null"],
-          "description": "The new project revision, when the user accepted the proposal."
+          "description": "The new project revision, when the proposal was accepted."
+        },
+        "decidedBy": {
+          "type": "string",
+          "enum": ["user", "policy"],
+          "description": "Who made the decision. `policy` means the apply mode made it."
         }
       },
-      "required": ["decision", "proposalId", "appliedRevision"],
+      "required": ["decision", "proposalId", "appliedRevision", "decidedBy"],
       "additionalProperties": false,
       "description": "Studio sends this object back to the agent in an AG-UI ToolMessage."
     },
