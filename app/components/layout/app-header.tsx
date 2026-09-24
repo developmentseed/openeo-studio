@@ -84,6 +84,7 @@ export function AppHeader() {
           size='sm'
           height='3rem'
           onClick={() => setBarOpen(true)}
+          aria-label='Expand sidebar'
         >
           <LuPanelLeftOpen />
         </IconButton>
@@ -94,6 +95,7 @@ export function AppHeader() {
             size='sm'
             ml='auto'
             onClick={() => setBarOpen(false)}
+            aria-label='Collapse sidebar'
           >
             <LuPanelLeftClose />
           </IconButton>
@@ -125,7 +127,7 @@ export function AppHeader() {
         >
           <Tip placement='right' content='Welcome' disabled={barOpen}>
             <BtnCmp variant='ghost' size='sm' asChild>
-              <NavLink to='/'>
+              <NavLink to='/' aria-label='Welcome'>
                 <LuHouse /> {barOpen && 'Welcome'}
               </NavLink>
             </BtnCmp>
@@ -141,7 +143,7 @@ export function AppHeader() {
               disabled={!isAuthenticated}
               asChild
             >
-              <NavLink to='/projects'>
+              <NavLink to='/projects' aria-label='Projects'>
                 <LuFolder />
                 {barOpen && 'Projects'}
               </NavLink>
@@ -158,7 +160,7 @@ export function AppHeader() {
               disabled={!isAuthenticated}
               asChild
             >
-              <NavLink to='/services'>
+              <NavLink to='/services' aria-label='Services'>
                 <LuServer /> {barOpen && 'Services'}
               </NavLink>
             </BtnCmp>
@@ -187,7 +189,7 @@ export function AppHeader() {
               disabled={!isAuthenticated}
               asChild
             >
-              <SmartLink to='/editor'>
+              <SmartLink to='/editor' aria-label='New project'>
                 <LuPlus />
                 {barOpen && 'New project'}
               </SmartLink>
@@ -198,13 +200,18 @@ export function AppHeader() {
         <Stack p={2} borderBottomWidth='1px' borderBottomColor='border'>
           <Tip placement='right' content='Documentation' disabled={barOpen}>
             <BtnCmp variant='ghost' size='sm' asChild>
-              <NavLink to='/docs'>
+              <NavLink to='/docs' aria-label='Documentation'>
                 <LuCircleHelp /> {barOpen && 'Documentation'}
               </NavLink>
             </BtnCmp>
           </Tip>
           <Tip placement='right' content='Toggle color mode' disabled={barOpen}>
-            <BtnCmp variant='ghost' size='sm' onClick={toggleColorMode}>
+            <BtnCmp
+              variant='ghost'
+              size='sm'
+              onClick={toggleColorMode}
+              aria-label='Toggle color mode'
+            >
               {colorMode === 'dark' ? <LuSun /> : <LuMoon />}{' '}
               {barOpen && colorMode === 'dark'
                 ? 'Light mode'
@@ -330,7 +337,12 @@ function UserInfo(props: { compact?: boolean }) {
 
   return (
     <Tip placement='right' content='Login' disabled={!compact}>
-      <BtnCmp variant='ghost' size='sm' onClick={handleLogin}>
+      <BtnCmp
+        variant='ghost'
+        size='sm'
+        onClick={handleLogin}
+        aria-label='Login'
+      >
         <LuLogIn /> {!compact && 'Login'}
       </BtnCmp>
     </Tip>

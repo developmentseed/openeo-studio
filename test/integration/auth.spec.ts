@@ -14,7 +14,9 @@ test.describe('Unauthenticated UI', () => {
     ).toBeVisible();
 
     // Sign-in button should be present and enabled
-    const loginButton = page.getByRole('button', { name: /login/i });
+    const loginButton = page
+      .getByRole('main')
+      .getByRole('button', { name: /login/i });
     await expect(loginButton).toBeVisible();
     await expect(loginButton).toBeEnabled();
   });
