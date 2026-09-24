@@ -1,5 +1,21 @@
-import { expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { test } from './__fixtures__';
+
+// The scene's code loads after the editor appears and replaces its contents,
+// so typing before it arrives gets overwritten.
+async function waitForSceneCode(editor: Locator) {
+  await expect(editor).toContainText('Aquatic Plants and Algae Index');
+}
+
+// Typed code reaches the persisted store after a debounce; wait for it there
+// rather than sleeping for a fixed time.
+async function waitForStoredCode(page: Page, text: string) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => sessionStorage.getItem('openeo-editor-storage'))
+    )
+    .toContain(text);
+}
 
 test.describe('Persistence', () => {
   test.describe('User-Typed Code Persistence', () => {
@@ -16,12 +32,11 @@ test.describe('Persistence', () => {
         '.cm-content[contenteditable="true"]'
       );
       await expect(editor).toBeVisible({ timeout: 15000 });
+      await waitForSceneCode(editor);
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Test persistence comment');
-
-      // Wait for debounced store update (300ms + buffer)
-      await authenticatedPage.waitForTimeout(350);
+      await waitForStoredCode(authenticatedPage, '# Test persistence comment');
 
       // Reload page
       await authenticatedPage.reload();
@@ -45,12 +60,11 @@ test.describe('Persistence', () => {
         '.cm-content[contenteditable="true"]'
       );
       await expect(editor).toBeVisible({ timeout: 15000 });
+      await waitForSceneCode(editor);
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Tab switch test');
-
-      // Wait for debounced store update (300ms + buffer)
-      await authenticatedPage.waitForTimeout(350);
+      await waitForStoredCode(authenticatedPage, '# Tab switch test');
 
       // Switch to configuration tab
       await authenticatedPage
@@ -81,9 +95,7 @@ test.describe('Persistence', () => {
       await expect(editor).toBeVisible({ timeout: 15000 });
       await editor.click();
       await authenticatedPage.keyboard.type('# Blank editor test');
-
-      // Wait for debounced store update (300ms + buffer)
-      await authenticatedPage.waitForTimeout(350);
+      await waitForStoredCode(authenticatedPage, '# Blank editor test');
 
       // Reload
       await authenticatedPage.reload();
@@ -185,12 +197,11 @@ test.describe('Persistence', () => {
         '.cm-content[contenteditable="true"]'
       );
       await expect(editor).toBeVisible({ timeout: 15000 });
+      await waitForSceneCode(editor);
       await editor.click();
       await authenticatedPage.keyboard.press('End');
       await authenticatedPage.keyboard.type('\n# Custom code marker');
-
-      // Wait for debounced store update
-      await authenticatedPage.waitForTimeout(350);
+      await waitForStoredCode(authenticatedPage, '# Custom code marker');
 
       // Navigate to landing
       await authenticatedPage.goto('/');

@@ -53,12 +53,30 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
     const updateListener = ViewPlugin.fromClass(
       class {
         debounceTimer: ReturnType<typeof setTimeout> | null = null;
+        pendingCode: string | null = null;
         destroyed = false;
+
+        constructor() {
+          window.addEventListener('pagehide', this.flush);
+        }
+
+        // Write any pending edit immediately so a reload or tab close
+        // inside the debounce window doesn't drop it.
+        flush = () => {
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = null;
+          }
+          if (this.pendingCode !== null && !this.destroyed) {
+            setCode(this.pendingCode);
+          }
+          this.pendingCode = null;
+        };
 
         update(update: ViewUpdate) {
           if (this.destroyed || !update.docChanged) return;
 
-          const newCode = update.state.doc.toString();
+          this.pendingCode = update.state.doc.toString();
 
           // Clear previous timer
           if (this.debounceTimer) {
@@ -66,16 +84,12 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
           }
 
           // Debounce the setCode call (300ms)
-          this.debounceTimer = setTimeout(() => {
-            if (!this.destroyed) {
-              setCode(newCode);
-            }
-            this.debounceTimer = null;
-          }, 300);
+          this.debounceTimer = setTimeout(this.flush, 300);
         }
 
         destroy() {
           this.destroyed = true;
+          window.removeEventListener('pagehide', this.flush);
           // Clean up timer on plugin destroy
           if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
