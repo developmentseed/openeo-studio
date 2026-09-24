@@ -97,7 +97,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'reflectance|b8a',
       'reflectance|b12'
     ], // Red, Red Edge, Red Edge, Narrow NIR, SWIR for BAIS2
-    temporalRange: ['2025-08-10', '2025-08-17'],
+    temporalRange: ['2025-09-25', '2025-09-26'], // Post-fire pass, 0% cloud; the Aug 2025 fire dates have no EOPF data
     boundingBox: [-7.8, 40.1, -7.0, 40.9], // west, south, east, north for Beiras e Serra da Estrela, Portugal
     cloudCover: 20, // Max cloud cover percentage
     thumbnail: './media/scenes/bais2.png'
