@@ -11,9 +11,7 @@ test.describe('Navigation', () => {
         page.getByRole('heading', { name: /Author openEO python code/i })
       ).toBeVisible();
 
-      await expect(
-        page.getByText(/process cloud-native data/i)
-      ).toBeVisible();
+      await expect(page.getByText(/process cloud-native data/i)).toBeVisible();
     });
 
     test('editor page loads when authenticated', async ({
@@ -74,11 +72,14 @@ test.describe('Navigation', () => {
       await expect(page).toHaveURL('/');
 
       // Navigate to docs via Learn More CTA (page has multiple; use the hero one)
-      await page.getByRole('link', { name: /learn more/i }).first().click();
+      await page
+        .getByRole('link', { name: /learn more/i })
+        .first()
+        .click();
       await page.waitForURL('/docs');
 
       // Navigate home
-      await page.getByRole('link', { name: 'Home', exact: true }).click();
+      await page.getByRole('link', { name: 'Welcome', exact: true }).click();
       await expect(page).toHaveURL('/');
     });
 
@@ -118,7 +119,7 @@ test.describe('Navigation', () => {
 
       // Click home logo in the header
       await authenticatedPage
-        .getByRole('link', { name: 'Home', exact: true })
+        .getByRole('link', { name: 'Welcome', exact: true })
         .click();
 
       // Verify landed on home page

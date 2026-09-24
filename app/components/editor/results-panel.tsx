@@ -21,9 +21,7 @@ import { LuCodeXml, LuDownload, LuMap, LuWorkflow } from 'react-icons/lu';
 
 import type { ServiceInfo } from '$types';
 import type { ProcessGraph } from '$types/openeo-process';
-import { appConfig } from '$config/runtime';
 import { useEditorStore } from '$stores/editor-store';
-import { PARTNER_LOGO_RESERVED_SPACE } from '$components/layout/partner-logo';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
@@ -71,9 +69,7 @@ function ResultsPanelComponent() {
           gap={4}
           alignItems='center'
           p={4}
-          // Reserve room so the fixed top-right PartnerLogo (app.tsx) never
-          // overlaps the Export button.
-          pr={appConfig.partnerLogoUrl ? PARTNER_LOGO_RESERVED_SPACE : 4}
+          pr={4}
           bg='bg.subtle'
           flexShrink={0}
           overflowX='auto'
