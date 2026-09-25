@@ -1,72 +1,350 @@
 import { useState } from 'react';
-import { Button, Flex, Heading, Separator } from '@chakra-ui/react';
-import { useNavigate, useLocation } from 'react-router';
+import {
+  Box,
+  Button,
+  Flex,
+  FlexProps,
+  Heading,
+  IconButton,
+  Image,
+  Stack,
+  Text
+} from '@chakra-ui/react';
+import { NavLink, useLocation } from 'react-router';
 import { useAuth } from 'react-oidc-context';
-import { APP_TITLE } from '$config/constants';
-import { UserInfo } from '$components/auth/user-info';
-import { ServicesPanel } from '$components/layout/services-panel';
-import SmartLink from '$utils/smart-link';
+import {
+  LuCircleHelp,
+  LuFolder,
+  LuHouse,
+  LuLogIn,
+  LuLogOut,
+  LuMoon,
+  LuPanelLeftClose,
+  LuPanelLeftOpen,
+  LuPlus,
+  LuServer,
+  LuSun
+} from 'react-icons/lu';
+
+import { useEmailHash } from '$components/auth/user-info';
+import SmartLink from '$components/common/smart-link';
+import { Tip } from '$components/tooltip';
+import { useColorMode } from '$contexts/color-mode';
+
+import logoImg from '../../media/openeo_navbar_logo.png';
+
+const PARTNER_LOGO_URL = import.meta.env.VITE_PARTNER_LOGO_URL;
+const PARTNER_NAME = import.meta.env.VITE_PARTNER_NAME;
 
 export function AppHeader() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const [servicesPanelOpen, setServicesPanelOpen] = useState(false);
+  const { colorMode, toggleColorMode } = useColorMode();
 
-  const handleDocsClick = () => {
-    if (location.pathname !== '/docs') {
-      navigate('/docs');
-    }
-  };
+  const [barOpen, setBarOpen] = useState(false);
+
+  const BtnCmp = barOpen ? Button : IconButton;
+
+  return (
+    <Stack
+      as='header'
+      borderWidth='1px'
+      borderColor='border'
+      borderRadius='uni'
+      position='sticky'
+      h='calc(100vh -  1rem)'
+      alignItems='start'
+      top={2}
+      gap={0}
+      bg='subtle'
+      boxShadow='lg'
+      w={barOpen ? '16rem' : undefined}
+    >
+      <Flex
+        data-open={barOpen}
+        h='4.5rem'
+        w='100%'
+        gap={2}
+        px={2}
+        justifyContent='center'
+        alignItems='center'
+        _hover={{
+          '&:not([data-open="true"])': {
+            '& .panel-expand': { display: 'flex' },
+            '& .logo-comp': { display: 'none' }
+          }
+        }}
+      >
+        <LogoComposition />
+        {barOpen && <NameComposition />}
+
+        <IconButton
+          className='panel-expand'
+          display='none'
+          variant='ghost'
+          size='sm'
+          height='3rem'
+          onClick={() => setBarOpen(true)}
+          aria-label='Expand sidebar'
+        >
+          <LuPanelLeftOpen />
+        </IconButton>
+
+        {barOpen && (
+          <IconButton
+            variant='ghost'
+            size='sm'
+            ml='auto'
+            onClick={() => setBarOpen(false)}
+            aria-label='Collapse sidebar'
+          >
+            <LuPanelLeftClose />
+          </IconButton>
+        )}
+      </Flex>
+
+      <Stack
+        bg='bg'
+        borderRadius='uni'
+        h='100%'
+        w='100%'
+        boxShadow='0 0 0 1px {colors.border}'
+        gap={0}
+        css={
+          barOpen && {
+            '& a, & button': {
+              justifyContent: 'start'
+            }
+          }
+        }
+      >
+        <Stack
+          as='nav'
+          gap={2}
+          w='100%'
+          p={2}
+          borderBottomWidth='1px'
+          borderBottomColor='border'
+        >
+          <Tip placement='right' content='Welcome' disabled={barOpen}>
+            <BtnCmp variant='ghost' size='sm' asChild>
+              <NavLink to='/' aria-label='Welcome'>
+                <LuHouse /> {barOpen && 'Welcome'}
+              </NavLink>
+            </BtnCmp>
+          </Tip>
+          <Tip
+            placement='right'
+            content={isAuthenticated ? 'Projects' : 'Login to see projects'}
+            disabled={barOpen && isAuthenticated}
+          >
+            <BtnCmp
+              variant='ghost'
+              size='sm'
+              disabled={!isAuthenticated}
+              asChild
+            >
+              <NavLink to='/projects' aria-label='Projects'>
+                <LuFolder />
+                {barOpen && 'Projects'}
+              </NavLink>
+            </BtnCmp>
+          </Tip>
+          <Tip
+            placement='right'
+            content={isAuthenticated ? 'Services' : 'Login to see services'}
+            disabled={barOpen && isAuthenticated}
+          >
+            <BtnCmp
+              variant='ghost'
+              size='sm'
+              disabled={!isAuthenticated}
+              asChild
+            >
+              <NavLink to='/services' aria-label='Services'>
+                <LuServer /> {barOpen && 'Services'}
+              </NavLink>
+            </BtnCmp>
+          </Tip>
+        </Stack>
+
+        <Stack
+          as='nav'
+          gap={2}
+          w='100%'
+          h='100%'
+          p={2}
+          borderBottomWidth='1px'
+          borderBottomColor='border'
+        >
+          <Tip
+            placement='right'
+            content={
+              isAuthenticated ? 'New project' : 'Login to create projects'
+            }
+            disabled={barOpen && isAuthenticated}
+          >
+            <BtnCmp
+              variant='ghost'
+              size='sm'
+              disabled={!isAuthenticated}
+              asChild
+            >
+              <SmartLink to='/editor' aria-label='New project'>
+                <LuPlus />
+                {barOpen && 'New project'}
+              </SmartLink>
+            </BtnCmp>
+          </Tip>
+        </Stack>
+
+        <Stack p={2} borderBottomWidth='1px' borderBottomColor='border'>
+          <Tip placement='right' content='Documentation' disabled={barOpen}>
+            <BtnCmp variant='ghost' size='sm' asChild>
+              <NavLink to='/docs' aria-label='Documentation'>
+                <LuCircleHelp /> {barOpen && 'Documentation'}
+              </NavLink>
+            </BtnCmp>
+          </Tip>
+          <Tip placement='right' content='Toggle color mode' disabled={barOpen}>
+            <BtnCmp
+              variant='ghost'
+              size='sm'
+              onClick={toggleColorMode}
+              aria-label='Toggle color mode'
+            >
+              {colorMode === 'dark' ? <LuSun /> : <LuMoon />}{' '}
+              {barOpen && colorMode === 'dark'
+                ? 'Light mode'
+                : barOpen && 'Dark mode'}
+            </BtnCmp>
+          </Tip>
+        </Stack>
+
+        <Stack p={2} borderBottomWidth='1px' borderBottomColor='border'>
+          <UserInfo compact={!barOpen} />
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
+
+function Logo(props: FlexProps & { src: string }) {
+  const { src, ...rest } = props;
 
   return (
     <Flex
-      alignItems='center'
-      justifyContent='space-between'
-      px={4}
-      py={2}
-      borderBottomWidth='1px'
-      borderColor='gray.200'
+      boxSize='2rem'
+      borderWidth='1px'
+      borderColor='border'
+      borderRadius='uni'
+      justifyContent='center'
+      bg='bg'
+      p={0.5}
+      overflow='hidden'
+      position='relative'
+      zIndex={1}
+      {...rest}
     >
-      <SmartLink
-        to='/'
-        paddingInline='3.5'
-        height='9'
-        aria-label='Home'
-        _hover={{ textDecoration: 'none' }}
-        _focus={{ outline: 'none' }}
-        _focusVisible={{
-          outlineWidth: '2px',
-          outlineOffset: '2px',
-          outlineStyle: 'solid',
-          outlineColor: 'colorPalette.focusRing',
-          borderRadius: 'l2'
-        }}
-      >
-        <Heading size='md'>{APP_TITLE}</Heading>
-      </SmartLink>
-      <Flex ml='auto' alignItems='center' gap={4}>
-        <Button variant='ghost' size='sm' onClick={handleDocsClick}>
-          Documentation
-        </Button>
-        {isAuthenticated && (
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => setServicesPanelOpen(true)}
-          >
-            My Services
-          </Button>
-        )}
-        <Separator orientation='vertical' height='8' />
-        <UserInfo />
-      </Flex>
-      {isAuthenticated && (
-        <ServicesPanel
-          open={servicesPanelOpen}
-          onClose={() => setServicesPanelOpen(false)}
-        />
-      )}
+      <Image src={src} h='100%' />
     </Flex>
+  );
+}
+
+function LogoComposition() {
+  const hasPartner = !!PARTNER_LOGO_URL && !!PARTNER_NAME;
+
+  return (
+    <Box className='logo-comp'>
+      <Logo src={logoImg} />
+      {hasPartner && <Logo mt={-4} src={PARTNER_LOGO_URL} />}
+    </Box>
+  );
+}
+
+function NameComposition() {
+  const hasPartner = !!PARTNER_LOGO_URL && !!PARTNER_NAME;
+
+  if (!hasPartner) {
+    return <Heading size='sm'>OpenEo Studio</Heading>;
+  }
+
+  return (
+    <Heading size='sm'>
+      <Text as='span' fontSize='2xs' lineHeight='0.875rem' color='fg.muted'>
+        OpenEo Studio{' '}
+        <Text as='span' fontWeight='normal'>
+          for
+        </Text>
+      </Text>
+      <Text>{PARTNER_NAME}</Text>
+    </Heading>
+  );
+}
+
+function UserInfo(props: { compact?: boolean }) {
+  const { compact } = props;
+  const { signinRedirect, isLoading, isAuthenticated, user, removeUser } =
+    useAuth();
+  const location = useLocation();
+
+  const profile = user?.profile;
+
+  const userEmailHash = useEmailHash(profile?.email);
+
+  const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (isLoading) return;
+
+    signinRedirect({
+      state: { returnTo: location.pathname }
+    });
+  };
+
+  if (isAuthenticated) {
+    return (
+      <Tip placement='right' content='Logout' disabled={!compact}>
+        <IconButton
+          variant='ghost'
+          size='sm'
+          onClick={(e) => {
+            e.preventDefault();
+            removeUser();
+          }}
+          overflow='hidden'
+          pr={!compact ? 2 : undefined}
+        >
+          <Image
+            borderRadius='uni'
+            boxSize='2rem'
+            src={`https://www.gravatar.com/avatar/${userEmailHash}?d=initials`}
+            alt='User image'
+          />
+
+          {!compact && (
+            <>
+              Logout{' '}
+              <Box ml='auto'>
+                <LuLogOut />
+              </Box>
+            </>
+          )}
+        </IconButton>
+      </Tip>
+    );
+  }
+
+  const BtnCmp = compact ? IconButton : Button;
+
+  return (
+    <Tip placement='right' content='Login' disabled={!compact}>
+      <BtnCmp
+        variant='ghost'
+        size='sm'
+        onClick={handleLogin}
+        aria-label='Login'
+      >
+        <LuLogIn /> {!compact && 'Login'}
+      </BtnCmp>
+    </Tip>
   );
 }

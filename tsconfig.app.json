@@ -19,7 +19,6 @@
       "$components/*": ["./app/components/*"],
       "$config/*": ["./app/config/*"],
       "$contexts/*": ["./app/contexts/*"],
-      "$hooks/*": ["./app/hooks/*"],
       "$pages/*": ["./app/pages/*"],
       "$stores/*": ["./app/stores/*"],
       "$styles/*": ["./app/styles/*"],

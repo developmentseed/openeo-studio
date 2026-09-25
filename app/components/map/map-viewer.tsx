@@ -2,31 +2,41 @@ import { useRef, useEffect, useState } from 'react';
 import Map, { MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { MapLayers } from './map-layers.js';
-import { LayerControl } from './layer-control';
-import { BaseLayerControl } from './base-layer-control.js';
-import {
-  useMapTileStatus,
-  type TileLoadStatus
-} from './use-map-tile-status.js';
+import { MapLayers } from './map-layers';
+import { MapLayerSelector } from './map-layer-selector';
+import { useMapTileStatus, type TileLoadStatus } from './use-map-tile-status';
 import type { ServiceInfo } from '$types';
-import { MAPTILER_KEY } from '$config/constants.js';
+import { MAPTILER_KEY } from '$config/constants';
+import { useColorModeValue } from '$contexts/color-mode';
+
+const makeMaptilerStyleUrl = (key: string) => {
+  return `https://api.maptiler.com/maps/${key}/style.json?key=${MAPTILER_KEY}`;
+};
 
 const BASE_LAYERS = [
   {
     id: 'satellite',
     label: 'Satellite',
-    styleUrl: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`
+    styleUrl: {
+      light: makeMaptilerStyleUrl('satellite-v4'),
+      dark: makeMaptilerStyleUrl('satellite-v4-dark')
+    }
   },
   {
     id: 'streets',
     label: 'Streets',
-    styleUrl: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
+    styleUrl: {
+      light: makeMaptilerStyleUrl('streets-v4'),
+      dark: makeMaptilerStyleUrl('streets-v4-dark')
+    }
   },
   {
     id: 'topographic',
     label: 'Topographic',
-    styleUrl: `https://api.maptiler.com/maps/topo-v2/style.json?key=${MAPTILER_KEY}`
+    styleUrl: {
+      light: makeMaptilerStyleUrl('topo-v4'),
+      dark: makeMaptilerStyleUrl('topo-v4-dark')
+    }
   }
 ];
 
@@ -35,9 +45,9 @@ interface MapViewerProps {
   sceneId: string | null;
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
-  onBoundingBoxChange: (boundingBox: [number, number, number, number]) => void;
+  onBoundingBoxChange?: (boundingBox: [number, number, number, number]) => void;
   onTileStatusChange?: (status: TileLoadStatus) => void;
-  onShareService?: (service: ServiceInfo) => void;
+  onServicePublish?: (service: ServiceInfo) => void;
 }
 
 export function MapViewer({
@@ -47,13 +57,17 @@ export function MapViewer({
   onToggleLayer,
   onBoundingBoxChange,
   onTileStatusChange,
-  onShareService
+  onServicePublish
 }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
   const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
   const activeBaseLayer =
     BASE_LAYERS.find((layer) => layer.id === baseLayerId) ?? BASE_LAYERS[0];
   const [isMapReady, setIsMapReady] = useState(false);
+  const activeBaseLayerStyleUrl = useColorModeValue(
+    activeBaseLayer.styleUrl.light,
+    activeBaseLayer.styleUrl.dark
+  );
 
   const applyFitBounds = () => {
     const map = mapRef.current;
@@ -87,16 +101,16 @@ export function MapViewer({
       }}
       onMoveEnd={(event) => {
         // Skip if programmatic move
-        if (!event.originalEvent) return;
+        if (!event.originalEvent || !onBoundingBoxChange) return;
 
         const map = mapRef.current;
         if (!map) return;
-        const bounds = map.getBounds();
+        const nextBounds = map.getBounds();
         onBoundingBoxChange([
-          bounds.getWest(),
-          bounds.getSouth(),
-          bounds.getEast(),
-          bounds.getNorth()
+          nextBounds.getWest(),
+          nextBounds.getSouth(),
+          nextBounds.getEast(),
+          nextBounds.getNorth()
         ]);
       }}
       reuseMaps
@@ -106,18 +120,16 @@ export function MapViewer({
         zoom: 2
       }}
       style={{ flexGrow: 1 }}
-      mapStyle={activeBaseLayer.styleUrl}
+      mapStyle={activeBaseLayerStyleUrl}
     >
       <MapLayers services={services} />
-      <BaseLayerControl
-        options={BASE_LAYERS}
-        value={baseLayerId}
-        onChange={setBaseLayerId}
-      />
-      <LayerControl
+      <MapLayerSelector
         services={services}
         onToggleLayer={onToggleLayer}
-        onShareService={onShareService}
+        onServicePublish={onServicePublish}
+        baseOptions={BASE_LAYERS}
+        baseValue={baseLayerId}
+        onBaseChange={setBaseLayerId}
       />
     </Map>
   );
