@@ -126,20 +126,3 @@ export function extractBandsFromStac(
 
   return extractBandsFromCubeDimensions(stacCollection);
 }
-
-/**
- * Find how a band name is spelled in the collection's advertised bands.
- * Newer titiler-eopf backends name bands "reflectance|bands=b04" where older
- * ones (and projects saved against them) use "reflectance|b04", so when the
- * exact name is not advertised, the other spelling is matched instead.
- *
- * @returns The advertised name, or undefined if neither spelling is found
- */
-export function matchAdvertisedBand(
-  name: string,
-  advertised: string[]
-): string | undefined {
-  if (advertised.includes(name)) return name;
-  const legacy = (n: string) => n.replace('|bands=', '|');
-  return advertised.find((a) => legacy(a) === legacy(name));
-}

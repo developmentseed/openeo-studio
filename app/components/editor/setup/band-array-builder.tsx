@@ -3,7 +3,6 @@ import { Box, Button, Flex, IconButton, Text } from '@chakra-ui/react';
 import { LuGripVertical, LuX } from 'react-icons/lu';
 
 import type { BandVariable } from '$types';
-import { matchAdvertisedBand } from '$utils/stac-band-parser';
 
 interface BandArrayBuilderProps {
   /** All available bands from STAC */
@@ -29,17 +28,12 @@ export function BandArrayBuilder({
   useEffect(() => {
     // Only validate selections if we have bands loaded
     if (availableBands.length > 0 && selectedBands.length > 0) {
-      // Map selected bands to their advertised spelling (legacy
-      // "reflectance|b04" vs "reflectance|bands=b04") and filter out any
-      // that are no longer available
-      const availableBandNames = availableBands.map((b) => b.name);
-      const validSelections = selectedBands
-        .map((name) => matchAdvertisedBand(name, availableBandNames))
-        .filter((name): name is string => name !== undefined);
-      if (
-        validSelections.length !== selectedBands.length ||
-        validSelections.some((name, i) => name !== selectedBands[i])
-      ) {
+      // Filter out any selected bands that are no longer available
+      const availableBandNames = new Set(availableBands.map((b) => b.name));
+      const validSelections = selectedBands.filter((name) =>
+        availableBandNames.has(name)
+      );
+      if (validSelections.length !== selectedBands.length) {
         onSelectionChange(validSelections);
       }
     }
