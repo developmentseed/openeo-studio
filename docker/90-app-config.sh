@@ -44,7 +44,8 @@ window.__APP_CONFIG__ = {
   authClientId: "$(json_escape "$AUTH_CLIENT_ID")",
   authRedirectUri: "$(json_escape "$AUTH_REDIRECT_URI")",
   enableNarrativeExport: ${ENABLE_NARRATIVE_EXPORT_JS},
-  partnerLogoUrl: "$(json_escape "$PARTNER_LOGO_URL")"
+  partnerLogoUrl: "$(json_escape "$PARTNER_LOGO_URL")",
+  partnerName: "$(json_escape "$PARTNER_NAME")"
 };
 </script>
 EOF

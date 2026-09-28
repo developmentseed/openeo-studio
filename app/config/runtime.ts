@@ -15,6 +15,7 @@ export interface AppConfig {
   authRedirectUri: string;
   enableNarrativeExport: boolean;
   partnerLogoUrl: string;
+  partnerName: string;
 }
 
 declare global {
@@ -69,5 +70,6 @@ export const appConfig: AppConfig = {
   partnerLogoUrl: pick(
     runtime.partnerLogoUrl,
     import.meta.env.VITE_PARTNER_LOGO_URL
-  )
+  ),
+  partnerName: pick(runtime.partnerName, import.meta.env.VITE_PARTNER_NAME)
 };

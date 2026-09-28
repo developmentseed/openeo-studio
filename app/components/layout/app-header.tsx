@@ -26,15 +26,13 @@ import {
   LuSun
 } from 'react-icons/lu';
 
+import { appConfig } from '$config/runtime';
 import { useEmailHash } from '$components/auth/user-info';
 import SmartLink from '$components/common/smart-link';
 import { Tip } from '$components/tooltip';
 import { useColorMode } from '$contexts/color-mode';
 
 import logoImg from '../../media/openeo_navbar_logo.png';
-
-const PARTNER_LOGO_URL = import.meta.env.VITE_PARTNER_LOGO_URL;
-const PARTNER_NAME = import.meta.env.VITE_PARTNER_NAME;
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
@@ -251,18 +249,18 @@ function Logo(props: FlexProps & { src: string }) {
 }
 
 function LogoComposition() {
-  const hasPartner = !!PARTNER_LOGO_URL && !!PARTNER_NAME;
+  const hasPartner = !!appConfig.partnerLogoUrl && !!appConfig.partnerName;
 
   return (
     <Box className='logo-comp'>
       <Logo src={logoImg} />
-      {hasPartner && <Logo mt={-4} src={PARTNER_LOGO_URL} />}
+      {hasPartner && <Logo mt={-4} src={appConfig.partnerLogoUrl} />}
     </Box>
   );
 }
 
 function NameComposition() {
-  const hasPartner = !!PARTNER_LOGO_URL && !!PARTNER_NAME;
+  const hasPartner = !!appConfig.partnerLogoUrl && !!appConfig.partnerName;
 
   if (!hasPartner) {
     return <Heading size='sm'>OpenEo Studio</Heading>;
@@ -276,7 +274,7 @@ function NameComposition() {
           for
         </Text>
       </Text>
-      <Text>{PARTNER_NAME}</Text>
+      <Text>{appConfig.partnerName}</Text>
     </Heading>
   );
 }
