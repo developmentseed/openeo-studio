@@ -25,7 +25,7 @@ describe('editor-store dirty tracking', () => {
   });
 
   it('marks dirty when bands change', () => {
-    useEditorStore.getState().setSelectedBands(['reflectance|b02']);
+    useEditorStore.getState().setSelectedBands(['reflectance|bands=b02']);
     expect(useEditorStore.getState().isDirty).toBe(true);
   });
 

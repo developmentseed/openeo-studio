@@ -1,6 +1,9 @@
 import type { StacCollection } from 'stac-ts';
 
-import { extractBandsFromStac } from '$utils/stac-band-parser';
+import {
+  extractBandsFromStac,
+  matchAdvertisedBand
+} from '$utils/stac-band-parser';
 
 describe('extractBandsFromStac', () => {
   it('returns an empty array when the collection is null/undefined', () => {
@@ -26,6 +29,11 @@ describe('extractBandsFromStac', () => {
           {
             name: 'b8a',
             description: 'Narrow NIR (band 8a)'
+          },
+          {
+            // Current titiler-eopf notation
+            name: 'reflectance|bands=b12',
+            description: 'SWIR 2 (band 12)'
           }
         ]
       }
@@ -44,6 +52,13 @@ describe('extractBandsFromStac', () => {
         {
           name: 'b8a',
           label: 'Narrow NIR',
+          commonName: undefined,
+          resolution: '20m',
+          wavelength: undefined
+        },
+        {
+          name: 'reflectance|bands=b12',
+          label: 'SWIR 2',
           commonName: undefined,
           resolution: '20m',
           wavelength: undefined
@@ -92,5 +107,36 @@ describe('extractBandsFromStac', () => {
 
     const bands = extractBandsFromStac(collection);
     expect(bands.map((b) => b.name)).toEqual(['b02']);
+  });
+});
+
+describe('matchAdvertisedBand', () => {
+  it('returns the exact name when it is advertised', () => {
+    expect(
+      matchAdvertisedBand('reflectance|b04', [
+        'reflectance|b04',
+        'reflectance|bands=b04'
+      ])
+    ).toBe('reflectance|b04');
+    expect(matchAdvertisedBand('SCL_20m', ['SCL_20m'])).toBe('SCL_20m');
+  });
+
+  it('maps a legacy name to the advertised "bands=" spelling', () => {
+    expect(
+      matchAdvertisedBand('reflectance|b04', ['reflectance|bands=b04'])
+    ).toBe('reflectance|bands=b04');
+  });
+
+  it('maps a "bands=" name to the advertised legacy spelling', () => {
+    expect(
+      matchAdvertisedBand('reflectance|bands=b8a', ['reflectance|b8a'])
+    ).toBe('reflectance|b8a');
+  });
+
+  it('returns undefined when neither spelling is advertised', () => {
+    expect(
+      matchAdvertisedBand('reflectance|b04', ['reflectance|bands=b03'])
+    ).toBeUndefined();
+    expect(matchAdvertisedBand('B04', ['B04_10m'])).toBeUndefined();
   });
 });

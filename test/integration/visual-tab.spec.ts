@@ -11,7 +11,11 @@ const MAP_GRAPHS = [
         process_id: 'load_collection',
         arguments: {
           id: 'sentinel-2-l2a',
-          bands: ['reflectance|b02', 'reflectance|b03', 'reflectance|b04'],
+          bands: [
+            'reflectance|bands=b02',
+            'reflectance|bands=b03',
+            'reflectance|bands=b04'
+          ],
           properties: {
             'eo:cloud_cover': {
               process_graph: {

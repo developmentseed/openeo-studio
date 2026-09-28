@@ -59,7 +59,11 @@ describe('formatArgumentValue', () => {
     });
 
     it('collapses to List(n) when the joined text overflows', () => {
-      const value = ['reflectance|b02', 'reflectance|b03', 'reflectance|b04'];
+      const value = [
+        'reflectance|bands=b02',
+        'reflectance|bands=b03',
+        'reflectance|bands=b04'
+      ];
       const result = formatArgumentValue(value, 'bands');
       expect(result.display).toBe('List(3)');
       expect(result.full).toBe(JSON.stringify(value, null, 2));
