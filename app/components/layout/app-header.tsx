@@ -239,7 +239,7 @@ function Logo(props: FlexProps & { src: string }) {
       zIndex={1}
       {...rest}
     >
-      <Image src={src} h='100%' />
+      <Image src={src} borderRadius='uni' overflow='hidden' h='100%' />
     </Flex>
   );
 }
