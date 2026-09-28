@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Box,
   Button,
+  ButtonProps,
   Flex,
   FlexProps,
   Heading,
@@ -41,6 +42,16 @@ export function AppHeader() {
   const [barOpen, setBarOpen] = useState(false);
 
   const BtnCmp = barOpen ? Button : IconButton;
+
+  const noop: ButtonProps = isAuthenticated
+    ? {}
+    : {
+        disabled: true,
+        onClick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      };
 
   return (
     <Stack
@@ -135,12 +146,7 @@ export function AppHeader() {
             content={isAuthenticated ? 'Projects' : 'Login to see projects'}
             disabled={barOpen && isAuthenticated}
           >
-            <BtnCmp
-              variant='ghost'
-              size='sm'
-              disabled={!isAuthenticated}
-              asChild
-            >
+            <BtnCmp variant='ghost' size='sm' {...noop} asChild>
               <NavLink to='/projects' aria-label='Projects'>
                 <LuFolder />
                 {barOpen && 'Projects'}
@@ -152,12 +158,7 @@ export function AppHeader() {
             content={isAuthenticated ? 'Services' : 'Login to see services'}
             disabled={barOpen && isAuthenticated}
           >
-            <BtnCmp
-              variant='ghost'
-              size='sm'
-              disabled={!isAuthenticated}
-              asChild
-            >
+            <BtnCmp variant='ghost' size='sm' {...noop} asChild>
               <NavLink to='/services' aria-label='Services'>
                 <LuServer /> {barOpen && 'Services'}
               </NavLink>
@@ -181,12 +182,7 @@ export function AppHeader() {
             }
             disabled={barOpen && isAuthenticated}
           >
-            <BtnCmp
-              variant='ghost'
-              size='sm'
-              disabled={!isAuthenticated}
-              asChild
-            >
+            <BtnCmp variant='ghost' size='sm' {...noop} asChild>
               <SmartLink to='/editor' aria-label='New project'>
                 <LuPlus />
                 {barOpen && 'New project'}
