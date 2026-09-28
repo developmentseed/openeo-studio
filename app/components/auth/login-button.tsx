@@ -1,13 +1,22 @@
-import { Button, ButtonProps } from '@chakra-ui/react';
+import { Button, ButtonProps, IconButton } from '@chakra-ui/react';
 import { useAuth } from 'react-oidc-context';
 import { useLocation } from 'react-router';
+import { LuLogIn } from 'react-icons/lu';
 
-interface LoginButtonProps {
-  size?: ButtonProps['size'];
+export interface LoginButtonProps extends ButtonProps {
+  compact?: boolean;
+  hideIfAuthenticated?: boolean;
 }
 
-export function LoginButton({ size = 'sm' }: LoginButtonProps) {
-  const { signinRedirect, isLoading } = useAuth();
+export function LoginButton(props: LoginButtonProps) {
+  const {
+    size = 'sm',
+    variant = 'outline',
+    compact,
+    hideIfAuthenticated,
+    ...rest
+  } = props;
+  const { signinRedirect, isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
 
   const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -19,25 +28,34 @@ export function LoginButton({ size = 'sm' }: LoginButtonProps) {
     });
   };
 
+  if (isAuthenticated && hideIfAuthenticated) {
+    return null;
+  }
+
+  if (compact) {
+    return (
+      <IconButton
+        size={size}
+        variant={variant}
+        {...rest}
+        onClick={handleLogin}
+        disabled={isLoading}
+      >
+        <LuLogIn />
+      </IconButton>
+    );
+  }
+
   return (
     <Button
-      variant='outline'
       size={size}
+      variant={variant}
+      {...rest}
       onClick={handleLogin}
       disabled={isLoading}
     >
-      Login{' '}
-      <svg
-        version='1.1'
-        xmlns='http://www.w3.org/2000/svg'
-        width='16'
-        height='16'
-        viewBox='0 0 16 16'
-        fill='currentColor'
-      >
-        <rect width='16' height='16' id='icon-bound' fill='none' />
-        <path d='M14,14l0,-12l-6,0l0,-2l8,0l0,16l-8,0l0,-2l6,0Zm-6.998,-0.998l4.998,-5.002l-5,-5l-1.416,1.416l2.588,2.584l-8.172,0l0,2l8.172,0l-2.586,2.586l1.416,1.416Z' />
-      </svg>
+      Login
+      <LuLogIn />
     </Button>
   );
 }

@@ -87,3 +87,12 @@ parcel-bundle-reports
 ################################################
 playwright-report
 test-results
+
+
+################################################
+# Superpowers
+#
+# Scratch files from brainstorming sessions.
+################################################
+.superpowers
+docs/superpowers/plans

@@ -4,11 +4,17 @@ import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { lintGutter } from '@codemirror/lint';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
-import { githubLight } from '@uiw/codemirror-theme-github';
 
 import { EXAMPLE_CODE } from '$utils/code-runner';
+import {
+  createThemeCompartment,
+  firaCodeTheme,
+  githubDark,
+  githubLight
+} from '$styles/codemirror-theme';
+import { useColorModeValue } from '$contexts/color-mode';
 import { useEditorStore } from '$stores/editor-store';
-import { ruffLinter } from './ruff-linter';
+import { ruffLinter } from '$utils/ruff-linter';
 
 // Create a CodeEditor context.
 const CodeEditorContext = createContext<{
@@ -26,11 +32,15 @@ interface RootProps {
   initialCode?: string;
 }
 
+const themeCompartment = createThemeCompartment();
+
 function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
   const [editor, setEditor] = useState<EditorView | null>(null);
 
   const code = useEditorStore((state) => state.code);
-  const { setCode, setHasCodeChanged } = useEditorStore();
+  const { setCode, markClean } = useEditorStore();
+
+  const themeColorMode = useColorModeValue(githubLight, githubDark);
 
   const initialDocRef = useRef<string | null>(null);
   if (initialDocRef.current === null) {
@@ -42,13 +52,31 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
     // Create update listener plugin to track changes with debouncing
     const updateListener = ViewPlugin.fromClass(
       class {
-        debounceTimer: NodeJS.Timeout | null = null;
+        debounceTimer: ReturnType<typeof setTimeout> | null = null;
+        pendingCode: string | null = null;
         destroyed = false;
+
+        constructor() {
+          window.addEventListener('pagehide', this.flush);
+        }
+
+        // Write any pending edit immediately so a reload or tab close
+        // inside the debounce window doesn't drop it.
+        flush = () => {
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = null;
+          }
+          if (this.pendingCode !== null && !this.destroyed) {
+            setCode(this.pendingCode);
+          }
+          this.pendingCode = null;
+        };
 
         update(update: ViewUpdate) {
           if (this.destroyed || !update.docChanged) return;
 
-          const newCode = update.state.doc.toString();
+          this.pendingCode = update.state.doc.toString();
 
           // Clear previous timer
           if (this.debounceTimer) {
@@ -56,16 +84,12 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
           }
 
           // Debounce the setCode call (300ms)
-          this.debounceTimer = setTimeout(() => {
-            if (!this.destroyed) {
-              setCode(newCode);
-            }
-            this.debounceTimer = null;
-          }, 300);
+          this.debounceTimer = setTimeout(this.flush, 300);
         }
 
         destroy() {
           this.destroyed = true;
+          window.removeEventListener('pagehide', this.flush);
           // Clean up timer on plugin destroy
           if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
@@ -78,19 +102,9 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
       doc: initialDoc,
       extensions: [
         basicSetup,
-        EditorView.theme({
-          '&': {
-            height: '100%'
-          },
-          '&, .cm-scroller': {
-            fontFamily: '"Fira Code"'
-          },
-          '.cm-content, .cm-line': {
-            width: '100%'
-          }
-        }),
+        firaCodeTheme(),
         EditorView.lineWrapping,
-        githubLight,
+        themeCompartment.of(themeColorMode),
         python(),
         closeBrackets(),
         autocompletion(),
@@ -104,14 +118,14 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
 
     if (!code && initialDoc) {
       setCode(initialDoc);
-      setHasCodeChanged(false);
+      markClean();
     }
 
     return () => {
       view.destroy();
       setEditor(null);
     };
-  }, [setCode, setHasCodeChanged]);
+  }, [setCode, markClean]);
 
   // Sync external code changes to editor (e.g. from scene hydration)
   useEffect(() => {
@@ -126,6 +140,14 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
       }
     });
   }, [code, editor]);
+
+  // Sync editor theme with color mode changes
+  useEffect(() => {
+    if (!editor) return;
+    editor.dispatch({
+      effects: themeCompartment.reconfigure(themeColorMode)
+    });
+  }, [themeColorMode, editor]);
 
   return <CodeEditorContext value={{ editor }}>{children}</CodeEditorContext>;
 }
