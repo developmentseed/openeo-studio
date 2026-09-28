@@ -214,7 +214,7 @@ export function AppHeader() {
           </Tip>
         </Stack>
 
-        <Stack p={2} borderBottomWidth='1px' borderBottomColor='border'>
+        <Stack p={2}>
           <UserInfo compact={!barOpen} />
         </Stack>
       </Stack>
