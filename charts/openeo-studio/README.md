@@ -31,6 +31,8 @@ helm install my-studio charts/openeo-studio \
 | `ingress.hosts` | see `values.yaml` | Host/path rules |
 | `ingress.tls` | `[]` | TLS configuration |
 | `resources` | `{}` | Pod resource requests/limits |
+| `podSecurityContext` | non-root (UID `101`) | Pod-level `securityContext` |
+| `securityContext` | no privilege escalation, all capabilities dropped | Container-level `securityContext` |
 | `env` | see `values.yaml` | Runtime configuration passed to the container as env vars — read by `docker/90-app-config.sh` at container start (see the [Docker section of the project README](../../README.md#docker)) |
 | `envFromSecret` | `[]` | Source specific `env` keys from a pre-existing Secret instead of a literal value — see below |
 | `nodeSelector` / `tolerations` / `affinity` | `{}` / `[]` / `{}` | Standard pod scheduling controls |

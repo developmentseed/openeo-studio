@@ -28,11 +28,11 @@ tests:
           path: spec.template.spec.containers[0].image
           value: ghcr.io/developmentseed/openeo-studio:1.2.3
 
-  - it: exposes container port 80 named http
+  - it: exposes container port 8080 named http
     asserts:
       - equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
-          value: 80
+          value: 8080
       - equal:
           path: spec.template.spec.containers[0].ports[0].name
           value: http
@@ -170,3 +170,12 @@ tests:
       - matchRegex:
           path: spec.template.metadata.annotations["checksum/config"]
           pattern: "^[a-f0-9]{64}$"
+
+  - it: runs as non-root without privilege escalation by default
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false

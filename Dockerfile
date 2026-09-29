@@ -17,14 +17,19 @@ COPY docker/vite-placeholders.env .env.production.local
 
 RUN pnpm build
 
-FROM nginx:stable-alpine
+FROM nginxinc/nginx-unprivileged:stable-alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
 COPY docker/default.conf.template /etc/nginx/templates/default.conf.template
 COPY docker/90-app-config.sh docker/lib.sh /docker-entrypoint.d/
+
+# The entrypoint rewrites index.html at start, so the runtime user needs write access.
+USER root
 RUN chmod +x /docker-entrypoint.d/90-app-config.sh \
-    && touch /etc/nginx/conf.d/path-prefix.inc
+    && chown -R 101:0 /usr/share/nginx/html \
+    && chmod -R g+w /usr/share/nginx/html
+USER 101
 
 ENV OPENEO_API_URL=https://api.explorer.eopf.copernicus.eu/openeo \
     BASE_URL= \
@@ -38,4 +43,4 @@ ENV OPENEO_API_URL=https://api.explorer.eopf.copernicus.eu/openeo \
     PARTNER_LOGO_URL= \
     PARTNER_NAME=
 
-EXPOSE 80
+EXPOSE 8080
