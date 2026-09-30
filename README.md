@@ -95,7 +95,7 @@ This will package the app and place all the contents in the `dist` directory, wi
 
 ```sh
 docker build -t openeo-studio .
-docker run -p 8888:80 -e BASE_URL=http://localhost:8888/subpath openeo-studio
+docker run -p 8888:8080 -e BASE_URL=http://localhost:8888/subpath openeo-studio
 ```
 
 The image is built once with a relative asset base and configured per-container via environment variables (`BASE_URL`, `OPENEO_API_URL`, `APP_TITLE`, etc. — see `Dockerfile` for the full list). The entrypoint script derives the mount path from `BASE_URL` and writes it into nginx's rewrite rules, the page's `<base>` tag, and `window.__APP_CONFIG__` at container start — so the same image can be redeployed under a different `BASE_URL` or `OPENEO_API_URL` without rebuilding.

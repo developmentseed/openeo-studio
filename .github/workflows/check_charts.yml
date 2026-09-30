@@ -112,7 +112,7 @@ jobs:
           fi
           echo "Smoke-testing pod $NS/$POD"
           kubectl -n "$NS" wait --for=condition=Ready pod/"$POD" --timeout=180s
-          kubectl -n "$NS" port-forward "pod/$POD" 18080:80 &
+          kubectl -n "$NS" port-forward "pod/$POD" 18080:8080 &
           PF_PID=$!
           trap 'kill $PF_PID 2>/dev/null || true' EXIT
           # Give kubectl port-forward a moment to establish the tunnel

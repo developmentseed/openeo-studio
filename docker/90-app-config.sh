@@ -2,9 +2,14 @@
 # nginx entrypoint hook: template index.html from env.
 set -eu
 
-HTML_ROOT=/usr/share/nginx/html
-INDEX_HTML="${HTML_ROOT}/index.html"
-PATH_PREFIX_INC=/etc/nginx/conf.d/path-prefix.inc
+# Read the built index.html from the image and write the result to /tmp, so
+# the container runs as any UID/GID. nginx serves index.html from RUNTIME_DIR.
+SOURCE_INDEX_HTML=/usr/share/nginx/html/index.html
+RUNTIME_DIR=/tmp/openeo-studio
+INDEX_HTML="${RUNTIME_DIR}/index.html"
+PATH_PREFIX_INC="${RUNTIME_DIR}/path-prefix.inc"
+
+mkdir -p "$RUNTIME_DIR"
 
 . "$(dirname "$0")/lib.sh"
 
@@ -24,7 +29,7 @@ fi
 
 tmp_index="$(mktemp)"
 # shellcheck disable=SC2016
-envsubst '${BASE_URL} ${APP_TITLE} ${APP_DESCRIPTION}' <"$INDEX_HTML" >"$tmp_index"
+envsubst '${BASE_URL} ${APP_TITLE} ${APP_DESCRIPTION}' <"$SOURCE_INDEX_HTML" >"$tmp_index"
 mv "$tmp_index" "$INDEX_HTML"
 
 # Splice the runtime app config in as an inline script where index.html has
