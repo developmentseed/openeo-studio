@@ -26,6 +26,11 @@ describe('extractBandsFromStac', () => {
           {
             name: 'b8a',
             description: 'Narrow NIR (band 8a)'
+          },
+          {
+            // Current titiler-eopf notation
+            name: 'reflectance|bands=b12',
+            description: 'SWIR 2 (band 12)'
           }
         ]
       }
@@ -44,6 +49,13 @@ describe('extractBandsFromStac', () => {
         {
           name: 'b8a',
           label: 'Narrow NIR',
+          commonName: undefined,
+          resolution: '20m',
+          wavelength: undefined
+        },
+        {
+          name: 'reflectance|bands=b12',
+          label: 'SWIR 2',
           commonName: undefined,
           resolution: '20m',
           wavelength: undefined

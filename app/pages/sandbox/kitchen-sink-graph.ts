@@ -23,10 +23,10 @@ export const KITCHEN_SINK_GRAPH: ProcessGraph = {
       // Short label so the joined dates fit the display budget.
       ab: ['2025-11-23', '2025-11-24'],
       tags: [
-        'reflectance|b02',
-        'reflectance|b03',
-        'reflectance|b04',
-        'reflectance|b08'
+        'reflectance|bands=b02',
+        'reflectance|bands=b03',
+        'reflectance|bands=b04',
+        'reflectance|bands=b08'
       ],
       empty: {},
       geom: {

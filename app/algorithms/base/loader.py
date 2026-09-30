@@ -18,7 +18,7 @@ from openeo.api.process import Parameter
 default_collection_id = RUN_CONFIG.get("collectionId", "sentinel-2-l2a")
 default_bounding_box = RUN_CONFIG.get("boundingBox", {"west": 12.0, "south": 44.5, "east": 14, "north": 46})
 default_time = RUN_CONFIG.get("time", ["2025-11-23", "2025-11-24"])
-default_bands = RUN_CONFIG.get("bands", ["reflectance|b02", "reflectance|b03", "reflectance|b04"])
+default_bands = RUN_CONFIG.get("bands", ["reflectance|bands=b02", "reflectance|bands=b03", "reflectance|bands=b04"])
 default_cloud_cover_max = RUN_CONFIG.get("cloudCover", 20)
 
 # Create OpenEO Parameter objects
