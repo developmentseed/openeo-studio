@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { MouseEventHandler, useCallback, useState } from 'react';
 import {
   Box,
   Button,
@@ -35,6 +35,18 @@ import { useColorMode } from '$contexts/color-mode';
 
 import logoImg from '../../media/openeo_navbar_logo.png';
 
+function hasActionParent(el: HTMLElement) {
+  let current: HTMLElement | null = el;
+
+  while (current) {
+    const tag = current.tagName.toLowerCase();
+    if (tag === 'a' || tag === 'button') return true;
+    current = current.parentElement;
+  }
+
+  return false;
+}
+
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
   const { colorMode, toggleColorMode } = useColorMode();
@@ -53,6 +65,15 @@ export function AppHeader() {
         }
       };
 
+  const headerBarClick = useCallback<MouseEventHandler>(
+    (e) => {
+      if (!barOpen && !hasActionParent(e.target as HTMLElement)) {
+        setBarOpen(true);
+      }
+    },
+    [barOpen]
+  );
+
   return (
     <Stack
       as='header'
@@ -67,49 +88,53 @@ export function AppHeader() {
       bg='subtle'
       boxShadow='lg'
       w={barOpen ? '16rem' : undefined}
+      cursor={barOpen ? 'undefined' : 'e-resize'}
+      onClick={headerBarClick}
     >
-      <Flex
-        data-open={barOpen}
-        h='4.5rem'
-        w='100%'
-        gap={2}
-        px={2}
-        justifyContent='center'
-        alignItems='center'
-        _hover={{
-          '&:not([data-open="true"])': {
-            '& .panel-expand': { display: 'flex' },
-            '& .logo-comp': { display: 'none' }
-          }
-        }}
-      >
-        <LogoComposition />
-        {barOpen && <NameComposition />}
-
-        <IconButton
-          className='panel-expand'
-          display='none'
-          variant='ghost'
-          size='sm'
-          height='3rem'
-          onClick={() => setBarOpen(true)}
-          aria-label='Expand sidebar'
+      <Tip placement='right' content='Expand sidebar' disabled={barOpen}>
+        <Flex
+          data-open={barOpen}
+          h='4.5rem'
+          w='100%'
+          gap={2}
+          px={2}
+          justifyContent='center'
+          alignItems='center'
+          _hover={{
+            '&:not([data-open="true"])': {
+              '& .panel-expand': { display: 'flex' },
+              '& .logo-comp': { display: 'none' }
+            }
+          }}
         >
-          <LuPanelLeftOpen />
-        </IconButton>
+          <LogoComposition />
+          {barOpen && <NameComposition />}
 
-        {barOpen && (
           <IconButton
+            className='panel-expand'
+            display='none'
             variant='ghost'
             size='sm'
-            ml='auto'
-            onClick={() => setBarOpen(false)}
-            aria-label='Collapse sidebar'
+            height='3rem'
+            onClick={() => setBarOpen(true)}
+            aria-label='Expand sidebar'
           >
-            <LuPanelLeftClose />
+            <LuPanelLeftOpen />
           </IconButton>
-        )}
-      </Flex>
+
+          {barOpen && (
+            <IconButton
+              variant='ghost'
+              size='sm'
+              ml='auto'
+              onClick={() => setBarOpen(false)}
+              aria-label='Collapse sidebar'
+            >
+              <LuPanelLeftClose />
+            </IconButton>
+          )}
+        </Flex>
+      </Tip>
 
       <Stack
         bg='bg'
@@ -214,7 +239,7 @@ export function AppHeader() {
           </Tip>
         </Stack>
 
-        <Stack p={2} borderBottomWidth='1px' borderBottomColor='border'>
+        <Stack p={2}>
           <UserInfo compact={!barOpen} />
         </Stack>
       </Stack>
@@ -239,7 +264,7 @@ function Logo(props: FlexProps & { src: string }) {
       zIndex={1}
       {...rest}
     >
-      <Image src={src} h='100%' />
+      <Image src={src} borderRadius='uni' overflow='hidden' h='100%' />
     </Flex>
   );
 }
