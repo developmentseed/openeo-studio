@@ -19,7 +19,11 @@ export const SAMPLE_SCENES: SampleScene[] = [
     description: 'Sentinel-2 coverage with nice cloud-free scenes',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: trueColorAlgorithm,
-    defaultBands: ['reflectance|b04', 'reflectance|b03', 'reflectance|b02'], // Red, Green, Blue for true color
+    defaultBands: [
+      'reflectance|bands=b04',
+      'reflectance|bands=b03',
+      'reflectance|bands=b02'
+    ], // Red, Green, Blue for true color
     temporalRange: ['2025-11-01', '2026-02-28'],
     boundingBox: [14.11, 40.75, 14.34, 40.85], // west, south, east, north for Naples area
     cloudCover: 20, // Max cloud cover percentage
@@ -33,13 +37,13 @@ export const SAMPLE_SCENES: SampleScene[] = [
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: apaAlgorithm,
     defaultBands: [
-      'reflectance|b02',
-      'reflectance|b03',
-      'reflectance|b04',
-      'reflectance|b05',
-      'reflectance|b08',
-      'reflectance|b8a',
-      'reflectance|b11'
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04',
+      'reflectance|bands=b05',
+      'reflectance|bands=b08',
+      'reflectance|bands=b8a',
+      'reflectance|bands=b11'
     ], // Bands useful for APA
     temporalRange: ['2025-05-12', '2025-05-13'],
     boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
@@ -53,14 +57,14 @@ export const SAMPLE_SCENES: SampleScene[] = [
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: ndciAlgorithm,
     defaultBands: [
-      'reflectance|b02',
-      'reflectance|b03',
-      'reflectance|b04',
-      'reflectance|b05',
-      'reflectance|b08',
-      'reflectance|b8a',
-      'reflectance|b11',
-      'reflectance|b12'
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04',
+      'reflectance|bands=b05',
+      'reflectance|bands=b08',
+      'reflectance|bands=b8a',
+      'reflectance|bands=b11',
+      'reflectance|bands=b12'
     ], // Bands useful for NDCI
     temporalRange: ['2025-05-12', '2025-05-13'],
     boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
@@ -76,12 +80,12 @@ export const SAMPLE_SCENES: SampleScene[] = [
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: lavaAlgorithm,
     defaultBands: [
-      'reflectance|b02',
-      'reflectance|b03',
-      'reflectance|b04',
-      'reflectance|b08',
-      'reflectance|b11',
-      'reflectance|b12'
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04',
+      'reflectance|bands=b08',
+      'reflectance|bands=b11',
+      'reflectance|bands=b12'
     ], // Blue, Green, Red, NIR, SWIR-1, SWIR-2 for lava visualization
     temporalRange: ['2021-10-10', '2021-10-11'],
     boundingBox: [-17.94, 28.58, -17.86, 28.64], // west, south, east, north for Cumbre Vieja, La Palma
@@ -96,11 +100,11 @@ export const SAMPLE_SCENES: SampleScene[] = [
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: bais2Algorithm,
     defaultBands: [
-      'reflectance|b04',
-      'reflectance|b06',
-      'reflectance|b07',
-      'reflectance|b8a',
-      'reflectance|b12'
+      'reflectance|bands=b04',
+      'reflectance|bands=b06',
+      'reflectance|bands=b07',
+      'reflectance|bands=b8a',
+      'reflectance|bands=b12'
     ], // Red, Red Edge, Red Edge, Narrow NIR, SWIR for BAIS2
     temporalRange: ['2025-09-25', '2025-09-26'], // Post-fire pass, 0% cloud; the Aug 2025 fire dates have no EOPF data
     boundingBox: [-7.8, 40.1, -7.0, 40.9], // west, south, east, north for Beiras e Serra da Estrela, Portugal
@@ -115,10 +119,10 @@ export const SAMPLE_SCENES: SampleScene[] = [
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: cloudDetectionAlgorithm,
     defaultBands: [
-      'reflectance|b02',
-      'reflectance|b03',
-      'reflectance|b04',
-      'reflectance|b11'
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04',
+      'reflectance|bands=b11'
     ],
     temporalRange: ['2026-02-16', '2026-02-21'],
     boundingBox: [-0.5, 51.27, 0.34, 51.7], // London, UK

@@ -50,7 +50,11 @@ function buildProject(
         name: 'bands',
         description: 'Selected bands',
         schema: { type: 'array' },
-        default: ['reflectance|b02', 'reflectance|b03', 'reflectance|b04']
+        default: [
+          'reflectance|bands=b02',
+          'reflectance|bands=b03',
+          'reflectance|bands=b04'
+        ]
       },
       {
         name: 'cloud_cover_max',
@@ -77,9 +81,9 @@ describe('deriveConfigFromProject', () => {
   it('extracts selectedBands from the "bands" parameter', () => {
     const config = deriveConfigFromProject(buildProject());
     expect(config.selectedBands).toEqual([
-      'reflectance|b02',
-      'reflectance|b03',
-      'reflectance|b04'
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04'
     ]);
   });
 

@@ -131,7 +131,7 @@ In openEO Studio, **bands are the key input to almost every workflow**:
 Practical rules:
 
 - Keep band order explicit for RGB workflows.
-- Verify collection-specific naming (for example `B04` vs `reflectance|b04`) in metadata.
+- Verify collection-specific naming (for example `B04` vs `reflectance|bands=b04`) in metadata.
 - Choose only the bands needed for your workflow to keep graphs simpler and easier to debug.
 
 ### Processes and process graphs

@@ -45,9 +45,10 @@ function extractBandsFromSummaries(
       ? `${Math.round(band['eo:center_wavelength'] * 1000)} nm`
       : undefined;
 
-    // Extract variable name from band name: "reflectance|b02" -> "B02"
+    // Extract variable name from band name: "reflectance|b02" or
+    // "reflectance|bands=b02" -> "b02"
     const namePart = band.name.includes('|')
-      ? band.name.split('|')[1]
+      ? band.name.split('|')[1].replace(/^bands=/, '')
       : band.name;
 
     // Determine resolution based on common Sentinel-2 patterns
