@@ -18,6 +18,7 @@ interface CollectionBand {
   name: string;
   description: string;
   'eo:common_name'?: string;
+  common_name?: string;
   'eo:center_wavelength'?: number;
   'eo:full_width_half_max'?: number;
 }
@@ -35,7 +36,15 @@ function extractBandsFromSummaries(
     return [];
   }
 
-  const reflectanceBands = summariesBands as CollectionBand[];
+  // Some catalogues list the same band more than once - keep the first.
+  const seen = new Set<string>();
+  const reflectanceBands = (summariesBands as CollectionBand[]).filter(
+    (band) => {
+      if (!band?.name || seen.has(band.name)) return false;
+      seen.add(band.name);
+      return true;
+    }
+  );
   return reflectanceBands.map((band: CollectionBand) => {
     // Extract label from description: "Blue (band 2)" -> "Blue"
     const label = band.description?.match(/^([^(]+)/)?.[1]?.trim() || band.name;
@@ -64,7 +73,7 @@ function extractBandsFromSummaries(
     return {
       name: band.name,
       label,
-      commonName: band['eo:common_name'],
+      commonName: band['eo:common_name'] ?? band.common_name,
       resolution,
       wavelength
     };
@@ -125,4 +134,71 @@ export function extractBandsFromStac(
   }
 
   return extractBandsFromCubeDimensions(stacCollection);
+}
+
+/**
+ * Raw band name inside a multi-band asset: "reflectance|bands=b04" or
+ * "reflectance|b04" -> "b04". Returns undefined for a plain name.
+ */
+function rawBandName(name: string): string | undefined {
+  if (!name.includes('|')) return undefined;
+  const raw = name.slice(name.lastIndexOf('|') + 1).replace(/^bands=/, '');
+  return raw || undefined;
+}
+
+/**
+ * All the references a backend accepts for one band: the advertised name,
+ * the raw band name inside a multi-band asset, and the EO common name
+ * (titiler-openeo resolves each of them).
+ */
+export function bandIdentifiers(band: BandVariable): string[] {
+  const ids = [band.name, rawBandName(band.name), band.commonName];
+  return ids.filter((id): id is string => !!id);
+}
+
+/**
+ * Find the band that a band reference (advertised name, raw name or common
+ * name) points to. An exact advertised name always wins.
+ */
+export function findBandByReference(
+  reference: string,
+  bands: BandVariable[]
+): BandVariable | undefined {
+  return (
+    bands.find((band) => band.name === reference) ??
+    bands.find((band) => bandIdentifiers(band).includes(reference))
+  );
+}
+
+/**
+ * The set of band references that a collection accepts. It uses the bands
+ * from summaries.bands and from the bands cube:dimension, because a backend
+ * can advertise loadable bands in either place.
+ */
+export function collectionBandIdentifiers(
+  stacCollection: StacCollection | null | undefined
+): Set<string> {
+  if (!stacCollection) {
+    return new Set();
+  }
+  const bands = [
+    ...extractBandsFromSummaries(stacCollection),
+    ...extractBandsFromCubeDimensions(stacCollection)
+  ];
+  return new Set(bands.flatMap(bandIdentifiers));
+}
+
+/**
+ * A collection is compatible when it can resolve every selected band
+ * reference. With no selected band, it must provide at least one band.
+ */
+export function isCollectionCompatible(
+  stacCollection: StacCollection | null | undefined,
+  selectedBands: string[]
+): boolean {
+  const identifiers = collectionBandIdentifiers(stacCollection);
+  if (identifiers.size === 0) {
+    return false;
+  }
+  return selectedBands.every((reference) => identifiers.has(reference));
 }
