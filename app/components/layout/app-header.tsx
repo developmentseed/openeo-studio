@@ -29,6 +29,7 @@ import {
 
 import { appConfig } from '$config/runtime';
 import { useEmailHash } from '$components/auth/user-info';
+import { useIsAuthDisabled } from '$components/auth/disabled-auth-provider';
 import SmartLink from '$components/common/smart-link';
 import { Tip } from '$components/tooltip';
 import { useColorMode } from '$contexts/color-mode';
@@ -305,6 +306,7 @@ function UserInfo(props: { compact?: boolean }) {
   const { signinRedirect, isLoading, isAuthenticated, user, removeUser } =
     useAuth();
   const location = useLocation();
+  const isAuthDisabled = useIsAuthDisabled();
 
   const profile = user?.profile;
 
@@ -351,6 +353,8 @@ function UserInfo(props: { compact?: boolean }) {
       </Tip>
     );
   }
+
+  if (isAuthDisabled) return null;
 
   const BtnCmp = compact ? IconButton : Button;
 

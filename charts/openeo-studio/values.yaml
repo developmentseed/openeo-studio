@@ -47,6 +47,8 @@ env:
   APP_TITLE: openEO Studio
   APP_DESCRIPTION: Interactive code editor for openEO satellite imagery processing
   MAPTILER_KEY: ""
+  # Optional login overrides. When empty, the app uses
+  # GET {OPENEO_API_URL}/credentials/oidc from the openEO backend.
   AUTH_AUTHORITY: ""
   AUTH_CLIENT_ID: ""
   AUTH_REDIRECT_URI: ""
