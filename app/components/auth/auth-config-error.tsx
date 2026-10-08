@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
-import { Box, Button, Code, Heading, Text, VStack } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 
+import { ErrorState } from '$components/common/error-state';
+import { LogoComposition, NameComposition } from '$components/layout/brand';
 import { APP_TITLE } from '$config/constants';
 import type { OidcResolution } from '$config/oidc';
 
@@ -27,32 +29,32 @@ export function AuthConfigError(props: AuthConfigErrorProps) {
   }, []);
 
   return (
-    <VStack as='main' minH='100vh' gap={4} py={20} px={8} bg='bg.subtle'>
+    <Flex
+      as='main'
+      minH='100vh'
+      bg='bg.subtle'
+      align='center'
+      justify='center'
+      px={{ base: 4, md: 8 }}
+      py={{ base: 12, md: 20 }}
+    >
       <title>{`${APP_TITLE} - Configuration error`}</title>
 
-      <Heading size='3xl' textAlign='center'>
-        {TITLES[reason]}
-      </Heading>
-      <Text fontSize='lg' textAlign='center' maxW='40rem'>
-        {message}
-      </Text>
-      {details?.map((detail) => (
-        <Text key={detail} color='fg.muted' textAlign='center' maxW='40rem'>
-          {detail}
-        </Text>
-      ))}
-      <Box>
-        <Text color='fg.muted' fontSize='sm'>
-          openEO backend: <Code>{apiUrl}</Code>
-        </Text>
-      </Box>
-      <Button
-        colorPalette='primary'
-        onClick={() => window.location.reload()}
-        mt={4}
-      >
-        Try again
-      </Button>
-    </VStack>
+      <ErrorState
+        header={
+          <Flex align='center' gap={2}>
+            <LogoComposition />
+            <NameComposition />
+          </Flex>
+        }
+        label='Configuration error'
+        title={TITLES[reason]}
+        message={message}
+        details={[
+          { label: 'openEO backend', value: apiUrl, code: true },
+          { label: 'Details', value: details ?? [] }
+        ]}
+      />
+    </Flex>
   );
 }

@@ -113,20 +113,20 @@ function Root(props: { resolution: OidcResolution }) {
 
   return (
     <BrowserRouter basename={appConfig.pathPrefix || undefined}>
-      <ErrorBoundary>
-        <AuthWrapper resolution={resolution}>
-          <ColorModeProvider>
-            <ChakraProvider value={system}>
+      <AuthWrapper resolution={resolution}>
+        <ColorModeProvider>
+          <ChakraProvider value={system}>
+            <ErrorBoundary>
               <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
                 <PyodideProvider>
                   <App />
                 </PyodideProvider>
               </StacApiProvider>
-              <Toaster />
-            </ChakraProvider>
-          </ColorModeProvider>
-        </AuthWrapper>
-      </ErrorBoundary>
+            </ErrorBoundary>
+            <Toaster />
+          </ChakraProvider>
+        </ColorModeProvider>
+      </AuthWrapper>
     </BrowserRouter>
   );
 }

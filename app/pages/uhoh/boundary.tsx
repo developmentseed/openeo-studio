@@ -35,7 +35,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     if (this.state.hasError) {
       return (
         <ErrorWrapper resetError={this.resetError.bind(this)}>
-          {this.state.error instanceof NotFound ? <UhOh404 /> : <UhOh500 />}
+          {this.state.error instanceof NotFound ? (
+            <UhOh404 />
+          ) : (
+            <UhOh500 error={this.state.error} />
+          )}
         </ErrorWrapper>
       );
     }
