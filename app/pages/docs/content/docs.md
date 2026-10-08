@@ -1,9 +1,4 @@
-
-openEO Studio is a browser-based environment for data analysis with [openEO](https://openeo.org/) Python algorithms and immediate visual feedback. 
-Compose openEO process [graphs](https://openeo.org/documentation/1.0/glossary.html) in Python using the [openEO Python client](https://open-eo.github.io/openeo-python-client/) and see results directly on a web map.
-
-
-# How it works
+## How it works
 
 1. Select from the data collections that are available in the connected Spatio-Temporal Asset Catalogue (STAC).
 2. Write Python-like workflow code using [openEO Python client syntax](https://open-eo.github.io/openeo-python-client/basics.html).
@@ -13,7 +8,7 @@ Compose openEO process [graphs](https://openeo.org/documentation/1.0/glossary.ht
 Please note: openEO Studio works best for synchronous workflows that produce a map layer within a few minutes. For large-scale batch processing, you'll need an openEO service with more compute resources and allowance.
 
 
-# Simple example: RGB composite
+## Simple example: RGB composite
 
 This walk-through for true-color RGB (`B04`, `B03`, `B02`) was inspired by the [Manhattan notebook](https://github.com/sentinel-hub/titiler-openeo/blob/main/docs/src/notebooks/manhattan.ipynb).
 
@@ -120,14 +115,14 @@ For compatibility, the bare names also work: `if_`, `clip`, `sqrt`. A bare name 
 - [BAIS2 burned area notebook](https://github.com/developmentseed/openeo-udp/blob/main/notebooks/sentinel/sentinel-2/fire/bais2_burned_area.ipynb)
 - [Sentinel Hub Custom Scripts library](https://custom-scripts.sentinel-hub.com/)
 
-### Beginner
+#### Beginner
 
 1. **True colour** (`B04`, `B03`, `B02`) using [Sentinel-2 band guidance](https://documentation.dataspace.copernicus.eu/Data/SentinelMissions/Sentinel2.html) and [True Color reference](https://custom-scripts.sentinel-hub.com/sentinel-2/true_color/)
 2. **NDVI** for vegetation detection with [`ndvi`](https://processes.openeo.org/#ndvi)
 3. **Temporal subset** with [`filter_temporal`](https://processes.openeo.org/#filter_temporal)
 4. **AOI clipping** with [`filter_bbox`](https://processes.openeo.org/#filter_bbox) / [`filter_spatial`](https://processes.openeo.org/#filter_spatial)
 
-### Intermediate
+#### Intermediate
 
 1. **Cloud-masked composite** with [SCL](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-2a/algorithm-overview), [`mask`](https://processes.openeo.org/#mask), and temporal [`reduce_dimension`](https://processes.openeo.org/#reduce_dimension)
 2. **Water detection (NDWI)** from `B03`/`B08` ([NDWI background](https://en.wikipedia.org/wiki/Normalized_difference_water_index))
@@ -135,7 +130,7 @@ For compatibility, the bare names also work: `if_`, `clip`, `sqrt`. A bare name 
 4. **Custom band math** with [spectral index cookbook patterns](https://open-eo.github.io/openeo-python-client/cookbook/spectral_indices.html)
 
 
-# FAQ / Troubleshooting
+## FAQ / Troubleshooting
 
 ### Empty map
 
@@ -150,7 +145,7 @@ For compatibility, the bare names also work: `if_`, `clip`, `sqrt`. A bare name 
 - Build incrementally: load → filter → compute → visualise
 
 
-# Key Concepts
+## Key Concepts
 
 ### Sentinel-2 Band Quick Reference
 
@@ -195,8 +190,3 @@ Useful references:
 - [openEO Cookbook](https://openeo.org/documentation/1.0/cookbook/)
 - [Python client process usage](https://open-eo.github.io/openeo-python-client/processes.html)
 - [Python client DataCube API](https://open-eo.github.io/openeo-python-client/api.html)
-
-
-# Contributing
-
-openEO Studio is open source software available at https://github.com/developmentseed/openeo-studio
