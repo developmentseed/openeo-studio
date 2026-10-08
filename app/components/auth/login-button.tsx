@@ -3,6 +3,8 @@ import { useAuth } from 'react-oidc-context';
 import { useLocation } from 'react-router';
 import { LuLogIn } from 'react-icons/lu';
 
+import { useIsAuthDisabled } from '$components/auth/disabled-auth-provider';
+
 export interface LoginButtonProps extends ButtonProps {
   compact?: boolean;
   hideIfAuthenticated?: boolean;
@@ -18,6 +20,7 @@ export function LoginButton(props: LoginButtonProps) {
   } = props;
   const { signinRedirect, isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
+  const isAuthDisabled = useIsAuthDisabled();
 
   const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -28,7 +31,7 @@ export function LoginButton(props: LoginButtonProps) {
     });
   };
 
-  if (isAuthenticated && hideIfAuthenticated) {
+  if (isAuthDisabled || (isAuthenticated && hideIfAuthenticated)) {
     return null;
   }
 

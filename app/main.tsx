@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
@@ -10,8 +10,17 @@ import ErrorBoundary from '$pages/uhoh/boundary';
 
 import { Toaster } from '$components/layout/toaster';
 import { appConfig } from '$config/runtime';
+import {
+  clearOidcProvidersCache,
+  fetchOidcProviders,
+  OidcResolution,
+  resolveOidcSettings,
+  setOidcResolution
+} from '$config/oidc';
 import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$components/auth/auth-monitor';
+import { AuthConfigError } from '$components/auth/auth-config-error';
+import { DisabledAuthProvider } from '$components/auth/disabled-auth-provider';
 import { setupReloadDetector } from '$utils/reload-detector';
 import { monitorSessionStorage } from '$utils/storage-monitor';
 import { ColorModeProvider } from '$contexts/color-mode';
@@ -26,11 +35,9 @@ if (import.meta.env.DEV) {
   setupReloadDetector();
 }
 
-const oidcConfig: AuthProviderProps = {
+// Authority, client, redirect URI and scope come from resolveAuth().
+const oidcConfig = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
-  authority: appConfig.authAuthority,
-  client_id: appConfig.authClientId,
-  redirect_uri: appConfig.authRedirectUri,
   onSigninCallback: (user) => {
     // eslint-disable-next-line no-console
     console.log('[AUTH] onSigninCallback triggered', {
@@ -65,10 +72,37 @@ const oidcConfig: AuthProviderProps = {
 
   // Enable silent renew
   automaticSilentRenew: true
-};
+} satisfies Partial<AuthProviderProps>;
+
+function AuthWrapper(props: {
+  resolution: OidcResolution;
+  children: ReactNode;
+}) {
+  const { resolution, children } = props;
+
+  /* Use mock auth provider in test mode (when window.__MOCK_AUTH__ is set)
+   * See: test/integration/__mocks__/auth-provider.tsx and test/integration/__fixtures__/index.ts
+   */
+  if (window.__MOCK_AUTH__) {
+    return <MockAuthProvider>{children}</MockAuthProvider>;
+  }
+
+  if (resolution.status !== 'ok') {
+    return <DisabledAuthProvider>{children}</DisabledAuthProvider>;
+  }
+
+  return (
+    <AuthProvider {...oidcConfig} {...resolution.settings}>
+      <AuthMonitor />
+      {children}
+    </AuthProvider>
+  );
+}
 
 // Root component.
-function Root() {
+function Root(props: { resolution: OidcResolution }) {
+  const { resolution } = props;
+
   if (import.meta.env.DEV) {
     monitorSessionStorage();
   }
@@ -77,38 +111,80 @@ function Root() {
     dispatchEvent(new Event('app-ready'));
   }, []);
 
-  /* Use mock auth provider in test mode (when window.__MOCK_AUTH__ is set)
-   * See: test/integration/__mocks__/auth-provider.tsx and test/integration/__fixtures__/index.ts
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const AuthWrapper: React.ComponentType<any> = window.__MOCK_AUTH__
-    ? MockAuthProvider
-    : AuthProvider;
-
-  // Only pass oidcConfig if we're using the real AuthProvider
-  const authProps = window.__MOCK_AUTH__ ? {} : oidcConfig;
-
   return (
     <BrowserRouter basename={appConfig.pathPrefix || undefined}>
-      <ErrorBoundary>
-        <AuthWrapper {...authProps}>
-          {!window.__MOCK_AUTH__ && <AuthMonitor />}
-          <ColorModeProvider>
-            <ChakraProvider value={system}>
+      <AuthWrapper resolution={resolution}>
+        <ColorModeProvider>
+          <ChakraProvider value={system}>
+            <ErrorBoundary>
               <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
                 <PyodideProvider>
                   <App />
                 </PyodideProvider>
               </StacApiProvider>
-              <Toaster />
-            </ChakraProvider>
-          </ColorModeProvider>
-        </AuthWrapper>
-      </ErrorBoundary>
+            </ErrorBoundary>
+            <Toaster />
+          </ChakraProvider>
+        </ColorModeProvider>
+      </AuthWrapper>
     </BrowserRouter>
   );
 }
 
-const rootNode = document.querySelector('#app-container')!;
-const root = createRoot(rootNode);
-root.render(<Root />);
+/**
+ * Gets the OIDC configuration from the openEO backend
+ * (`GET /credentials/oidc`). The AUTH_* runtime values win when they are set.
+ */
+async function resolveAuth(): Promise<OidcResolution> {
+  // Playwright tests use a mock auth provider and do not need a backend.
+  if (window.__MOCK_AUTH__) return { status: 'disabled' };
+
+  const providers = await fetchOidcProviders(appConfig.openeoApiUrl);
+  const resolution = resolveOidcSettings(
+    providers,
+    {
+      authority: appConfig.authAuthority,
+      clientId: appConfig.authClientId,
+      redirectUri: appConfig.authRedirectUri
+    },
+    { origin: window.location.origin, pathPrefix: appConfig.pathPrefix }
+  );
+
+  if (resolution.status === 'error') {
+    // Fetch again on the next page load: the backend config can be fixed.
+    clearOidcProvidersCache(appConfig.openeoApiUrl);
+  } else if (providers.status === 'error') {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[AUTH] Cannot get /credentials/oidc. Using AUTH_* values only.',
+      providers.message
+    );
+  }
+
+  // eslint-disable-next-line no-console
+  console.log('[AUTH] OIDC configuration', resolution);
+  return resolution;
+}
+
+async function bootstrap() {
+  const rootNode = document.querySelector('#app-container')!;
+  const root = createRoot(rootNode);
+
+  const resolution = await resolveAuth();
+  setOidcResolution(resolution);
+
+  if (resolution.status === 'error') {
+    root.render(
+      <ColorModeProvider>
+        <ChakraProvider value={system}>
+          <AuthConfigError {...resolution} apiUrl={appConfig.openeoApiUrl} />
+        </ChakraProvider>
+      </ColorModeProvider>
+    );
+    return;
+  }
+
+  root.render(<Root resolution={resolution} />);
+}
+
+bootstrap();

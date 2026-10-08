@@ -6,6 +6,7 @@ import { useAuth } from 'react-oidc-context';
 import { useServiceCleanup } from '$components/services/use-service-cleanup';
 import { AppHeader } from '$components/layout/app-header';
 import { AuthLoading } from '$components/auth/auth-loading';
+import { useAuthErrorToast } from '$components/auth/use-auth-error-toast';
 import { RequireAuth } from '$components/auth/require-auth';
 import { MobileWarn } from '$components/common/mobile-warn';
 
@@ -28,6 +29,9 @@ export default function App() {
 
   // Clean up orphaned ephemeral services from previous sessions on startup
   useServiceCleanup();
+
+  // Tell the user when the login fails (for example, a token request error).
+  useAuthErrorToast();
 
   useEffect(() => {
     // eslint-disable-next-line no-console
@@ -65,7 +69,7 @@ export default function App() {
           navigate('/', { replace: true });
         }
       } else {
-        // Auth failed: return home
+        // Auth failed: return home. useAuthErrorToast shows the error.
         hasNavigated.current = true;
         navigate('/', { replace: true });
       }

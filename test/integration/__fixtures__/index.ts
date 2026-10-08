@@ -20,6 +20,29 @@ export const test = base.extend<{
         pyimport: () => ({})
       });
     });
+    // Mock the backend OIDC configuration so that the tests do not depend on
+    // a live openEO backend. The client accepts the Playwright app URL.
+    await page.route('**/credentials/oidc', (route) =>
+      route.fulfill({
+        json: {
+          providers: [
+            {
+              id: 'oidc',
+              issuer: 'http://localhost:9000/mock-oidc',
+              title: 'Mock OIDC',
+              scopes: ['openid', 'profile', 'email'],
+              default_clients: [
+                {
+                  id: 'test-client-id',
+                  grant_types: ['authorization_code+pkce'],
+                  redirect_urls: ['http://localhost:9000/']
+                }
+              ]
+            }
+          ]
+        }
+      })
+    );
     // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(page);
   },

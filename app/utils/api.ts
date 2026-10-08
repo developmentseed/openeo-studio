@@ -2,6 +2,8 @@
  * Shared fetch-as-JSON helper for openEO API calls.
  */
 
+import { getOidcProviderId } from '$config/oidc';
+
 export class APIError extends Error {
   detail: any = null;
   code: number;
@@ -16,7 +18,10 @@ export class APIError extends Error {
   }
 }
 
-const AUTH_PREFIX = 'Bearer oidc/oidc/';
+// openEO bearer token: `oidc/<provider id>/<access token>`.
+function authHeader(token: string): string {
+  return `Bearer oidc/${getOidcProviderId()}/${token}`;
+}
 
 /**
  * Performs an authenticated fetch and throws an APIError on a non-2xx
@@ -30,7 +35,7 @@ async function request(
   const response = await fetch(url, {
     ...options,
     headers: {
-      ...(token ? { Authorization: `${AUTH_PREFIX}${token}` } : {}),
+      ...(token ? { Authorization: authHeader(token) } : {}),
       ...options.headers
     }
   });
