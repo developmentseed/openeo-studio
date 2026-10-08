@@ -3,6 +3,7 @@ import { Box, Button, Flex, IconButton, Text } from '@chakra-ui/react';
 import { LuGripVertical, LuX } from 'react-icons/lu';
 
 import type { BandVariable } from '$types';
+import { findBandByReference } from '$utils/stac-band-parser';
 
 interface BandArrayBuilderProps {
   /** All available bands from STAC */
@@ -28,10 +29,11 @@ export function BandArrayBuilder({
   useEffect(() => {
     // Only validate selections if we have bands loaded
     if (availableBands.length > 0 && selectedBands.length > 0) {
-      // Filter out any selected bands that are no longer available
-      const availableBandNames = new Set(availableBands.map((b) => b.name));
-      const validSelections = selectedBands.filter((name) =>
-        availableBandNames.has(name)
+      // Filter out any selected bands that are no longer available. A
+      // selected band can be any reference the backend accepts (name, raw
+      // name or common name), so it is kept as written.
+      const validSelections = selectedBands.filter((reference) =>
+        findBandByReference(reference, availableBands)
       );
       if (validSelections.length !== selectedBands.length) {
         onSelectionChange(validSelections);
@@ -39,9 +41,23 @@ export function BandArrayBuilder({
     }
   }, [availableBands, selectedBands]);
 
-  const selectedBandSet = new Set(selectedBands);
+  // Get full band info for selected bands, keeping their original index
+  const selectedBandDetails = selectedBands
+    .map((reference, index) => ({
+      reference,
+      index,
+      band: findBandByReference(reference, availableBands)
+    }))
+    .filter(
+      (
+        entry
+      ): entry is { reference: string; index: number; band: BandVariable } =>
+        entry.band !== undefined
+    );
+
+  const selectedBandSet = new Set(selectedBandDetails.map((e) => e.band));
   const availableToAdd = availableBands.filter(
-    (band) => !selectedBandSet.has(band.name)
+    (band) => !selectedBandSet.has(band)
   );
 
   const addBand = (bandName: string) => {
@@ -72,11 +88,6 @@ export function BandArrayBuilder({
   const handleDragEnd = () => {
     setDraggedIndex(null);
   };
-
-  // Get full band info for selected bands
-  const selectedBandDetails = selectedBands
-    .map((name) => availableBands.find((b) => b.name === name))
-    .filter((b): b is BandVariable => b !== undefined);
 
   return (
     <Box>
@@ -123,10 +134,11 @@ export function BandArrayBuilder({
           <Flex direction='column' gap={2} flex={1} minHeight={0}>
             <Text fontSize='sm'>Selected</Text>
             <Flex direction='column' gap={1} flex={1} overflowY='auto'>
-              {selectedBandDetails.map((band, index) => (
+              {selectedBandDetails.map(({ reference, index, band }) => (
                 <SelectedBandChip
-                  key={`${band.name}`}
+                  key={reference}
                   index={index}
+                  reference={reference}
                   band={band}
                   onRemove={() => removeBand(index)}
                   onDragStart={() => handleDragStart(index)}
@@ -149,6 +161,8 @@ export function BandArrayBuilder({
 }
 
 interface SelectedBandChipProps {
+  /** Band reference as stored in the scene (name, raw name or common name) */
+  reference: string;
   band: BandVariable;
   index: number;
   onRemove: () => void;
@@ -159,6 +173,7 @@ interface SelectedBandChipProps {
 }
 
 function SelectedBandChip({
+  reference,
   band,
   index,
   onRemove,
@@ -193,7 +208,12 @@ function SelectedBandChip({
       >
         <LuGripVertical size={16} />
         <Box textAlign='left' flex={1} color='fg'>
-          {band.name}
+          {reference}
+          {reference !== band.name && (
+            <Text as='span' fontSize='xs' color='gray.500' ml={1}>
+              ({band.name})
+            </Text>
+          )}
         </Box>
         <IconButton
           size='2xs'

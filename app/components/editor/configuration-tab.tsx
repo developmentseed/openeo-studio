@@ -4,7 +4,7 @@ import { useCollection } from '@developmentseed/stac-react';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
-import { CollectionDisplay } from '$components/editor/setup/collection-display';
+import { CollectionSelector } from '$components/editor/setup/collection-selector';
 import { TemporalRangePicker } from '$components/editor/setup/temporal-range-picker';
 import { CloudCoverSlider } from '$components/editor/setup/cloud-cover-slider';
 import { BandArrayBuilder } from '$components/editor/setup/band-array-builder';
@@ -16,8 +16,13 @@ export function ConfigurationTab() {
   const selectedConfig = useEditorStore(
     useShallow((state) => state.selectedConfig)
   );
-  const { setSceneName, setTemporalRange, setCloudCover, setSelectedBands } =
-    useEditorStore();
+  const {
+    setSceneName,
+    setCollectionId,
+    setTemporalRange,
+    setCloudCover,
+    setSelectedBands
+  } = useEditorStore();
 
   const { collection: collectionRaw } = useCollection(
     selectedConfig.collectionId
@@ -43,7 +48,11 @@ export function ConfigurationTab() {
         <Field.ErrorText>Title is required</Field.ErrorText>
       </Field.Root>
 
-      <CollectionDisplay collectionId={selectedConfig.collectionId} />
+      <CollectionSelector
+        collectionId={selectedConfig.collectionId}
+        selectedBands={selectedConfig.selectedBands || []}
+        onChange={setCollectionId}
+      />
 
       {selectedConfig.boundingBox && (
         <VStack align='stretch' gap={2}>
