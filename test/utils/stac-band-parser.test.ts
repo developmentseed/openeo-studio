@@ -223,8 +223,14 @@ describe('collectionBandIdentifiers', () => {
     const ids = collectionBandIdentifiers(pcS2);
     expect(ids.has('B04')).toBe(true);
     expect(ids.has('red')).toBe(true);
-    expect(ids.has('SCL')).toBe(true);
     expect(ids.has('reflectance|bands=b04')).toBe(false);
+  });
+
+  it('uses the same bands as extractBandsFromStac (summaries first)', () => {
+    // SCL is only in cube:dimensions, which the editor ignores when
+    // summaries.bands exists.
+    expect(collectionBandIdentifiers(pcS2).has('SCL')).toBe(false);
+    expect(isCollectionCompatible(pcS2, ['SCL'])).toBe(false);
   });
 
   it('uses cube:dimensions names when there is no band metadata', () => {

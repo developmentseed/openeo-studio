@@ -171,21 +171,14 @@ export function findBandByReference(
 }
 
 /**
- * The set of band references that a collection accepts. It uses the bands
- * from summaries.bands and from the bands cube:dimension, because a backend
- * can advertise loadable bands in either place.
+ * The set of band references that a collection accepts. It uses the same
+ * bands as the editor (extractBandsFromStac), so that a compatible
+ * collection never makes the band builder drop a selected band.
  */
 export function collectionBandIdentifiers(
   stacCollection: StacCollection | null | undefined
 ): Set<string> {
-  if (!stacCollection) {
-    return new Set();
-  }
-  const bands = [
-    ...extractBandsFromSummaries(stacCollection),
-    ...extractBandsFromCubeDimensions(stacCollection)
-  ];
-  return new Set(bands.flatMap(bandIdentifiers));
+  return new Set(extractBandsFromStac(stacCollection).flatMap(bandIdentifiers));
 }
 
 /**
