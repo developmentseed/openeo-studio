@@ -8,6 +8,7 @@ Write your algorithm in Python, point it at your data, and see the output on a m
 - [Installation and Usage](#installation-and-usage)
 - [Usage](#usage)
 - [Deployment](#deployment)
+- [Releases](#releases)
 - [Made possible by](#made-possible-by)
 
 ## Where this fits in the openEO ecosystem
@@ -112,6 +113,21 @@ helm install my-studio charts/openeo-studio \
 ```
 
 See [`charts/openeo-studio/README.md`](charts/openeo-studio/README.md) for the full list of values.
+
+## Releases
+
+Releases are made with [release-please](https://github.com/googleapis/release-please). It reads the commit messages on `main`, so use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, ...) for commits and PR titles.
+
+release-please keeps two release PRs open, one for each component:
+
+| Component | Path | Tag | Published artifact |
+| --- | --- | --- | --- |
+| App | `.` (all files except `charts/`) | `vX.Y.Z` | Docker image `ghcr.io/developmentseed/openeo-studio:X.Y.Z` |
+| Helm chart | `charts/openeo-studio` | `openeo-studio-chart-vX.Y.Z` | OCI chart `oci://ghcr.io/developmentseed/charts/openeo-studio` |
+
+To make a release, merge the release PR. The [Release Please workflow](.github/workflows/release-please.yml) then creates the tag and the GitHub release, and publishes the artifact. An app release also sets `appVersion` in `charts/openeo-studio/Chart.yaml`.
+
+To publish the Docker image for an existing tag again, run the [Docker workflow](.github/workflows/docker.yml) manually with that tag.
 
 ## Made possible by
 openEO Studio began as a Development Seed Labs project, exploring what a lightweight interactive openEO client could look like. Continued development has been made possible by support from [EOPF](https://explorer.eopf.copernicus.eu/), [EOEPCA+](https://eoepca.org/eoepcaplus) and [APEx](https://apex.esa.int/).
