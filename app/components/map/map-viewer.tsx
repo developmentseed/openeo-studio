@@ -88,7 +88,7 @@ export function MapViewer({
   useMapTileStatus({
     mapRef,
     isMapReady,
-    serviceCount: services.length,
+    serviceKey: services.map((service) => service.id).join(','),
     onStatusChange: onTileStatusChange
   });
 
