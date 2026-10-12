@@ -1,9 +1,20 @@
 import { useMemo } from 'react';
-import { Field, NativeSelect } from '@chakra-ui/react';
+import {
+  Badge,
+  createListCollection,
+  Flex,
+  Portal,
+  Select
+} from '@chakra-ui/react';
 import { useCollection, useCollections } from '@developmentseed/stac-react';
+import { LuTriangleAlert } from 'react-icons/lu';
 import { StacCollection } from 'stac-ts';
 
-import { isCollectionCompatible } from '$utils/stac-band-parser';
+import {
+  collectionBandIdentifiers,
+  isCollectionCompatible
+} from '$utils/stac-band-parser';
+import { Tip } from '$components/tooltip';
 
 interface CollectionSelectorProps {
   collectionId: string;
@@ -11,10 +22,17 @@ interface CollectionSelectorProps {
   onChange: (collectionId: string) => void;
 }
 
+interface CollectionOption {
+  id: string;
+  label: string;
+  compatible: boolean;
+  hasBands: boolean;
+}
+
 /**
- * Collection dropdown. It only lists the collections that can resolve all
- * the selected band references, so that changing the collection does not
- * make the run fail.
+ * Collection dropdown. It lists all the collections and flags the ones that
+ * cannot resolve all the selected band references, because changing to one
+ * of them drops the bands it does not provide.
  */
 export function CollectionSelector({
   collectionId,
@@ -31,41 +49,86 @@ export function CollectionSelector({
   );
 
   const options = useMemo(() => {
-    const compatible = allCollections.filter(
-      (collection) =>
-        collection.id === collectionId ||
-        isCollectionCompatible(collection, selectedBands)
-    );
+    const list = [...allCollections];
     // Always keep the current collection, even when the list is not loaded.
-    if (!compatible.some((collection) => collection.id === collectionId)) {
-      compatible.unshift(current ?? ({ id: collectionId } as StacCollection));
+    if (!list.some((collection) => collection.id === collectionId)) {
+      list.unshift(current ?? ({ id: collectionId } as StacCollection));
     }
-    return compatible;
+    return createListCollection<CollectionOption>({
+      items: list.map((collection) => ({
+        id: collection.id,
+        label: collection.title || collection.id,
+        hasBands: collectionBandIdentifiers(collection).size > 0,
+        compatible:
+          !selectedBands.length ||
+          collection.id === collectionId ||
+          isCollectionCompatible(collection, selectedBands)
+      })),
+      itemToValue: (item) => item.id,
+      itemToString: (item) => item.label
+    });
   }, [allCollections, collectionId, current, selectedBands]);
 
   return (
-    <Field.Root>
-      <Field.Label htmlFor='collection'>Collection</Field.Label>
-      <NativeSelect.Root size='sm' disabled={isLoading}>
-        <NativeSelect.Field
-          id='collection'
-          value={collectionId}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {options.map((collection) => (
-            <option key={collection.id} value={collection.id}>
-              {collection.title || collection.id}
-            </option>
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-      </NativeSelect.Root>
-      {allCollections.length > 0 && (
-        <Field.HelperText>
-          Showing {options.length} of {allCollections.length} collections that
-          provide the selected bands.
-        </Field.HelperText>
-      )}
-    </Field.Root>
+    <Select.Root
+      collection={options}
+      size='sm'
+      disabled={isLoading}
+      value={[collectionId]}
+      onValueChange={(details) => {
+        const [value] = details.value;
+        if (value) onChange(value);
+      }}
+    >
+      <Select.HiddenSelect />
+      <Select.Label>Collection</Select.Label>
+      <Select.Control>
+        <Select.Trigger>
+          <Select.ValueText placeholder='Select a collection' />
+        </Select.Trigger>
+        <Select.IndicatorGroup>
+          <Select.Indicator />
+        </Select.IndicatorGroup>
+      </Select.Control>
+      <Portal>
+        <Select.Positioner>
+          <Select.Content>
+            {options.items.map((item) => (
+              <Select.Item key={item.id} item={item}>
+                <Flex align='center' gap={2} flex={1} minW={0}>
+                  <Select.ItemText truncate>{item.label}</Select.ItemText>
+                  {!item.hasBands ? (
+                    <Tip content='This collection does not provide any suitable bands.'>
+                      <Badge
+                        size='xs'
+                        colorPalette='error'
+                        flexShrink={0}
+                        ml='auto'
+                      >
+                        <LuTriangleAlert />
+                        No bands
+                      </Badge>
+                    </Tip>
+                  ) : !item.compatible ? (
+                    <Tip content='This collection does not provide all the bands you have selected.'>
+                      <Badge
+                        size='xs'
+                        colorPalette='warning'
+                        flexShrink={0}
+                        ml='auto'
+                      >
+                        <LuTriangleAlert />
+                        Incompatible bands
+                      </Badge>
+                    </Tip>
+                  ) : null}
+                </Flex>
+                <Select.ItemIndicator />
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Positioner>
+      </Portal>
+    </Select.Root>
   );
 }

@@ -78,13 +78,11 @@ export function ConfigurationTab() {
         onCloudCoverChange={setCloudCover}
       />
 
-      {availableBands.length > 0 && (
-        <BandArrayBuilder
-          availableBands={availableBands}
-          selectedBands={selectedConfig.selectedBands || []}
-          onSelectionChange={setSelectedBands}
-        />
-      )}
+      <BandArrayBuilder
+        availableBands={availableBands}
+        selectedBands={selectedConfig.selectedBands || []}
+        onSelectionChange={setSelectedBands}
+      />
     </VStack>
   );
 }

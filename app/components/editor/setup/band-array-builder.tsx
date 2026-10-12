@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, IconButton, Text } from '@chakra-ui/react';
-import { LuGripVertical, LuX } from 'react-icons/lu';
+import {
+  Box,
+  Button,
+  Flex,
+  IconButton,
+  SimpleGrid,
+  Text
+} from '@chakra-ui/react';
+import { LuGripVertical, LuPlus, LuX } from 'react-icons/lu';
 
 import type { BandVariable } from '$types';
 import { findBandByReference } from '$utils/stac-band-parser';
@@ -90,73 +97,109 @@ export function BandArrayBuilder({
   };
 
   return (
-    <Box>
-      <Text fontSize='sm' fontWeight='medium'>
-        Bands
-      </Text>
-      <Flex gap={4} flex={1} minHeight={0}>
-        {/* Available bands column */}
-        <Flex direction='column' gap={2} flex={1} minHeight={0}>
-          <Text fontSize='sm'>Available</Text>
-          {availableBands.length === 0 && (
-            <Text fontSize='xs' color='gray.500' fontStyle='italic'>
-              ⚠️ The parser could not find suitable bands in this collection.
-            </Text>
-          )}
-
-          <Flex direction='column' gap={1} flex={1} overflowY='auto'>
-            {availableToAdd.map((band) => (
-              <Button
-                key={band.name}
-                size='xs'
-                variant='outline'
-                onClick={() => addBand(band.name)}
-                justifyContent='flex-start'
-              >
-                {`${band.name} - ${band.label}`}
-                {band.resolution && (
-                  <Text as='span' fontSize='xs' color='gray.500' ml={1}>
-                    ({band.resolution})
-                  </Text>
-                )}
-              </Button>
-            ))}
-            {availableToAdd.length === 0 && availableBands.length > 0 && (
-              <Text fontSize='xs' color='gray.500' fontStyle='italic'>
-                All bands selected
-              </Text>
-            )}
-          </Flex>
-        </Flex>
-
-        {/* Selected bands column */}
-        {availableBands.length > 0 && (
-          <Flex direction='column' gap={2} flex={1} minHeight={0}>
-            <Text fontSize='sm'>Selected</Text>
-            <Flex direction='column' gap={1} flex={1} overflowY='auto'>
-              {selectedBandDetails.map(({ reference, index, band }) => (
-                <SelectedBandChip
-                  key={reference}
-                  index={index}
-                  reference={reference}
-                  band={band}
-                  onRemove={() => removeBand(index)}
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragEnd={handleDragEnd}
-                  isDragging={draggedIndex === index}
-                />
-              ))}
-              {selectedBands.length === 0 && (
-                <Text fontSize='xs' color='gray.500' fontStyle='italic'>
-                  Click bands to add
-                </Text>
-              )}
-            </Flex>
-          </Flex>
+    <SimpleGrid columns={availableBands.length ? 2 : 1} gap={4}>
+      {/* Available bands column */}
+      <Flex direction='column' gap={2} minW={0}>
+        <Text fontSize='sm' fontWeight='medium'>
+          Bands available
+        </Text>
+        {availableBands.length === 0 && (
+          <EmptyBandSlot isError>
+            There are no suitable bands in this collection.
+          </EmptyBandSlot>
+        )}
+        {availableToAdd.map((band) => (
+          <Button
+            key={band.name}
+            variant='outline'
+            onClick={() => addBand(band.name)}
+            title={band.resolution && `Resolution: ${band.resolution}`}
+            fontWeight='normal'
+            justifyContent='space-between'
+            px={3}
+          >
+            <BandText name={band.name} label={band.label} />
+            <LuPlus />
+          </Button>
+        ))}
+        {availableToAdd.length === 0 && availableBands.length > 0 && (
+          <EmptyBandSlot>All bands selected</EmptyBandSlot>
         )}
       </Flex>
-    </Box>
+
+      {/* Selected bands column */}
+      {availableBands.length > 0 && (
+        <Flex direction='column' gap={2} minW={0}>
+          <Text fontSize='sm' fontWeight='medium'>
+            Bands selected
+          </Text>
+          {selectedBandDetails.map(({ reference, index, band }) => (
+            <SelectedBandChip
+              key={reference}
+              index={index}
+              reference={reference}
+              band={band}
+              onRemove={() => removeBand(index)}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              isDragging={draggedIndex === index}
+            />
+          ))}
+          {selectedBands.length === 0 && (
+            <EmptyBandSlot>No bands selected</EmptyBandSlot>
+          )}
+        </Flex>
+      )}
+    </SimpleGrid>
+  );
+}
+
+/** Placeholder with the size of a band row, for empty lists. */
+function EmptyBandSlot({
+  children,
+  isError
+}: {
+  children: string;
+  isError?: boolean;
+}) {
+  return (
+    <Flex
+      px={3}
+      py={1}
+      minH={10}
+      align='center'
+      borderWidth='1px'
+      borderStyle='dashed'
+      borderColor={isError ? 'red.500' : 'border'}
+      backgroundColor={isError ? 'red.50' : 'bg'}
+      overflow='hidden'
+      borderRadius='uni'
+    >
+      <Text
+        fontSize='sm'
+        color={isError ? 'red.700' : 'fg.muted'}
+        title={children}
+      >
+        {children}
+      </Text>
+    </Flex>
+  );
+}
+
+/** Band name followed by its muted label. */
+function BandText({ name, label }: { name: string; label: string }) {
+  return (
+    <Flex align='baseline' gap={2} minW={0} flex={1}>
+      <Text fontSize='sm' flexShrink={0}>
+        {name}
+      </Text>
+      {label !== name && (
+        <Text fontSize='sm' color='fg.muted' truncate>
+          {label}
+        </Text>
+      )}
+    </Flex>
   );
 }
 
@@ -183,47 +226,60 @@ function SelectedBandChip({
   isDragging
 }: SelectedBandChipProps) {
   return (
-    <Flex alignItems='center' opacity={isDragging ? 0.5 : 1}>
-      <Box minW='8' flexShrink={0}>
-        <Text fontSize='xs' color='gray.700'>
-          [{index}]:
-        </Text>
-      </Box>
-      <Button
-        as='div'
-        size='xs'
-        variant='outline'
+    <Flex alignItems='center' gap={3} opacity={isDragging ? 0.5 : 1}>
+      <Text
+        fontSize='sm'
+        color='fg.muted'
+        minW='3'
+        textAlign='right'
+        fontVariantNumeric='tabular-nums'
+      >
+        {index}
+      </Text>
+      <Flex
         draggable
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
-        transition='all 0.2s'
+        flex={1}
+        minW={0}
+        h={10}
+        align='center'
+        borderWidth='1px'
+        borderColor='border'
+        borderRadius='uni'
+        overflow='hidden'
         cursor='grab'
         _active={{ cursor: 'grabbing' }}
-        flex={1}
-        gap={2}
-        alignItems='center'
-        justifyContent='space-between'
-        color='gray.500'
       >
-        <LuGripVertical size={16} />
-        <Box textAlign='left' flex={1} color='fg'>
-          {reference}
-          {reference !== band.name && (
-            <Text as='span' fontSize='xs' color='gray.500' ml={1}>
-              ({band.name})
-            </Text>
-          )}
+        <Flex
+          align='center'
+          justify='center'
+          alignSelf='stretch'
+          px={1}
+          bg='bg.muted'
+          color='fg.subtle'
+          flexShrink={0}
+        >
+          <LuGripVertical size={16} />
+        </Flex>
+        <Box flex={1} minW={0} px={3}>
+          <BandText name={reference} label={band.label} />
         </Box>
         <IconButton
-          size='2xs'
+          size='sm'
           variant='ghost'
           onClick={onRemove}
-          aria-label='Remove band'
+          aria-label={`Remove band ${reference}`}
+          mr={1}
+          p={1}
+          minW={7}
+          w='auto'
+          h={7}
         >
           <LuX />
         </IconButton>
-      </Button>
+      </Flex>
     </Flex>
   );
 }
