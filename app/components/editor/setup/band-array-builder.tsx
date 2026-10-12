@@ -1,12 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
   Flex,
   IconButton,
+  Portal,
   SimpleGrid,
   Text
 } from '@chakra-ui/react';
+import {
+  defaultDropAnimationSideEffects,
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DropAnimation,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { LuGripVertical, LuPlus, LuX } from 'react-icons/lu';
 
 import type { BandVariable } from '$types';
@@ -30,7 +51,14 @@ export function BandArrayBuilder({
   selectedBands,
   onSelectionChange
 }: BandArrayBuilderProps) {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [activeReference, setActiveReference] = useState<string | null>(null);
+  const sensors = useSensors(
+    // A small distance keeps clicks on the remove button from starting a drag.
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
 
   // Clear invalid selections when available bands change
   useEffect(() => {
@@ -77,23 +105,16 @@ export function BandArrayBuilder({
     onSelectionChange(newSelection);
   };
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
+  const activeEntry = selectedBandDetails.find(
+    (entry) => entry.reference === activeReference
+  );
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-
-    const newSelection = [...selectedBands];
-    const [removed] = newSelection.splice(draggedIndex, 1);
-    newSelection.splice(index, 0, removed);
-    onSelectionChange(newSelection);
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveReference(null);
+    if (!over || active.id === over.id) return;
+    const from = selectedBands.indexOf(String(active.id));
+    const to = selectedBands.indexOf(String(over.id));
+    onSelectionChange(arrayMove(selectedBands, from, to));
   };
 
   return (
@@ -133,19 +154,48 @@ export function BandArrayBuilder({
           <Text fontSize='sm' fontWeight='medium'>
             Bands selected
           </Text>
-          {selectedBandDetails.map(({ reference, index, band }) => (
-            <SelectedBandChip
-              key={reference}
-              index={index}
-              reference={reference}
-              band={band}
-              onRemove={() => removeBand(index)}
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragEnd={handleDragEnd}
-              isDragging={draggedIndex === index}
-            />
-          ))}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={({ active }) => setActiveReference(String(active.id))}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveReference(null)}
+          >
+            <SortableContext
+              items={selectedBandDetails.map((entry) => entry.reference)}
+              strategy={verticalListSortingStrategy}
+            >
+              {selectedBandDetails.map(({ reference, index, band }) => (
+                <Flex key={reference} alignItems='center' gap={3}>
+                  <Text
+                    fontSize='sm'
+                    color='fg.muted'
+                    minW='3'
+                    textAlign='right'
+                    fontVariantNumeric='tabular-nums'
+                  >
+                    {index}
+                  </Text>
+                  <SortableBandChip
+                    reference={reference}
+                    band={band}
+                    onRemove={() => removeBand(index)}
+                  />
+                </Flex>
+              ))}
+            </SortableContext>
+            <Portal>
+              <DragOverlay dropAnimation={dropAnimation}>
+                {activeEntry && (
+                  <BandChip
+                    reference={activeEntry.reference}
+                    band={activeEntry.band}
+                    isOverlay
+                  />
+                )}
+              </DragOverlay>
+            </Portal>
+          </DndContext>
           {selectedBands.length === 0 && (
             <EmptyBandSlot>No bands selected</EmptyBandSlot>
           )}
@@ -203,83 +253,146 @@ function BandText({ name, label }: { name: string; label: string }) {
   );
 }
 
-interface SelectedBandChipProps {
+/** Tilt of the band that is being dragged. */
+const DRAG_TILT = '2deg';
+
+/**
+ * Lands the dragged band in its slot and levels it out on the way. The slot
+ * stays hidden until the band lands.
+ */
+const dropAnimation: DropAnimation = {
+  sideEffects: (params) => {
+    const cleanup = defaultDropAnimationSideEffects({
+      styles: { active: { opacity: '0' } }
+    })(params);
+    params.dragOverlay.node.firstElementChild?.animate(
+      [{ rotate: DRAG_TILT }, { rotate: '0deg' }],
+      { duration: 250, easing: 'ease', fill: 'forwards' }
+    );
+    return cleanup;
+  }
+};
+
+interface SortableBandChipProps {
   /** Band reference as stored in the scene (name, raw name or common name) */
   reference: string;
   band: BandVariable;
-  index: number;
   onRemove: () => void;
-  onDragStart: () => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDragEnd: () => void;
-  isDragging: boolean;
 }
 
-function SelectedBandChip({
+/**
+ * Selected band that can be reordered. While it is dragged, it leaves a
+ * dashed slot where it will drop.
+ */
+function SortableBandChip({
   reference,
   band,
-  index,
-  onRemove,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  isDragging
-}: SelectedBandChipProps) {
+  onRemove
+}: SortableBandChipProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: reference });
+
   return (
-    <Flex alignItems='center' gap={3} opacity={isDragging ? 0.5 : 1}>
-      <Text
-        fontSize='sm'
-        color='fg.muted'
-        minW='3'
-        textAlign='right'
-        fontVariantNumeric='tabular-nums'
-      >
-        {index}
-      </Text>
+    <Box
+      ref={setNodeRef}
+      flex={1}
+      minW={0}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      {...listeners}
+    >
+      {isDragging ? (
+        <Box
+          h={10}
+          borderWidth='1px'
+          borderStyle='dashed'
+          borderColor='border.emphasized'
+          borderRadius='uni'
+          bg='bg.subtle'
+        />
+      ) : (
+        <BandChip
+          reference={reference}
+          band={band}
+          onRemove={onRemove}
+          handleRef={setActivatorNodeRef}
+          handleProps={attributes}
+        />
+      )}
+    </Box>
+  );
+}
+
+interface BandChipProps {
+  reference: string;
+  band: BandVariable;
+  onRemove?: () => void;
+  /** Ref and accessibility props for the drag handle */
+  handleRef?: (element: HTMLElement | null) => void;
+  handleProps?: React.HTMLAttributes<HTMLElement>;
+  /** Renders the chip that follows the pointer while dragging */
+  isOverlay?: boolean;
+}
+
+function BandChip({
+  reference,
+  band,
+  onRemove,
+  handleRef,
+  handleProps,
+  isOverlay
+}: BandChipProps) {
+  return (
+    <Flex
+      h={10}
+      align='center'
+      bg='bg'
+      borderWidth='1px'
+      borderColor='border'
+      borderRadius='uni'
+      overflow='hidden'
+      cursor={isOverlay ? 'grabbing' : 'grab'}
+      boxShadow={isOverlay ? 'lg' : undefined}
+      style={isOverlay ? { rotate: DRAG_TILT } : undefined}
+    >
       <Flex
-        draggable
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDragEnd={onDragEnd}
-        flex={1}
-        minW={0}
-        h={10}
+        ref={handleRef}
+        {...handleProps}
+        aria-label={`Reorder band ${reference}`}
         align='center'
-        borderWidth='1px'
-        borderColor='border'
-        borderRadius='uni'
-        overflow='hidden'
-        cursor='grab'
-        _active={{ cursor: 'grabbing' }}
+        justify='center'
+        alignSelf='stretch'
+        px={1}
+        bg='bg.muted'
+        color='fg.subtle'
+        flexShrink={0}
+        focusVisibleRing='inside'
       >
-        <Flex
-          align='center'
-          justify='center'
-          alignSelf='stretch'
-          px={1}
-          bg='bg.muted'
-          color='fg.subtle'
-          flexShrink={0}
-        >
-          <LuGripVertical size={16} />
-        </Flex>
-        <Box flex={1} minW={0} px={3}>
-          <BandText name={reference} label={band.label} />
-        </Box>
-        <IconButton
-          size='sm'
-          variant='ghost'
-          onClick={onRemove}
-          aria-label={`Remove band ${reference}`}
-          mr={1}
-          p={1}
-          minW={7}
-          w='auto'
-          h={7}
-        >
-          <LuX />
-        </IconButton>
+        <LuGripVertical size={16} />
       </Flex>
+      <Box flex={1} minW={0} px={3}>
+        <BandText name={reference} label={band.label} />
+      </Box>
+      <IconButton
+        size='sm'
+        variant='ghost'
+        onClick={onRemove}
+        aria-label={`Remove band ${reference}`}
+        tabIndex={isOverlay ? -1 : undefined}
+        mr={1}
+        p={1}
+        minW={7}
+        w='auto'
+        h={7}
+      >
+        <LuX />
+      </IconButton>
     </Flex>
   );
 }
