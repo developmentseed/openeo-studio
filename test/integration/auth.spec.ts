@@ -119,16 +119,12 @@ test.describe('Authenticated UI', () => {
     await configTab.click();
     await expect(configTab).toHaveAttribute('aria-selected', 'true');
 
-    // Change the temporal range
-    const startDateInput = authenticatedPage
-      .locator('input[type="date"]')
-      .first();
+    // Change the temporal range. The date picker uses the browser locale,
+    // which is en-US in the tests.
+    const startDateInput = authenticatedPage.getByLabel(/date start/i);
     await expect(startDateInput).toBeVisible({ timeout: 10000 });
-    await startDateInput.fill('2025-05-02');
-    // Manually dispatch change event to ensure React onChange fires
-    await startDateInput.evaluate((el: HTMLInputElement) => {
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
+    await startDateInput.fill('05/02/2025');
+    await startDateInput.press('Enter');
 
     await expect(
       saveButton,
