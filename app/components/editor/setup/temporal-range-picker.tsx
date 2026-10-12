@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Input, VStack, HStack, Text, Field } from '@chakra-ui/react';
+import {
+  DatePicker,
+  type DateValue,
+  Field,
+  parseDate,
+  Portal,
+  SimpleGrid
+} from '@chakra-ui/react';
+import { LuCalendar } from 'react-icons/lu';
 
 interface TemporalRangePickerProps {
   temporalRange: [string, string];
@@ -66,56 +74,122 @@ export function TemporalRangePicker({
   };
 
   return (
-    <VStack gap={3} align='stretch'>
-      <Text fontSize='sm' fontWeight='medium'>
-        Temporal Range
-      </Text>
-      <HStack gap={3}>
-        <VStack gap={1} align='stretch' flex={1}>
-          <Field.Root invalid={!isStartDateValid()}>
-            <Field.Label htmlFor='start-date' fontSize='xs'>
-              Start Date
-            </Field.Label>
-            <Input
-              id='start-date'
-              type='date'
-              value={localTemporalRange[0]}
-              onChange={(e) => handleStartDateChange(e.target.value)}
-              max={localTemporalRange[1]}
-            />
-            {!isStartDateValid() && (
-              <Field.ErrorText>Please select a start date</Field.ErrorText>
-            )}
-          </Field.Root>
-        </VStack>
-        <Text color='gray.400' pt={5}>
-          to
-        </Text>
-        <VStack gap={1} align='stretch' flex={1}>
-          <Field.Root invalid={!isEndDateValid() || isEndDateBeforeStart()}>
-            <Field.Label htmlFor='end-date' fontSize='xs'>
-              End Date
-            </Field.Label>
-            <Input
-              id='end-date'
-              type='date'
-              value={localTemporalRange[1]}
-              onChange={(e) => handleEndDateChange(e.target.value)}
-              min={localTemporalRange[0]}
-            />
-            {!isEndDateValid() && (
-              <Field.ErrorText>Please select an end date</Field.ErrorText>
-            )}
-            {isEndDateValid() &&
-              isStartDateValid() &&
-              isEndDateBeforeStart() && (
-                <Field.ErrorText>
-                  Start date must be before end date
-                </Field.ErrorText>
-              )}
-          </Field.Root>
-        </VStack>
-      </HStack>
-    </VStack>
+    <SimpleGrid columns={2} gap={4}>
+      <Field.Root required invalid={!isStartDateValid()}>
+        <DateField
+          label='Date start'
+          value={localTemporalRange[0]}
+          onChange={handleStartDateChange}
+          max={localTemporalRange[1]}
+          invalid={!isStartDateValid()}
+        />
+        {!isStartDateValid() && (
+          <Field.ErrorText>Please select a start date</Field.ErrorText>
+        )}
+      </Field.Root>
+      <Field.Root
+        required
+        invalid={!isEndDateValid() || isEndDateBeforeStart()}
+      >
+        <DateField
+          label='Date end'
+          value={localTemporalRange[1]}
+          onChange={handleEndDateChange}
+          min={localTemporalRange[0]}
+          invalid={!isEndDateValid() || isEndDateBeforeStart()}
+        />
+        {!isEndDateValid() && (
+          <Field.ErrorText>Please select an end date</Field.ErrorText>
+        )}
+        {isEndDateValid() && isStartDateValid() && isEndDateBeforeStart() && (
+          <Field.ErrorText>Start date must be before end date</Field.ErrorText>
+        )}
+      </Field.Root>
+    </SimpleGrid>
+  );
+}
+
+/**
+ * Parses a date string into a calendar date. Only the date part is used, so
+ * full ISO datetimes are accepted too.
+ */
+function toDateValue(value?: string): DateValue | undefined {
+  if (!value) return undefined;
+  try {
+    return parseDate(value.slice(0, 10));
+  } catch {
+    return undefined;
+  }
+}
+
+interface DateFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  invalid: boolean;
+  min?: string;
+  max?: string;
+}
+
+/**
+ * Single date picker with the calendar trigger at the start of the input.
+ * Values go in and out as YYYY-MM-DD strings.
+ */
+function DateField({
+  label,
+  value,
+  onChange,
+  invalid,
+  min,
+  max
+}: DateFieldProps) {
+  const dateValue = toDateValue(value);
+
+  return (
+    <DatePicker.Root
+      size='sm'
+      required
+      invalid={invalid}
+      openOnClick
+      locale={navigator.language}
+      value={dateValue ? [dateValue] : []}
+      onValueChange={(details) => onChange(details.value[0]?.toString() ?? '')}
+      min={toDateValue(min)}
+      max={toDateValue(max)}
+      gap={1.5}
+    >
+      <DatePicker.Label>
+        {label} <Field.RequiredIndicator />
+      </DatePicker.Label>
+      <DatePicker.Control>
+        <DatePicker.Input ps={9} />
+        <DatePicker.IndicatorGroup
+          insetStart='var(--datepicker-indicators-offset)'
+          insetEnd='auto'
+        >
+          <DatePicker.Trigger>
+            <LuCalendar />
+          </DatePicker.Trigger>
+        </DatePicker.IndicatorGroup>
+      </DatePicker.Control>
+      <Portal>
+        <DatePicker.Positioner>
+          <DatePicker.Content>
+            <DatePicker.View view='day'>
+              <DatePicker.Header />
+              <DatePicker.DayTable />
+            </DatePicker.View>
+            <DatePicker.View view='month'>
+              <DatePicker.Header />
+              <DatePicker.MonthTable />
+            </DatePicker.View>
+            <DatePicker.View view='year'>
+              <DatePicker.Header />
+              <DatePicker.YearTable />
+            </DatePicker.View>
+          </DatePicker.Content>
+        </DatePicker.Positioner>
+      </Portal>
+    </DatePicker.Root>
   );
 }
