@@ -1,4 +1,4 @@
-import { HStack, Text, Box, Field, Slider } from '@chakra-ui/react';
+import { HStack, InputGroup, NumberInput, Slider } from '@chakra-ui/react';
 
 interface CloudCoverSliderProps {
   cloudCover: number;
@@ -10,32 +10,45 @@ export function CloudCoverSlider({
   onCloudCoverChange
 }: CloudCoverSliderProps) {
   return (
-    <Field.Root>
-      <Field.Label htmlFor='cloud-cover'>Maximum Cloud Cover</Field.Label>
-      <HStack gap={4} width='full'>
-        <Box flex={1} maxWidth='300px'>
-          <Slider.Root
-            value={[cloudCover]}
-            onValueChange={(details) => onCloudCoverChange(details.value[0])}
-            min={0}
-            max={100}
-            step={5}
-          >
-            <Slider.Control>
-              <Slider.Track>
-                <Slider.Range />
-              </Slider.Track>
-              <Slider.Thumb index={0} />
-            </Slider.Control>
-          </Slider.Root>
-        </Box>
-        <Text fontSize='sm' fontWeight='medium' minWidth='45px'>
-          {cloudCover}%
-        </Text>
-      </HStack>
-      <Field.HelperText>
-        Filter scenes by cloud cover percentage
-      </Field.HelperText>
-    </Field.Root>
+    <HStack gap={6} width='full' align='center'>
+      <Slider.Root
+        flex={1}
+        value={[cloudCover]}
+        onValueChange={(details) => onCloudCoverChange(details.value[0])}
+        min={0}
+        max={100}
+        step={5}
+        variant='solid'
+      >
+        <Slider.Label>Cloud coverage</Slider.Label>
+        <Slider.Control>
+          <Slider.Track>
+            <Slider.Range />
+          </Slider.Track>
+          <Slider.Thumb index={0} />
+        </Slider.Control>
+      </Slider.Root>
+      <NumberInput.Root
+        id='cloud-cover'
+        size='sm'
+        width='7.5rem'
+        flexShrink={0}
+        min={0}
+        max={100}
+        clampValueOnBlur
+        value={String(cloudCover)}
+        onValueChange={(details) => {
+          if (!isNaN(details.valueAsNumber)) {
+            onCloudCoverChange(
+              Math.min(100, Math.max(0, details.valueAsNumber))
+            );
+          }
+        }}
+      >
+        <InputGroup endAddon='%'>
+          <NumberInput.Input aria-label='Cloud coverage percentage' />
+        </InputGroup>
+      </NumberInput.Root>
+    </HStack>
   );
 }

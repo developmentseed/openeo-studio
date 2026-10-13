@@ -71,7 +71,7 @@ test.describe('Persistence', () => {
         .getByRole('tab', { name: /configuration/i })
         .click();
       await expect(
-        authenticatedPage.getByText(/collection/i).first()
+        authenticatedPage.getByText('Collection', { exact: true })
       ).toBeVisible();
 
       // Switch back to Python tab
