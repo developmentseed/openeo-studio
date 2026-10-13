@@ -7,8 +7,7 @@
       "release-type": "node",
       "package-name": "openeo-studio",
       "include-component-in-tag": false,
-      "changelog-type": "github",
-      "exclude-paths": ["charts/**"],
+      "exclude-paths": ["charts"],
       "changelog-sections": [
         {
           "type": "feat",
@@ -81,7 +80,7 @@
       "package-name": "openeo-studio-chart",
       "component": "openeo-studio-chart",
       "include-component-in-tag": true,
-      "changelog-type": "github",
+      "release-as": "1.0.0",
       "changelog-sections": [
         {
           "type": "feat",
