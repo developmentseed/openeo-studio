@@ -3,7 +3,7 @@
  * openEO service/validation helpers live under `$utils/openeo/`.
  */
 
-import { PyodideAPI } from 'pyodide';
+import type { PyodideAPI } from 'pyodide';
 import loaderScript from '../algorithms/base/loader.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 

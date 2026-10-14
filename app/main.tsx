@@ -17,7 +17,6 @@ import {
   resolveOidcSettings,
   setOidcResolution
 } from '$config/oidc';
-import { PyodideProvider } from '$contexts/pyodide-context';
 import { AuthMonitor } from '$components/auth/auth-monitor';
 import { AuthConfigError } from '$components/auth/auth-config-error';
 import { DisabledAuthProvider } from '$components/auth/disabled-auth-provider';
@@ -118,9 +117,7 @@ function Root(props: { resolution: OidcResolution }) {
           <ChakraProvider value={system}>
             <ErrorBoundary>
               <StacApiProvider apiUrl={appConfig.openeoApiUrl}>
-                <PyodideProvider>
-                  <App />
-                </PyodideProvider>
+                <App />
               </StacApiProvider>
             </ErrorBoundary>
             <Toaster />
