@@ -1,0 +1,78 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
+    steps:
+      # A token from the DS release bot, not GITHUB_TOKEN, so that the
+      # workflows of the release PRs (required checks) run.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          app-id: ${{ secrets.DS_RELEASE_BOT_ID }}
+          private-key: ${{ secrets.DS_RELEASE_BOT_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v4
+        id: release
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # A release made with GITHUB_TOKEN does not trigger other workflows, so the
+  # Docker workflow is called here instead of on the `release` event.
+  publish-docker:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.paths_released && contains(fromJSON(needs.release-please.outputs.paths_released), '.') }}
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    uses: ./.github/workflows/docker.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+
+  publish-helm-chart-oci:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.paths_released && contains(fromJSON(needs.release-please.outputs.paths_released), 'charts/openeo-studio') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.16.2
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Package chart
+        run: helm package charts/openeo-studio -d dist/
+
+      - name: Push chart to OCI registry
+        run: |
+          for pkg in dist/openeo-studio-*.tgz; do
+            echo "Pushing $pkg ..."
+            helm push "$pkg" oci://ghcr.io/developmentseed/charts
+          done
