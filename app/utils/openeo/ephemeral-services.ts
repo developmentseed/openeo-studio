@@ -13,17 +13,46 @@ import {
   listOpenEOServices
 } from './services';
 
+/** Max DELETEs in flight, so a backlog never reaches the backend as a burst. */
+export const DELETE_CONCURRENCY = 4;
+
+/** DELETEs per cleanup run; a larger backlog drains over later runs. */
+export const MAX_DELETES_PER_RUN = 20;
+
 let activeServices: ServiceInfo[] = [];
 
 /**
- * Cleans up all active ephemeral services for this session.
+ * Deletes up to MAX_DELETES_PER_RUN services, DELETE_CONCURRENCY at a time.
+ * Stops at the first refusal: the backend would likely refuse the rest too,
+ * and the next run retries them. Never throws.
+ */
+async function deleteServices(
+  locations: string[],
+  authToken: string
+): Promise<void> {
+  const queue = locations.slice(0, MAX_DELETES_PER_RUN);
+  let next = 0;
+  let refused = false;
+
+  const worker = async () => {
+    while (!refused && next < queue.length) {
+      const outcome = await deleteOpenEOService(queue[next++], authToken);
+      if (outcome === 'refused') refused = true;
+    }
+  };
+
+  await Promise.allSettled(Array.from({ length: DELETE_CONCURRENCY }, worker));
+}
+
+/**
+ * Cleans up the active ephemeral services for this session. Any left behind
+ * keep their ephemeral title, so cleanupOrphanedServices finds them later.
  */
 export async function cleanupServices(authToken: string): Promise<void> {
-  const deletePromises = activeServices.map((service) =>
-    deleteOpenEOService(service.location, authToken)
+  await deleteServices(
+    activeServices.map((service) => service.location),
+    authToken
   );
-
-  await Promise.allSettled(deletePromises);
   activeServices = [];
 }
 
@@ -40,10 +69,10 @@ export async function cleanupOrphanedServices(
     const prefix = ephemeralTitleFor(instanceId);
     const orphans = services.filter((s) => s.title === prefix);
 
-    const deletePromises = orphans.map((s) =>
-      deleteOpenEOService(getServiceUrl(s.id), authToken)
+    await deleteServices(
+      orphans.map((s) => getServiceUrl(s.id)),
+      authToken
     );
-    await Promise.allSettled(deletePromises);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.warn('Error cleaning up orphaned services:', error);

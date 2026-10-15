@@ -5,7 +5,7 @@
 
 import { appConfig } from '$config/runtime';
 import type { BackendService, GraphResult, ServiceScope } from '$types';
-import { fetchJson, fetchHeaderLocation } from '../api';
+import { APIError, fetchJson, fetchHeaderLocation } from '../api';
 
 const OPENEO_API_URL = appConfig.openeoApiUrl;
 
@@ -67,18 +67,25 @@ export async function createOpenEOService(
   });
 }
 
+/** `gone`: the backend answered 404, so the service was already deleted. */
+export type DeleteOutcome = 'deleted' | 'gone' | 'refused';
+
 /**
- * Soft-fail delete for cleanup paths. Errors are logged and never thrown.
+ * Soft-fail delete for cleanup paths. Never throws: any error other than a
+ * 404 (401, 403, 5xx, network) is logged and reported as `refused`.
  */
 export async function deleteOpenEOService(
   serviceLocation: string,
   authToken: string
-): Promise<void> {
+): Promise<DeleteOutcome> {
   try {
     await fetchJson(serviceLocation, authToken, { method: 'DELETE' });
+    return 'deleted';
   } catch (error) {
+    if (error instanceof APIError && error.code === 404) return 'gone';
     // eslint-disable-next-line no-console
     console.warn(`Failed to delete service ${serviceLocation}:`, error);
+    return 'refused';
   }
 }
 
