@@ -97,7 +97,7 @@ describe('ephemeral service cleanup', () => {
 
   it.each<[number | Error, DeleteOutcome]>([
     [204, 'deleted'],
-    [404, 'gone'],
+    [404, 'deleted'],
     [403, 'refused'],
     [503, 'refused'],
     [new TypeError('Failed to fetch'), 'refused']

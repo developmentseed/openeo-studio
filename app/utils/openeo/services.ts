@@ -67,8 +67,7 @@ export async function createOpenEOService(
   });
 }
 
-/** `gone`: the backend answered 404, so the service was already deleted. */
-export type DeleteOutcome = 'deleted' | 'gone' | 'refused';
+export type DeleteOutcome = 'deleted' | 'refused';
 
 /**
  * Soft-fail delete for cleanup paths. Never throws: any error other than a
@@ -82,7 +81,7 @@ export async function deleteOpenEOService(
     await fetchJson(serviceLocation, authToken, { method: 'DELETE' });
     return 'deleted';
   } catch (error) {
-    if (error instanceof APIError && error.code === 404) return 'gone';
+    if (error instanceof APIError && error.code === 404) return 'deleted';
     // eslint-disable-next-line no-console
     console.warn(`Failed to delete service ${serviceLocation}:`, error);
     return 'refused';

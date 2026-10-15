@@ -23,25 +23,22 @@ let activeServices: ServiceInfo[] = [];
 
 /**
  * Deletes up to MAX_DELETES_PER_RUN services, DELETE_CONCURRENCY at a time.
- * Stops at the first refusal: the backend would likely refuse the rest too,
- * and the next run retries them. Never throws.
+ * Stops after a batch with a refusal: the backend would likely refuse the
+ * rest too, and the next run retries them. Never throws.
  */
 async function deleteServices(
   locations: string[],
   authToken: string
 ): Promise<void> {
   const queue = locations.slice(0, MAX_DELETES_PER_RUN);
-  let next = 0;
-  let refused = false;
-
-  const worker = async () => {
-    while (!refused && next < queue.length) {
-      const outcome = await deleteOpenEOService(queue[next++], authToken);
-      if (outcome === 'refused') refused = true;
-    }
-  };
-
-  await Promise.allSettled(Array.from({ length: DELETE_CONCURRENCY }, worker));
+  for (let i = 0; i < queue.length; i += DELETE_CONCURRENCY) {
+    const batch = queue.slice(i, i + DELETE_CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map((location) => deleteOpenEOService(location, authToken))
+    );
+    if (results.some((r) => r.status === 'rejected' || r.value === 'refused'))
+      return;
+  }
 }
 
 /**
