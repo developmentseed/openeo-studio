@@ -10,6 +10,8 @@ export interface AppConfig {
   appTitle: string;
   appDescription: string;
   maptilerKey: string;
+  /** Base map layers as a JSON array; see app/config/basemaps.ts. */
+  basemaps: string;
   authAuthority: string;
   authClientId: string;
   authRedirectUri: string;
@@ -55,6 +57,7 @@ export const appConfig: AppConfig = {
     import.meta.env.VITE_APP_DESCRIPTION
   ),
   maptilerKey: pick(runtime.maptilerKey, import.meta.env.VITE_MAPTILER_KEY),
+  basemaps: pick(runtime.basemaps, import.meta.env.VITE_BASEMAPS),
   authAuthority: pick(
     runtime.authAuthority,
     import.meta.env.VITE_AUTH_AUTHORITY
