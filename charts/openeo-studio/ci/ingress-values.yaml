@@ -18,3 +18,9 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+
+# Checked by the smoke test; the attribution needs escaping on the way.
+basemaps:
+  - label: CI
+    light: https://tiles.example.org/{z}/{x}/{y}.png
+    attribution: '&copy; <a href="https://example.org">CI</a> "quoted"'

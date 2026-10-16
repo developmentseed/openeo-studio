@@ -66,6 +66,40 @@ Note `VITE_OPENEO_API_URL` in particular: this is the one backend this deploymen
 - **GitHub Pages**: set the `VITE_BASE_URL` repository variable to the site's full deployed URL, e.g. `https://developmentseed.github.io/openeo-studio` for a project page, or your custom domain root if one is configured.
 - **Docker**: set the `BASE_URL` environment variable at `docker run` time (see below) — no rebuild needed to change it.
 
+#### Base maps
+
+The map viewer lets users pick from a list of base maps. As the operator, you set that list; it comes from the first of these that is set:
+
+1. **`VITE_BASEMAPS`** (`BASEMAPS` in Docker): your own list of base maps.
+2. **`VITE_MAPTILER_KEY`** (`MAPTILER_KEY` in Docker): MapTiler's Satellite, Streets and Topographic maps.
+3. **Neither**: free base maps that need no key — [Sentinel-2 cloudless](https://s2maps.eu) by EOX (Satellite) and [OpenFreeMap](https://openfreemap.org) (Streets).
+
+`BASEMAPS` is a JSON array. Each entry has these fields:
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `label` | yes | Name shown in the base map selector |
+| `light` | one of `light` / `dark` | URL used in light mode |
+| `dark` | one of `light` / `dark` | URL used in dark mode |
+| `attribution` | no | Attribution text (HTML allowed) for a tile URL. A style URL brings its own attribution. |
+| `maxzoom` | no | Highest zoom level of a tile URL. Beyond it, the map enlarges the last tiles. |
+
+> [!NOTE]  
+> When an entry has only `light` or only `dark`, that URL is used in both modes. The first entry is the default base map.
+
+Each URL is one of:
+
+- a **MapLibre style URL**, e.g. `https://tiles.openfreemap.org/styles/positron`;
+- a **raster tile URL template** with `{z}`, `{x}` and `{y}` placeholders, e.g. `https://tile.openstreetmap.org/{z}/{x}/{y}.png`.
+
+Example:
+
+```sh
+VITE_BASEMAPS='[{"label":"Streets","light":"https://tiles.openfreemap.org/styles/positron","dark":"https://tiles.openfreemap.org/styles/dark"},{"label":"OpenStreetMap","light":"https://tile.openstreetmap.org/{z}/{x}/{y}.png","attribution":"&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"}]'
+```
+
+If the value is not valid, the app logs the reason (`BASEMAPS setting ignored: …`) and uses the next option in the list above.
+
 ### Starting the app
 
 ```sh
@@ -101,6 +135,30 @@ docker run -p 8888:8080 -e BASE_URL=http://localhost:8888/subpath openeo-studio
 
 The image is built once with a relative asset base and configured per-container via environment variables (`BASE_URL`, `OPENEO_API_URL`, `APP_TITLE`, etc. — see `Dockerfile` for the full list). The entrypoint script derives the mount path from `BASE_URL` and writes it into nginx's rewrite rules, the page's `<base>` tag, and `window.__APP_CONFIG__` at container start — so the same image can be redeployed under a different `BASE_URL` or `OPENEO_API_URL` without rebuilding.
 
+To set the [base maps](#base-maps), pass `BASEMAPS` as JSON. The value can span several lines, which is easier to read in a compose file:
+
+```yaml
+services:
+  studio:
+    image: ghcr.io/developmentseed/openeo-studio
+    ports:
+      - 8888:8080
+    environment:
+      BASEMAPS: |
+        [
+          {
+            "label": "Streets",
+            "light": "https://tiles.openfreemap.org/styles/positron",
+            "dark": "https://tiles.openfreemap.org/styles/dark"
+          },
+          {
+            "label": "OpenStreetMap",
+            "light": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "attribution": "&copy; OpenStreetMap contributors"
+          }
+        ]
+```
+
 ### Kubernetes (Helm)
 
 A Helm chart is provided under [`charts/openeo-studio`](charts/openeo-studio):
@@ -112,7 +170,7 @@ helm install my-studio charts/openeo-studio \
   --set ingress.hosts[0].host=studio.example.org
 ```
 
-See [`charts/openeo-studio/README.md`](charts/openeo-studio/README.md) for the full list of values.
+Set the [base maps](#base-maps) with the chart's `basemaps` value, as a YAML list. See [`charts/openeo-studio/README.md`](charts/openeo-studio/README.md) for the full list of values.
 
 ## Releases
 
