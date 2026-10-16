@@ -58,9 +58,9 @@ env:
 # Base map layers for the map viewer, rendered into the BASEMAPS env var as
 # JSON. Each entry needs a `label` and a `light` and/or `dark` URL (one URL is
 # used for both modes). A URL is a MapLibre style URL, or a raster tile URL
-# template when it contains `{z}`. `attribution` is optional and is shown for
-# tile URLs. When empty, the app uses MapTiler (if MAPTILER_KEY is set) or
-# free base maps that need no key.
+# template when it contains `{z}`. `attribution` and `maxzoom` are optional and
+# apply to tile URLs. When empty, the app uses MapTiler (if MAPTILER_KEY is set)
+# or free base maps that need no key.
 #
 # basemaps:
 #   - label: Streets

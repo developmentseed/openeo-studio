@@ -74,3 +74,6 @@ else
 fi
 
 echo "openeo-studio: templated ${INDEX_HTML} (PATH_PREFIX='${PATH_PREFIX}', OPENEO_API_URL='${OPENEO_API_URL}')"
+
+# The browser validates BASEMAPS; log only that it is set (URLs may hold keys).
+[ -z "$BASEMAPS" ] || echo "openeo-studio: BASEMAPS set (${#BASEMAPS} characters)"
