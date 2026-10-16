@@ -15,7 +15,7 @@ describe('toMapStyle', () => {
   });
 
   it('wraps a tile URL template in a raster style', () => {
-    expect(toMapStyle(TILE_URL, '© Example')).toEqual({
+    expect(toMapStyle(TILE_URL, { attribution: '© Example' })).toEqual({
       version: 8,
       sources: {
         basemap: {
@@ -33,6 +33,13 @@ describe('toMapStyle', () => {
     const style = toMapStyle(TILE_URL);
     expect(typeof style).toBe('object');
     expect(style).not.toHaveProperty('sources.basemap.attribution');
+    expect(style).not.toHaveProperty('sources.basemap.maxzoom');
+  });
+
+  it('sets maxzoom on the raster source', () => {
+    expect(toMapStyle(TILE_URL, { maxzoom: 18 })).toMatchObject({
+      sources: { basemap: { maxzoom: 18 } }
+    });
   });
 });
 
@@ -78,6 +85,16 @@ describe('parseBaseMaps', () => {
       'an attribution that is not a string',
       `[{"label":"A","light":"${STYLE_URL}","attribution":1}]`,
       /"attribution" must be a string/
+    ],
+    [
+      'a URL that is not a string',
+      '[{"label":"A","light":5}]',
+      /"light" must be a string/
+    ],
+    [
+      'a maxzoom that is not a number',
+      `[{"label":"A","light":"${TILE_URL}","maxzoom":"18"}]`,
+      /"maxzoom" must be a number/
     ]
   ])('rejects %s', (_, raw, message) => {
     expect(() => parseBaseMaps(raw)).toThrow(message);

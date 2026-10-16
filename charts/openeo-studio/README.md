@@ -56,7 +56,10 @@ basemaps:
     attribution: "&copy; OpenStreetMap contributors"
 ```
 
-When `basemaps` is set, it replaces any `env.BASEMAPS`. When the URLs contain an API key, put the JSON in a Secret and list `BASEMAPS` in `envFromSecret` (see below). The Secret then takes over from `basemaps`.
+`values.schema.json` checks the entries on install. When `basemaps` is set, it replaces any `env.BASEMAPS`. A Secret listed in `envFromSecret` (see below) takes over from both.
+
+> [!IMPORTANT]
+> A Secret does not keep an API key private: the browser loads the base maps, so every URL, key included, ends up in the page each visitor downloads. The same goes for `MAPTILER_KEY`. Restrict such keys to your domain at the map provider.
 
 ### Sourcing a value from a Secret
 

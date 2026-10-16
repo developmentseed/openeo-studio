@@ -169,6 +169,14 @@ tests:
                 name: openeo-studio-secrets
                 key: basemaps
 
+  - it: rejects a basemaps entry without a light or dark URL
+    set:
+      basemaps:
+        - label: Streets
+    asserts:
+      - failedTemplate:
+          errorPattern: "anyOf"
+
   - it: probes / on the http port for liveness and readiness
     asserts:
       - equal:

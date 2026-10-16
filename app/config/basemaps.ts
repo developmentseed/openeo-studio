@@ -25,6 +25,7 @@ export interface BaseMapEntry {
   light?: string;
   dark?: string;
   attribution?: string;
+  maxzoom?: number;
 }
 
 /**
@@ -32,7 +33,10 @@ export interface BaseMapEntry {
  * raster tile template and gets a minimal one-layer style; any other URL is a
  * style URL and is used as is.
  */
-export function toMapStyle(url: string, attribution?: string): BaseMapStyle {
+export function toMapStyle(
+  url: string,
+  { attribution, maxzoom }: Pick<BaseMapEntry, 'attribution' | 'maxzoom'> = {}
+): BaseMapStyle {
   // A tile layer will have {x}, {y}, and {z} placeholders. A style URL will not.
   if (!url.includes('{z}')) return url;
 
@@ -43,6 +47,7 @@ export function toMapStyle(url: string, attribution?: string): BaseMapStyle {
         type: 'raster',
         tiles: [url],
         tileSize: 256,
+        ...(maxzoom ? { maxzoom } : {}),
         ...(attribution ? { attribution } : {})
       }
     },
@@ -67,8 +72,8 @@ function toBaseLayers(entries: BaseMapEntry[]): BaseLayer[] {
       id,
       label: entry.label,
       style: {
-        light: toMapStyle(light, entry.attribution),
-        dark: toMapStyle(dark, entry.attribution)
+        light: toMapStyle(light, entry),
+        dark: toMapStyle(dark, entry)
       }
     };
   });
@@ -99,24 +104,31 @@ export function parseBaseMaps(raw: string): BaseMapEntry[] {
       throw new Error(`${where} must be an object`);
     }
 
-    const { label, light, dark, attribution } = item as Record<string, unknown>;
+    const { label, light, dark, attribution, maxzoom } = item as Record<
+      string,
+      unknown
+    >;
     if (!isNonEmptyString(label)) {
       throw new Error(`${where} needs a "label"`);
-    }
-    if (!isNonEmptyString(light) && !isNonEmptyString(dark)) {
-      throw new Error(`${where} ("${label}") needs a "light" or "dark" URL`);
     }
     for (const [key, field] of Object.entries({ light, dark, attribution })) {
       if (field !== undefined && typeof field !== 'string') {
         throw new Error(`${where} ("${label}"): "${key}" must be a string`);
       }
     }
+    if (!isNonEmptyString(light) && !isNonEmptyString(dark)) {
+      throw new Error(`${where} ("${label}") needs a "light" or "dark" URL`);
+    }
+    if (maxzoom !== undefined && typeof maxzoom !== 'number') {
+      throw new Error(`${where} ("${label}"): "maxzoom" must be a number`);
+    }
 
     return {
       label,
       light: isNonEmptyString(light) ? light : undefined,
       dark: isNonEmptyString(dark) ? dark : undefined,
-      attribution: isNonEmptyString(attribution) ? attribution : undefined
+      attribution: isNonEmptyString(attribution) ? attribution : undefined,
+      maxzoom
     };
   });
 }
@@ -159,6 +171,7 @@ export const DEFAULT_BASE_MAPS: BaseMapEntry[] = [
     label: 'Satellite',
     light:
       'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg',
+    maxzoom: 18, // EOX has no tiles beyond zoom 18
     attribution:
       '<a href="https://s2maps.eu" target="_blank">Sentinel-2 cloudless</a> by <a href="https://eox.at" target="_blank">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016)'
   },
