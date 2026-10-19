@@ -20,9 +20,18 @@ default_collection_id = RUN_CONFIG.get("collectionId", "sentinel-2-l2a")
 default_bounding_box = RUN_CONFIG.get("boundingBox", {"west": 12.0, "south": 44.5, "east": 14, "north": 46})
 default_time = RUN_CONFIG.get("time", ["2025-11-23", "2025-11-24"])
 default_bands = RUN_CONFIG.get("bands", ["reflectance|bands=b02", "reflectance|bands=b03", "reflectance|bands=b04"])
+# Property filters on collection queryables, e.g.
+# {"property": "eo:cloud_cover", "operator": "lt", "value": 20}.
 # No default: collections without `eo:cloud_cover` (e.g. Sentinel-1, DEMs)
-# would return no items with the filter.
-default_cloud_cover_max = RUN_CONFIG.get("cloudCover")
+# would return no items with a cloud cover filter.
+default_property_filters = list(RUN_CONFIG.get("propertyFilters", []))
+# Deprecated: `cloudCover` is converted to an `eo:cloud_cover` filter.
+if RUN_CONFIG.get("cloudCover") is not None and not any(
+    f["property"] == "eo:cloud_cover" for f in default_property_filters
+):
+    default_property_filters.insert(
+        0, {"property": "eo:cloud_cover", "operator": "lt", "value": RUN_CONFIG["cloudCover"]}
+    )
 
 # Create OpenEO Parameter objects
 bounding_box = Parameter("bounding_box", default=default_bounding_box, optional=True)
@@ -61,17 +70,10 @@ def property_parameter_name(property_name: str) -> str:
     return "filter_" + re.sub(r"\W+", "_", property_name).strip("_").lower()
 
 
+# One parameter per filter, so services can override the value
 properties = {}
-
-# Default filter: cloud cover, only when the run configuration sets a value
-if default_cloud_cover_max is not None:
-    cloud_cover_max = Parameter("cloud_cover_max", default=default_cloud_cover_max, optional=True)
-    parameters.append(cloud_cover_max)
-    properties["eo:cloud_cover"] = property_condition("lt", "cloud_cover_max")
-
-# Additional filters on collection queryables
 ALLOWED_OPERATORS = {"lt", "lte", "gt", "gte", "eq", "neq"}
-for property_filter in RUN_CONFIG.get("propertyFilters", []):
+for property_filter in default_property_filters:
     property_name = property_filter["property"]
     operator = property_filter["operator"]
     if property_name in properties or operator not in ALLOWED_OPERATORS:

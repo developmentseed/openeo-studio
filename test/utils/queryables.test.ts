@@ -9,13 +9,12 @@ jest.mock('$utils/api', () => ({
 }));
 
 import {
-  CLOUD_COVER_PROPERTY,
   clearQueryablesCache,
   getCollectionQueryables,
   getFilterableQueryables,
   getOperatorsForKind,
   getQueryableKind,
-  getQueryableStatus
+  resolveQueryables
 } from '$utils/openeo/queryables';
 
 const CAPABILITIES_WITH_QUERYABLES = {
@@ -74,21 +73,29 @@ describe('getCollectionQueryables', () => {
   });
 });
 
-describe('getQueryableStatus', () => {
-  it('is unknown without queryables', () => {
-    expect(getQueryableStatus(null, CLOUD_COVER_PROPERTY)).toBe('unknown');
+describe('resolveQueryables', () => {
+  it('without backend queryables, offers cloud cover and current filters', () => {
+    const queryables = resolveQueryables(null, [
+      { property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }
+    ]);
+    expect(queryables['eo:cloud_cover']).toMatchObject({
+      type: 'number',
+      minimum: 0,
+      maximum: 100
+    });
+    expect(queryables['sat:orbit_state']).toEqual({ type: 'string' });
   });
 
-  it('is supported when the property is a queryable', () => {
-    expect(
-      getQueryableStatus({ 'eo:cloud_cover': {} }, CLOUD_COVER_PROPERTY)
-    ).toBe('supported');
-  });
-
-  it('is unsupported when the property is not a queryable', () => {
-    expect(
-      getQueryableStatus({ 'sat:orbit_state': {} }, CLOUD_COVER_PROPERTY)
-    ).toBe('unsupported');
+  it('with backend queryables, offers only these, completed with known schemas', () => {
+    const queryables = resolveQueryables(
+      { 'eo:cloud_cover': { type: 'number', title: 'Clouds' } },
+      [{ property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }]
+    );
+    expect(Object.keys(queryables)).toEqual(['eo:cloud_cover']);
+    expect(queryables['eo:cloud_cover']).toMatchObject({
+      title: 'Clouds',
+      maximum: 100
+    });
   });
 });
 
@@ -108,7 +115,7 @@ describe('queryable kinds and operators', () => {
     expect(getOperatorsForKind('string')).toEqual(['eq', 'neq']);
   });
 
-  it('excludes extent properties, cloud cover and unsupported types', () => {
+  it('excludes extent properties and unsupported types', () => {
     const filterable = getFilterableQueryables({
       datetime: { type: 'string' },
       geometry: { type: 'object' },
@@ -119,6 +126,7 @@ describe('queryable kinds and operators', () => {
     });
 
     expect(filterable.map(([property]) => property)).toEqual([
+      'eo:cloud_cover',
       'sat:orbit_state',
       'sat:relative_orbit'
     ]);

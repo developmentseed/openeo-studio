@@ -7,18 +7,16 @@
  */
 
 import { appConfig } from '$config/runtime';
-import type { PropertyFilterOperator } from '$types';
+import type { PropertyFilter, PropertyFilterOperator } from '$types';
+import { CLOUD_COVER_PROPERTY } from '$utils/property-filters';
 import { fetchJson } from '../api';
 
 const OPENEO_API_URL = appConfig.openeoApiUrl;
 const QUERYABLES_PATH = '/collections/{collection_id}/queryables';
 
-/** The default property filter, with its own `cloudCover` config field. */
-export const CLOUD_COVER_PROPERTY = 'eo:cloud_cover';
-
 /**
- * Queryables that are not offered as additional filters: `load_collection`
- * sets them with other arguments, or they have their own control.
+ * Queryables that are not offered as filters: `load_collection` sets them
+ * with other arguments.
  */
 const EXCLUDED_PROPERTIES = new Set([
   'id',
@@ -26,8 +24,7 @@ const EXCLUDED_PROPERTIES = new Set([
   'geometry',
   'datetime',
   'start_datetime',
-  'end_datetime',
-  CLOUD_COVER_PROPERTY
+  'end_datetime'
 ]);
 
 /** JSON Schema of one queryable (only the keywords that the UI uses). */
@@ -44,12 +41,18 @@ export interface QueryableSchema {
 export type CollectionQueryables = Record<string, QueryableSchema>;
 
 /**
- * Support of a property filter for a collection:
- * - `supported`: the property is a queryable
- * - `unsupported`: the backend lists queryables and the property is not one
- * - `unknown`: the backend has no queryables endpoint, or the request failed
+ * Schemas of well-known properties. They are offered when the backend has no
+ * queryables, and complete the backend schemas (e.g. the cloud cover range).
  */
-export type QueryableStatus = 'supported' | 'unsupported' | 'unknown';
+const KNOWN_QUERYABLES: CollectionQueryables = {
+  [CLOUD_COVER_PROPERTY]: {
+    title: 'Cloud cover',
+    description: 'Cloud cover percentage',
+    type: 'number',
+    minimum: 0,
+    maximum: 100
+  }
+};
 
 export type QueryableKind = 'number' | 'string' | 'boolean';
 
@@ -111,13 +114,30 @@ export async function getCollectionQueryables(
   }
 }
 
-/** Tells if `property` can be used in a `load_collection` property filter. */
-export function getQueryableStatus(
+/**
+ * Returns the queryables to offer in the UI:
+ * - With backend queryables: these, completed with the known schemas.
+ * - Without (`null`): the known queryables, and a schema inferred from the
+ *   value of each current filter, so that every filter stays editable.
+ */
+export function resolveQueryables(
   queryables: CollectionQueryables | null,
-  property: string
-): QueryableStatus {
-  if (!queryables) return 'unknown';
-  return property in queryables ? 'supported' : 'unsupported';
+  filters: PropertyFilter[]
+): CollectionQueryables {
+  if (queryables) {
+    return Object.fromEntries(
+      Object.entries(queryables).map(([property, schema]) => [
+        property,
+        { ...KNOWN_QUERYABLES[property], ...schema }
+      ])
+    );
+  }
+
+  const resolved: CollectionQueryables = { ...KNOWN_QUERYABLES };
+  for (const filter of filters) {
+    resolved[filter.property] ??= { type: typeof filter.value };
+  }
+  return resolved;
 }
 
 /** Returns the value kind of a queryable, or `null` when not supported. */
@@ -141,9 +161,9 @@ export function getOperatorsForKind(
 }
 
 /**
- * Returns the queryables that the user can add as additional filters, sorted
- * by property name. Excludes properties set by other `load_collection`
- * arguments, cloud cover, and properties with an unsupported type.
+ * Returns the queryables that the user can filter on, sorted by property
+ * name. Excludes properties set by other `load_collection` arguments, and
+ * properties with an unsupported type.
  */
 export function getFilterableQueryables(
   queryables: CollectionQueryables

@@ -63,7 +63,9 @@ describe('runAndValidateScript', () => {
         selectedBands: [],
         temporalRange: [],
         boundingBox: [0, 0, 1, 1],
-        cloudCover: 20
+        propertyFilters: [
+          { property: 'eo:cloud_cover', operator: 'lt', value: 20 }
+        ]
       }
     );
 
