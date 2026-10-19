@@ -7,10 +7,10 @@ import {
   CodeInfoMenu,
   type CodeViewType
 } from '$components/editor/code-info-menu';
-import { OutputPanel } from '$components/editor/output-panel';
+import { PythonSetupPanel } from '$components/editor/python-setup-panel';
 import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
-import { usePyodide } from '$contexts/pyodide-context';
 import { useEditorStore } from '$stores/editor-store';
+import { usePyodide } from '$stores/pyodide-store';
 import loaderPy from '../../algorithms/base/loader.py?raw';
 
 export function CodeTab() {
@@ -33,7 +33,7 @@ export function CodeTab() {
       </Box>
 
       {!isReady ? (
-        <OutputPanel />
+        <PythonSetupPanel />
       ) : (
         <Box flex={1} minHeight={0}>
           {codeType === 'boilerplate' ? (

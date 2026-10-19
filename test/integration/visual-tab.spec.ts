@@ -40,7 +40,7 @@ const MAP_GRAPHS = [
 
 /**
  * The shared page fixture stubs `window.loadPyodide` with a no-op runner.
- * `PyodideProvider` prefers that override, so Visual-tab tests re-stub it with
+ * The Pyodide store prefers that override, so Visual-tab tests re-stub it with
  * a runner that returns a known process graph (as a JSON string, matching what
  * the Python wrapper emits).
  */

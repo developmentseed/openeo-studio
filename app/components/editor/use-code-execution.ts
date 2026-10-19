@@ -3,7 +3,7 @@ import { useAuth } from 'react-oidc-context';
 import { kebabCase } from 'lodash-es';
 import type { EditorView } from '@codemirror/view';
 
-import { usePyodide } from '$contexts/pyodide-context';
+import { usePyodide } from '$stores/pyodide-store';
 import {
   createServicesFromGraphs,
   runAndValidateScript
