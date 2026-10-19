@@ -58,3 +58,34 @@ describe('editor-store dirty tracking', () => {
     expect(useEditorStore.getState().isDirty).toBe(false);
   });
 });
+
+describe('editor-store cloud cover', () => {
+  beforeEach(() => reset());
+
+  it('setCloudCover(undefined) removes the cloud cover filter', () => {
+    useEditorStore.getState().setCloudCover(undefined);
+    expect(useEditorStore.getState().selectedConfig.cloudCover).toBeUndefined();
+  });
+
+  it('hydrateFromScene keeps an absent cloudCover undefined', () => {
+    useEditorStore.getState().hydrateFromScene('scene-s1', {
+      name: 'S1',
+      collectionId: 'sentinel-1-grd',
+      temporalRange: ['', ''],
+      defaultBands: []
+    });
+    expect(useEditorStore.getState().selectedConfig.cloudCover).toBeUndefined();
+  });
+
+  it('setCollectionId clears the property filters', () => {
+    useEditorStore
+      .getState()
+      .setPropertyFilters([
+        { property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }
+      ]);
+    useEditorStore.getState().setCollectionId('sentinel-2-l2a');
+    expect(useEditorStore.getState().selectedConfig.propertyFilters).toEqual(
+      []
+    );
+  });
+});

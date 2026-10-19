@@ -5,7 +5,7 @@ import {
   createInitialConfig,
   type EditorConfigValues
 } from '$config/default-editor-config';
-import type { ServiceInfo } from '$types';
+import type { PropertyFilter, ServiceInfo } from '$types';
 
 type BoundingBox = [number, number, number, number];
 
@@ -28,7 +28,8 @@ type EditorActions = {
   setCode: (code: string) => void;
   setCollectionId: (id: string) => void;
   setTemporalRange: (range: [string, string]) => void;
-  setCloudCover: (cover: number) => void;
+  setCloudCover: (cover: number | undefined) => void;
+  setPropertyFilters: (filters: PropertyFilter[]) => void;
   setSelectedBands: (bands: string[]) => void;
   setBoundingBox: (bbox: BoundingBox | undefined) => void;
   setServices: (services: ServiceInfo[]) => void;
@@ -44,7 +45,8 @@ type EditorActions = {
       name: string;
       collectionId: string;
       temporalRange: [string, string];
-      cloudCover: number;
+      cloudCover?: number;
+      propertyFilters?: PropertyFilter[];
       defaultBands: string[];
       boundingBox?: BoundingBox;
       suggestedAlgorithm?: string;
@@ -66,7 +68,12 @@ export const useEditorStore = create<EditorStore>()(
       setCode: (code) => set({ code, isDirty: true }),
       setCollectionId: (collectionId) =>
         set((state) => ({
-          selectedConfig: { ...state.selectedConfig, collectionId },
+          // Filters on queryables of the previous collection may not apply.
+          selectedConfig: {
+            ...state.selectedConfig,
+            collectionId,
+            propertyFilters: []
+          },
           services: [],
           isDirty: true
         })),
@@ -79,6 +86,12 @@ export const useEditorStore = create<EditorStore>()(
       setCloudCover: (cloudCover) =>
         set((state) => ({
           selectedConfig: { ...state.selectedConfig, cloudCover },
+          services: [],
+          isDirty: true
+        })),
+      setPropertyFilters: (propertyFilters) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, propertyFilters },
           services: [],
           isDirty: true
         })),
@@ -130,6 +143,7 @@ export const useEditorStore = create<EditorStore>()(
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
           cloudCover: scene.cloudCover,
+          propertyFilters: scene.propertyFilters ?? [],
           selectedBands: scene.defaultBands,
           boundingBox: scene.boundingBox
         });

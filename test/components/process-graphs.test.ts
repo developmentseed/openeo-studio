@@ -114,6 +114,59 @@ describe('deriveConfigFromProject', () => {
     );
     expect(config.collectionId).toBeUndefined();
   });
+
+  it('extracts property filters from load_collection properties', () => {
+    const condition = (operator: string, parameter: string) => ({
+      process_graph: {
+        cc: {
+          process_id: operator,
+          arguments: {
+            x: { from_parameter: 'value' },
+            y: { from_parameter: parameter }
+          },
+          result: true
+        }
+      }
+    });
+    const project = buildProject();
+    const config = deriveConfigFromProject({
+      ...project,
+      process_graph: {
+        ...project.process_graph,
+        loadcollection1: {
+          process_id: 'load_collection',
+          arguments: {
+            id: 'sentinel-1-grd',
+            properties: {
+              'eo:cloud_cover': condition('lt', 'cloud_cover_max'),
+              'sat:orbit_state': condition('eq', 'filter_sat_orbit_state'),
+              'sat:relative_orbit': condition('unknown', 'filter_orbit')
+            }
+          }
+        }
+      },
+      parameters: [
+        ...(project.parameters ?? []),
+        {
+          name: 'filter_sat_orbit_state',
+          description: 'filter_sat_orbit_state',
+          schema: {},
+          default: 'ascending'
+        },
+        {
+          name: 'filter_orbit',
+          description: 'filter_orbit',
+          schema: {},
+          default: 30
+        }
+      ]
+    });
+
+    expect(config.cloudCover).toBe(20);
+    expect(config.propertyFilters).toEqual([
+      { property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }
+    ]);
+  });
 });
 
 describe('buildDescription', () => {

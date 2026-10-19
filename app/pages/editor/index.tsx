@@ -52,7 +52,8 @@ export function EditorPage() {
         name: scene.name,
         collectionId: scene.collectionId,
         temporalRange: scene.temporalRange,
-        cloudCover: scene.cloudCover ?? 100,
+        cloudCover: scene.cloudCover,
+        propertyFilters: scene.propertyFilters,
         defaultBands: scene.defaultBands ?? [],
         boundingBox: scene.boundingBox,
         suggestedAlgorithm: scene.suggestedAlgorithm

@@ -15,6 +15,8 @@ import { AssistantTab } from './assistant-tab';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
 import { useDeleteProject } from './use-delete-project';
+import { useCollectionQueryables } from './use-collection-queryables';
+import { CLOUD_COVER_PROPERTY } from '$utils/openeo/queryables';
 
 export type EditorTabId = 'configuration' | 'code' | 'assistant';
 
@@ -31,7 +33,40 @@ export function EditorWorkspace({
   const selectedConfig = useEditorStore(
     useShallow((state) => state.selectedConfig)
   );
-  const { setSceneId, sceneId, isDirty, setServices } = useEditorStore();
+  const {
+    setSceneId,
+    sceneId,
+    isDirty,
+    setServices,
+    setCloudCover,
+    setPropertyFilters
+  } = useEditorStore();
+
+  // Drop the filters on properties that are not queryables of the
+  // collection: the STAC API would remove every item.
+  const queryables = useCollectionQueryables(selectedConfig.collectionId);
+  useEffect(() => {
+    if (!queryables) return;
+    if (
+      !(CLOUD_COVER_PROPERTY in queryables) &&
+      selectedConfig.cloudCover !== undefined
+    ) {
+      setCloudCover(undefined);
+    }
+    const propertyFilters = selectedConfig.propertyFilters ?? [];
+    const validFilters = propertyFilters.filter(
+      (filter) => filter.property in queryables
+    );
+    if (validFilters.length !== propertyFilters.length) {
+      setPropertyFilters(validFilters);
+    }
+  }, [
+    queryables,
+    selectedConfig.cloudCover,
+    selectedConfig.propertyFilters,
+    setCloudCover,
+    setPropertyFilters
+  ]);
 
   const editor = useCodeEditor();
   const { confirm, dialog: confirmDialog } = useConfirmDialog();
