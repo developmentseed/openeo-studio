@@ -1,10 +1,10 @@
 import type { PropertyFilter } from '$types';
+import { cloudCoverFilter } from '$utils/property-filters';
 
 export type EditorConfigValues = {
   collectionId: string;
   temporalRange: [string, string];
-  cloudCover?: number;
-  /** Additional property filters on collection queryables */
+  /** Property filters on collection queryables (e.g. cloud cover) */
   propertyFilters: PropertyFilter[];
   selectedBands: string[];
   boundingBox?: [number, number, number, number];
@@ -13,8 +13,7 @@ export type EditorConfigValues = {
 export const DEFAULT_EDITOR_CONFIG: EditorConfigValues = {
   collectionId: 'sentinel-2-l2a',
   temporalRange: ['', ''],
-  cloudCover: 50,
-  propertyFilters: [],
+  propertyFilters: [cloudCoverFilter(50)],
   selectedBands: [],
   boundingBox: undefined
 };

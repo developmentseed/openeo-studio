@@ -6,15 +6,11 @@ import { useShallow } from 'zustand/shallow';
 
 import { CollectionSelector } from '$components/editor/setup/collection-selector';
 import { TemporalRangePicker } from '$components/editor/setup/temporal-range-picker';
-import { CloudCoverSlider } from '$components/editor/setup/cloud-cover-slider';
 import { PropertyFilters } from '$components/editor/setup/property-filters';
 import { useCollectionQueryables } from '$components/editor/use-collection-queryables';
 import { BandArrayBuilder } from '$components/editor/setup/band-array-builder';
 import { extractBandsFromStac } from '$utils/stac-band-parser';
-import {
-  CLOUD_COVER_PROPERTY,
-  getQueryableStatus
-} from '$utils/openeo/queryables';
+import { resolveQueryables } from '$utils/openeo/queryables';
 import { useEditorStore } from '$stores/editor-store';
 
 export function ConfigurationTab() {
@@ -26,7 +22,6 @@ export function ConfigurationTab() {
     setSceneName,
     setCollectionId,
     setTemporalRange,
-    setCloudCover,
     setPropertyFilters,
     setSelectedBands
   } = useEditorStore();
@@ -41,6 +36,7 @@ export function ConfigurationTab() {
   );
 
   const queryables = useCollectionQueryables(selectedConfig.collectionId);
+  const propertyFilters = selectedConfig.propertyFilters ?? [];
 
   return (
     <VStack gap={6} align='stretch'>
@@ -82,19 +78,11 @@ export function ConfigurationTab() {
         onTemporalRangeChange={setTemporalRange}
       />
 
-      <CloudCoverSlider
-        cloudCover={selectedConfig.cloudCover}
-        queryable={getQueryableStatus(queryables, CLOUD_COVER_PROPERTY)}
-        onCloudCoverChange={setCloudCover}
+      <PropertyFilters
+        queryables={resolveQueryables(queryables, propertyFilters)}
+        filters={propertyFilters}
+        onChange={setPropertyFilters}
       />
-
-      {queryables && (
-        <PropertyFilters
-          queryables={queryables}
-          filters={selectedConfig.propertyFilters ?? []}
-          onChange={setPropertyFilters}
-        />
-      )}
 
       <BandArrayBuilder
         availableBands={availableBands}

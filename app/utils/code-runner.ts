@@ -40,7 +40,6 @@ function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
     bands: config.selectedBands || [],
     time: config.temporalRange || [],
     boundingBox,
-    cloudCover: config.cloudCover,
     propertyFilters: config.propertyFilters || [],
     ...(config.algorithmParams || {})
   };

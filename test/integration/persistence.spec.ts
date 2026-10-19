@@ -134,7 +134,7 @@ test.describe('Persistence', () => {
       expect(cloudCoverAfter).toBe(cloudCoverValue);
     });
 
-    test('disabled cloud cover filter persists across page reloads', async ({
+    test('removed cloud cover filter persists across page reloads', async ({
       authenticatedPage
     }) => {
       await authenticatedPage.goto('/editor');
@@ -144,18 +144,20 @@ test.describe('Persistence', () => {
       });
       await configTab.click();
 
-      const filterSwitch = authenticatedPage.getByRole('checkbox', {
-        name: /filter by cloud cover/i
+      const removeButton = authenticatedPage.getByRole('button', {
+        name: 'Remove eo:cloud_cover filter'
       });
-      await expect(filterSwitch).toBeChecked();
-      await authenticatedPage.getByText(/filter by cloud cover/i).click();
-      await expect(filterSwitch).not.toBeChecked();
+      await removeButton.click();
+      await expect(removeButton).toHaveCount(0);
 
       await authenticatedPage.reload();
       await authenticatedPage.waitForURL('/editor');
 
       await configTab.click();
-      await expect(filterSwitch).not.toBeChecked();
+      await expect(
+        authenticatedPage.getByText(/no filter: all the items/i)
+      ).toBeVisible();
+      await expect(removeButton).toHaveCount(0);
     });
   });
 

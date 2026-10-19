@@ -91,7 +91,6 @@ export async function upsertUserDefinedProcess(
 export interface DerivedProjectConfig {
   collectionId?: string;
   temporalRange?: [string, string];
-  cloudCover?: number;
   propertyFilters?: PropertyFilter[];
   selectedBands?: string[];
   boundingBox?: [number, number, number, number];
@@ -129,10 +128,12 @@ const PROPERTY_FILTER_OPERATORS: PropertyFilterOperator[] = [
 ];
 
 /**
- * Reverse-derives the additional property filters from the load_collection
- * `properties` argument. Mirrors loader.py: each filter is a single
+ * Reverse-derives the property filters from the load_collection `properties`
+ * argument. Mirrors loader.py: each filter is a single
  * `<operator>(value, <parameter>)` node, and the parameter holds the value.
- * Cloud cover is skipped: it is read from `cloud_cover_max`.
+ * A literal value is also accepted. Projects saved before the generic filters
+ * use the `cloud_cover_max` parameter for `eo:cloud_cover`: this reads them
+ * the same way.
  */
 function findPropertyFilters(
   processGraph: ProcessGraph | undefined,
@@ -152,16 +153,16 @@ function findPropertyFilters(
 
   const filters: PropertyFilter[] = [];
   for (const [property, condition] of Object.entries(properties)) {
-    if (property === 'eo:cloud_cover') continue;
     const nodes = Object.values(
       (condition as { process_graph?: ProcessGraph })?.process_graph ?? {}
     );
     if (nodes.length !== 1) continue;
     const operator = nodes[0].process_id as PropertyFilterOperator;
-    const y = nodes[0].arguments.y as { from_parameter?: string } | undefined;
-    const value = y?.from_parameter
-      ? findParameterDefault(parameters, y.from_parameter)
-      : undefined;
+    const y = nodes[0].arguments.y;
+    const value =
+      y && typeof y === 'object' && 'from_parameter' in y
+        ? findParameterDefault(parameters, String(y.from_parameter))
+        : y;
     if (
       PROPERTY_FILTER_OPERATORS.includes(operator) &&
       (typeof value === 'number' ||
@@ -207,14 +208,6 @@ export function deriveConfigFromProject(
     selectedBands.every((band) => typeof band === 'string')
   ) {
     config.selectedBands = selectedBands as string[];
-  }
-
-  const cloudCover = findParameterDefault(
-    project.parameters,
-    'cloud_cover_max'
-  );
-  if (typeof cloudCover === 'number') {
-    config.cloudCover = cloudCover;
   }
 
   const propertyFilters = findPropertyFilters(

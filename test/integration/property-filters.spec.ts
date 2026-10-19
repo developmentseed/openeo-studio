@@ -62,12 +62,11 @@ test.describe('Property filters', () => {
     await expect(value).toHaveValue('ascending');
     await value.selectOption('descending');
 
-    // The cloud cover filter stays the default filter.
+    // The default cloud cover filter stays, with its slider (range 0-100).
     await expect(
-      authenticatedPage.getByRole('checkbox', {
-        name: /filter by cloud cover/i
-      })
-    ).toBeChecked();
+      authenticatedPage.getByLabel('eo:cloud_cover value')
+    ).toHaveValue('50');
+    await expect(authenticatedPage.getByRole('slider')).toHaveCount(1);
 
     await expect
       .poll(() =>
@@ -95,7 +94,7 @@ test.describe('Property filters', () => {
       .click();
 
     await expect(
-      authenticatedPage.getByText(/no cloud cover property/i)
+      authenticatedPage.getByText(/no filter: all the items/i)
     ).toBeVisible();
     await expect(authenticatedPage.getByRole('slider')).toHaveCount(0);
     await expect
@@ -104,6 +103,6 @@ test.describe('Property filters', () => {
           sessionStorage.getItem('openeo-editor-storage')
         )
       )
-      .not.toContain('"cloudCover"');
+      .not.toContain('eo:cloud_cover');
   });
 });

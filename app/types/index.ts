@@ -18,9 +18,13 @@ export interface SampleScene {
   collectionId: string;
   temporalRange: [string, string];
   boundingBox?: [number, number, number, number];
-  cloudCover?: number;
-  /** Additional property filters on collection queryables */
+  /** Property filters on collection queryables (e.g. cloud cover) */
   propertyFilters?: PropertyFilter[];
+  /**
+   * Max cloud cover percentage.
+   * @deprecated Use `propertyFilters` with an `eo:cloud_cover` filter.
+   */
+  cloudCover?: number;
 
   /** Algorithm defaults (feed editor) */
   suggestedAlgorithm: string;
@@ -51,8 +55,7 @@ export type PropertyFilterOperator = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
 
 /**
  * A `load_collection` property filter on a collection queryable, e.g.
- * `{ property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }`.
- * Cloud cover is not part of these filters: it has its own `cloudCover` field.
+ * `{ property: 'eo:cloud_cover', operator: 'lt', value: 20 }`.
  */
 export interface PropertyFilter {
   property: string;
@@ -71,9 +74,7 @@ export interface ExecutionConfig {
   temporalRange: [string, string];
   /** Spatial extent */
   boundingBox?: [number, number, number, number];
-  /** Cloud cover percentage */
-  cloudCover?: number;
-  /** Additional property filters on collection queryables */
+  /** Property filters on collection queryables (e.g. cloud cover) */
   propertyFilters?: PropertyFilter[];
   /** User-selected bands in order for data[] array */
   selectedBands?: string[];

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 import { useEditorStore } from '$stores/editor-store';
+import { resolvePropertyFilters } from '$utils/property-filters';
 import {
   readSamplePrefill,
   SAMPLE_PARAM,
@@ -69,7 +70,9 @@ export function usePrefillSample(enabled: boolean) {
           name,
           collectionId: sample.collectionId,
           temporalRange: sample.temporalRange,
-          cloudCover: sample.cloudCover ?? 100,
+          // No cloudCover: no filter (Sentinel-1 and other collections
+          // without `eo:cloud_cover` would return no items).
+          propertyFilters: resolvePropertyFilters(sample),
           defaultBands: sample.bands,
           boundingBox: sample.boundingBox,
           suggestedAlgorithm: sample.code

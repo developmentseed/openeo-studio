@@ -57,7 +57,6 @@ export function useLoadProject(
             derived.collectionId ?? DEFAULT_EDITOR_CONFIG.collectionId,
           temporalRange:
             derived.temporalRange ?? DEFAULT_EDITOR_CONFIG.temporalRange,
-          cloudCover: derived.cloudCover,
           propertyFilters: derived.propertyFilters,
           defaultBands:
             derived.selectedBands ?? DEFAULT_EDITOR_CONFIG.selectedBands,

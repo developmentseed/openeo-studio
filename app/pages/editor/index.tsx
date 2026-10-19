@@ -15,6 +15,7 @@ import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 import { NotFound } from '$utils/errors';
+import { resolvePropertyFilters } from '$utils/property-filters';
 
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();
@@ -52,8 +53,7 @@ export function EditorPage() {
         name: scene.name,
         collectionId: scene.collectionId,
         temporalRange: scene.temporalRange,
-        cloudCover: scene.cloudCover,
-        propertyFilters: scene.propertyFilters,
+        propertyFilters: resolvePropertyFilters(scene),
         defaultBands: scene.defaultBands ?? [],
         boundingBox: scene.boundingBox,
         suggestedAlgorithm: scene.suggestedAlgorithm
