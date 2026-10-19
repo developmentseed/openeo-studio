@@ -4,7 +4,9 @@ set -eu
 
 # Read the built index.html from the image and write the result to /tmp, so
 # the container runs as any UID/GID. nginx serves index.html from RUNTIME_DIR.
-SOURCE_INDEX_HTML=/usr/share/nginx/html/index.html
+# The built app (Vite dist/), copied by the Dockerfile to the nginx web root.
+SOURCE_DIR=/usr/share/nginx/html
+SOURCE_INDEX_HTML="${SOURCE_DIR}/index.html"
 RUNTIME_DIR=/tmp/openeo-studio
 INDEX_HTML="${RUNTIME_DIR}/index.html"
 PATH_PREFIX_INC="${RUNTIME_DIR}/path-prefix.inc"
@@ -29,8 +31,24 @@ fi
 
 tmp_index="$(mktemp)"
 # shellcheck disable=SC2016
-envsubst '${BASE_URL} ${APP_TITLE} ${APP_DESCRIPTION}' <"$SOURCE_INDEX_HTML" >"$tmp_index"
+envsubst '${BASE_URL} ${APP_TITLE} ${APP_DESCRIPTION} ${OPENEO_API_URL}' <"$SOURCE_INDEX_HTML" >"$tmp_index"
 mv "$tmp_index" "$INDEX_HTML"
+
+# The documents for agents (llms.txt, agents/*.md, the manifest) have
+# placeholders too. Write them to RUNTIME_DIR; nginx serves them from there.
+# The deployment URL without a trailing slash, so links do not get "//".
+STUDIO_ROOT_URL="$(printf '%s' "$BASE_URL" | sed 's|/*$||')"
+export STUDIO_ROOT_URL
+for doc in llms.txt llms-full.txt agents/script-contract.md agents/samples.md \
+  agents/backend.md agents/prefill.md agents/user-guide.md \
+  .well-known/openeo-studio.json; do
+  [ -f "${SOURCE_DIR}/${doc}" ] || continue
+  mkdir -p "$(dirname "${RUNTIME_DIR}/${doc}")"
+  # shellcheck disable=SC2016
+  envsubst '${STUDIO_ROOT_URL} ${OPENEO_API_URL} ${APP_TITLE} ${APP_DESCRIPTION}' \
+    <"${SOURCE_DIR}/${doc}" >"${RUNTIME_DIR}/${doc}"
+  chmod 644 "${RUNTIME_DIR}/${doc}"
+done
 
 # Splice the runtime app config in as an inline script where index.html has
 # <!-- __APP_CONFIG__ -->. Using sed's `r` (read file) instead of `s|...|...|`

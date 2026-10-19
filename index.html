@@ -12,6 +12,13 @@
   <meta property="og:image" content='%VITE_BASE_URL%/meta/meta-image.png'>
   <meta name="twitter:image" content='%VITE_BASE_URL%/meta/meta-image.png'>
   <meta property='og:url' content='%VITE_BASE_URL%/'>
+  <meta property='og:title' content='%VITE_APP_TITLE%'>
+  <meta property='og:description' content='%VITE_APP_DESCRIPTION%'>
+
+  <!-- For agents: how to use this deployment. -->
+  <link rel="alternate" type="text/markdown" title="Documentation for agents" href="%VITE_BASE_URL%/llms.txt">
+  <link rel="describedby" type="application/json" href="%VITE_BASE_URL%/.well-known/openeo-studio.json">
+  <link rel="service-desc" href="%VITE_OPENEO_API_URL%">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -100,6 +107,11 @@
     <p>Setting up the studio for you to do your best work!</p>
     <p>Please wait...</p>
   </div>
+
+  <noscript>
+    <p>openEO Studio is a web editor for openEO Python code. It needs JavaScript.</p>
+    <p>Agents and crawlers: read <a href="%VITE_BASE_URL%/llms.txt">llms.txt</a> for the samples, the script contract and the openEO backend of this deployment.</p>
+  </noscript>
 
   <div id='app-container'>
     <!-- Content rendered here via React -->
