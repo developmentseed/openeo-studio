@@ -41,6 +41,7 @@ function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
     time: config.temporalRange || [],
     boundingBox,
     cloudCover: config.cloudCover,
+    propertyFilters: config.propertyFilters || [],
     ...(config.algorithmParams || {})
   };
 

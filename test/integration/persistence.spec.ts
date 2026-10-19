@@ -133,6 +133,30 @@ test.describe('Persistence', () => {
 
       expect(cloudCoverAfter).toBe(cloudCoverValue);
     });
+
+    test('disabled cloud cover filter persists across page reloads', async ({
+      authenticatedPage
+    }) => {
+      await authenticatedPage.goto('/editor');
+
+      const configTab = authenticatedPage.getByRole('tab', {
+        name: /configuration/i
+      });
+      await configTab.click();
+
+      const filterSwitch = authenticatedPage.getByRole('checkbox', {
+        name: /filter by cloud cover/i
+      });
+      await expect(filterSwitch).toBeChecked();
+      await authenticatedPage.getByText(/filter by cloud cover/i).click();
+      await expect(filterSwitch).not.toBeChecked();
+
+      await authenticatedPage.reload();
+      await authenticatedPage.waitForURL('/editor');
+
+      await configTab.click();
+      await expect(filterSwitch).not.toBeChecked();
+    });
   });
 
   test.describe('Scene Management', () => {

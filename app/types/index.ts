@@ -19,6 +19,8 @@ export interface SampleScene {
   temporalRange: [string, string];
   boundingBox?: [number, number, number, number];
   cloudCover?: number;
+  /** Additional property filters on collection queryables */
+  propertyFilters?: PropertyFilter[];
 
   /** Algorithm defaults (feed editor) */
   suggestedAlgorithm: string;
@@ -44,6 +46,20 @@ export interface BandVariable {
   wavelength?: string;
 }
 
+/** Comparison operators available for a `load_collection` property filter. */
+export type PropertyFilterOperator = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
+
+/**
+ * A `load_collection` property filter on a collection queryable, e.g.
+ * `{ property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }`.
+ * Cloud cover is not part of these filters: it has its own `cloudCover` field.
+ */
+export interface PropertyFilter {
+  property: string;
+  operator: PropertyFilterOperator;
+  value: number | string | boolean;
+}
+
 /**
  * Runtime execution configuration for Python script parameter injection.
  * Derived from Scene configuration, STAC metadata, and user selections.
@@ -57,6 +73,8 @@ export interface ExecutionConfig {
   boundingBox?: [number, number, number, number];
   /** Cloud cover percentage */
   cloudCover?: number;
+  /** Additional property filters on collection queryables */
+  propertyFilters?: PropertyFilter[];
   /** User-selected bands in order for data[] array */
   selectedBands?: string[];
   /** Optional algorithm-specific parameters */

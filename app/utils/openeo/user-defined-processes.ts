@@ -4,7 +4,11 @@
  */
 import { isEqual } from 'lodash-es';
 import { appConfig } from '$config/runtime';
-import type { UserDefinedProcess } from '$types';
+import type {
+  PropertyFilter,
+  PropertyFilterOperator,
+  UserDefinedProcess
+} from '$types';
 import type {
   ProcessGraph,
   ProcessNode,
@@ -88,6 +92,7 @@ export interface DerivedProjectConfig {
   collectionId?: string;
   temporalRange?: [string, string];
   cloudCover?: number;
+  propertyFilters?: PropertyFilter[];
   selectedBands?: string[];
   boundingBox?: [number, number, number, number];
 }
@@ -112,6 +117,61 @@ export function findLoadCollectionId(
     }
   }
   return undefined;
+}
+
+const PROPERTY_FILTER_OPERATORS: PropertyFilterOperator[] = [
+  'lt',
+  'lte',
+  'gt',
+  'gte',
+  'eq',
+  'neq'
+];
+
+/**
+ * Reverse-derives the additional property filters from the load_collection
+ * `properties` argument. Mirrors loader.py: each filter is a single
+ * `<operator>(value, <parameter>)` node, and the parameter holds the value.
+ * Cloud cover is skipped: it is read from `cloud_cover_max`.
+ */
+function findPropertyFilters(
+  processGraph: ProcessGraph | undefined,
+  parameters: ProcessParameter[] | undefined
+): PropertyFilter[] {
+  const loadNode = Object.values(processGraph ?? {}).find(
+    (node) => node.process_id === 'load_collection'
+  );
+  const properties = loadNode?.arguments.properties;
+  if (
+    !properties ||
+    typeof properties !== 'object' ||
+    Array.isArray(properties)
+  ) {
+    return [];
+  }
+
+  const filters: PropertyFilter[] = [];
+  for (const [property, condition] of Object.entries(properties)) {
+    if (property === 'eo:cloud_cover') continue;
+    const nodes = Object.values(
+      (condition as { process_graph?: ProcessGraph })?.process_graph ?? {}
+    );
+    if (nodes.length !== 1) continue;
+    const operator = nodes[0].process_id as PropertyFilterOperator;
+    const y = nodes[0].arguments.y as { from_parameter?: string } | undefined;
+    const value = y?.from_parameter
+      ? findParameterDefault(parameters, y.from_parameter)
+      : undefined;
+    if (
+      PROPERTY_FILTER_OPERATORS.includes(operator) &&
+      (typeof value === 'number' ||
+        typeof value === 'string' ||
+        typeof value === 'boolean')
+    ) {
+      filters.push({ property, operator, value });
+    }
+  }
+  return filters;
 }
 
 /**
@@ -155,6 +215,14 @@ export function deriveConfigFromProject(
   );
   if (typeof cloudCover === 'number') {
     config.cloudCover = cloudCover;
+  }
+
+  const propertyFilters = findPropertyFilters(
+    project.process_graph,
+    project.parameters
+  );
+  if (propertyFilters.length > 0) {
+    config.propertyFilters = propertyFilters;
   }
 
   const boundingBox = findParameterDefault(
