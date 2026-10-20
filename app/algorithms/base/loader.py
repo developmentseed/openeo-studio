@@ -13,6 +13,7 @@ from openeo.rest.datacube import DataCube
 from openeo.rest.result import SaveResult
 from openeo.processes import array_create, absolute, and_, clip, if_, linear_scale_range, process, sqrt
 from openeo.api.process import Parameter
+from openeo.metadata import CollectionMetadata
 
 # Initialize parameters with run configuration
 # These will be populated from ExecutionConfig at runtime
@@ -91,7 +92,17 @@ if properties:
 # Load collection with parameterized configuration
 graph = PGNode("load_collection", **load_collection_args)
 
-datacube = DataCube(graph=graph)
+# What load_collection loads, so the client's band helpers (`.band()`,
+# `filter_bands`) name the backend's own bands dimension and know the bands.
+# Studio narrows the bands dimension to the configured bands, in order.
+cube_dimensions = RUN_CONFIG.get("cubeDimensions")
+metadata = (
+    CollectionMetadata({"id": default_collection_id, "cube:dimensions": cube_dimensions})
+    if cube_dimensions
+    else None
+)
+
+datacube = DataCube(graph=graph, metadata=metadata)
 
 # Collection for multiple graph outputs
 map_graphs = []
@@ -117,6 +128,96 @@ def add_graph_to_map(graph: PGNode, name: str = None) -> SaveResult:
         "visible": True
     })
     return SaveResult(graph)
+
+
+def _squashed(identifier):
+    return "".join(c for c in str(identifier).lower() if c.isalnum())
+
+
+def _handles_time(node):
+    """Whether a process graph aggregates or reduces over time anywhere."""
+    if isinstance(node, dict):
+        if str(node.get("process_id", "")).startswith("aggregate_temporal"):
+            return True
+        if node.get("dimension") in ("t", "time", "temporal"):
+            return True
+        return any(_handles_time(value) for value in node.values())
+    if isinstance(node, list):
+        return any(_handles_time(value) for value in node)
+    return False
+
+
+def algorithm(url: str, **values):
+    """A published openEO process graph (a user-defined process, by URL) run on
+    this project's data. Its load_collection nodes take the collection, area,
+    time and property filters configured here; its other parameters take ``values``,
+    or their defaults. The result is a cube to scale and save like any other.
+    """
+    import copy
+    import json as _json
+
+    try:
+        from pyodide.http import open_url
+    except ImportError:  # outside the browser
+        from urllib.request import urlopen as open_url
+    udp = _json.loads(open_url(url).read())
+    graph = copy.deepcopy(udp["process_graph"])
+    # What each of the UDP's own parameters becomes: a value given here, this
+    # project's area or time for one typed as such, else its default.
+    substitutes = {}
+    unresolved = []
+    for parameter in udp.get("parameters", []):
+        name, schema = parameter["name"], parameter.get("schema") or {}
+        subtypes = {s.get("subtype") for s in (schema if isinstance(schema, list) else [schema])}
+        if name in values:
+            substitutes[name] = values[name]
+        elif "bounding-box" in subtypes:
+            substitutes[name] = {"from_parameter": "bounding_box"}
+        elif "temporal-interval" in subtypes:
+            substitutes[name] = {"from_parameter": "time"}
+        elif "default" in parameter:
+            substitutes[name] = parameter["default"]
+        else:
+            unresolved.append(name)
+
+    def resolve(node):
+        if isinstance(node, dict):
+            if node.get("from_parameter") in substitutes:
+                return substitutes[node["from_parameter"]]
+            return {k: resolve(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [resolve(v) for v in node]
+        return node
+
+    for node in graph.values():
+        if node["process_id"] == "load_collection":
+            arguments = node["arguments"]
+            same = _squashed(arguments.get("id", "")) == _squashed(default_collection_id)
+            arguments["id"] = default_collection_id if same else arguments.get("id")
+            arguments["spatial_extent"] = {"from_parameter": "bounding_box"}
+            arguments["temporal_extent"] = {"from_parameter": "time"}
+            if same and properties:
+                arguments["properties"] = properties
+            elif same:
+                arguments.pop("properties", None)
+        node["arguments"] = resolve(node["arguments"])
+    # A graph that leaves time alone would read every scene in the dates for
+    # every tile, and a map shows one image anyway: take the first clear
+    # pixel at each load, as `reduced` does.
+    if not _handles_time(graph):
+        loads = [key for key, node in graph.items() if node["process_id"] == "load_collection"]
+        for node in graph.values():
+            for argument, value in node["arguments"].items():
+                if isinstance(value, dict) and value.get("from_node") in loads:
+                    node["arguments"][argument] = {"from_node": value["from_node"] + "_first"}
+        for key in loads:
+            graph[key + "_first"] = {
+                "process_id": "apply_pixel_selection",
+                "arguments": {"data": {"from_node": key}, "pixel_selection": "first"},
+            }
+    if unresolved:
+        raise ValueError(f"{url} needs values for {sorted(unresolved)}: algorithm(url, name=value)")
+    return DataCube(graph=PGNode.from_flat_graph(graph, parameters={p.name: p for p in parameters}))
 
 
 reduced = datacube.process(
