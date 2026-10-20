@@ -18,7 +18,7 @@ import {
   type AgentEvent,
   type StudioStateDocument
 } from '$types/agent';
-import type { ProcessParameter } from '$types/openeo-process';
+import type { OpenEOJsonSchema, ProcessParameter } from '$types/openeo-process';
 
 /** Lines `start_line`..`end_line` (1-based, inclusive) become `replace`. */
 export interface CodeEdit {
@@ -108,6 +108,10 @@ export async function runAgent(
   });
 }
 
+/** One band name, in openEO's terms; JSON Schema's own `items` type has no
+ * `subtype`, so it is declared with the openEO one. */
+const BAND_NAME: OpenEOJsonSchema = { type: 'string', subtype: 'band-name' };
+
 /**
  * The configuration as the parameters `app/algorithms/base/loader.py`
  * declares: the same names, and the shapes of their openEO subtypes. The
@@ -137,10 +141,7 @@ export function projectParameters(
     {
       name: 'bands',
       description: 'The bands to load, in order.',
-      schema: {
-        type: 'array',
-        items: { type: 'string', subtype: 'band-name' }
-      },
+      schema: { type: 'array', items: BAND_NAME },
       optional: true,
       default: config.selectedBands
     },
