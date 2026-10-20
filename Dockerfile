@@ -39,6 +39,7 @@ ENV OPENEO_API_URL=https://api.explorer.eopf.copernicus.eu/openeo \
     AUTH_REDIRECT_URI= \
     ENABLE_NARRATIVE_EXPORT=false \
     PARTNER_LOGO_URL= \
-    PARTNER_NAME=
+    PARTNER_NAME= \
+    AGENT_URL=
 
 EXPOSE 8080
