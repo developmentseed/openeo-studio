@@ -6,6 +6,7 @@ import { join } from 'node:path';
 
 import {
   buildAgentDocs,
+  isAgentDocPath,
   resolveAgentDocsValues
 } from '../../vite/plugins/agent-docs';
 import { SAMPLE_SCENES_META } from '$config/sample-scenes-meta';
@@ -98,5 +99,13 @@ describe('agent docs', () => {
     for (const sample of SAMPLE_SCENES_META) {
       expect(() => read(`app/algorithms/${sample.algorithm}`)).not.toThrow();
     }
+  });
+
+  it('serves in dev only the paths of the documents', () => {
+    for (const file of Object.keys(docs)) {
+      expect(isAgentDocPath(file)).toBe(true);
+    }
+    expect(isAgentDocPath('app/main.tsx')).toBe(false);
+    expect(isAgentDocPath('@vite/client')).toBe(false);
   });
 });

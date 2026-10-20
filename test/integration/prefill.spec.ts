@@ -20,20 +20,33 @@ test.describe('Prefill link', () => {
   test('loads the sample, shows a warning, and does not run it', async ({
     authenticatedPage: page
   }) => {
-    const serviceCalls: string[] = [];
-    // Only the openEO API path, not the dev server modules (services.ts).
-    const isServicesApi = (url: URL) =>
-      /\/services(\/[^/.]+)?$/.test(url.pathname);
-    await page.route(isServicesApi, async (route) => {
-      if (route.request().method() !== 'GET') {
-        serviceCalls.push(route.request().method());
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ services: [] })
-      });
+    // Record each script that Python runs. The fixture mocks Pyodide, so a
+    // run fails before it sends a request: the scripts are the only proof.
+    await page.addInitScript(() => {
+      const w = window as unknown as {
+        __pythonScripts: string[];
+        loadPyodide: (options: object) => Promise<{
+          runPythonAsync: (code: string) => Promise<unknown>;
+        }>;
+      };
+      w.__pythonScripts = [];
+      const load = w.loadPyodide;
+      w.loadPyodide = async (options) => {
+        const pyodide = await load(options);
+        const run = pyodide.runPythonAsync;
+        pyodide.runPythonAsync = async (code) => {
+          w.__pythonScripts.push(code);
+          return run(code);
+        };
+        return pyodide;
+      };
     });
+    const scriptsWithSample = () =>
+      page.evaluate(() =>
+        (
+          window as unknown as { __pythonScripts: string[] }
+        ).__pythonScripts.filter((code) => code.includes('prefill marker'))
+      );
 
     await page.goto(`/editor?sample=${encode(SAMPLE)}`);
 
@@ -50,9 +63,16 @@ test.describe('Prefill link', () => {
     // The query is removed, so a reload keeps the edits of the user.
     await expect(page).toHaveURL(/\/editor$/);
 
-    // Give a possible auto-run the time to start.
+    // Python is ready when Save is enabled. Give an auto-run the time to
+    // start, then check that no script had the code of the sample.
+    const save = page.getByRole('button', { name: /^Save/ });
+    await expect(save).toBeEnabled({ timeout: 15000 });
     await page.waitForTimeout(3000);
-    expect(serviceCalls).toEqual([]);
+    expect(await scriptsWithSample()).toEqual([]);
+
+    // Control: Save runs the code, so the recorder works.
+    await save.click();
+    await expect.poll(async () => (await scriptsWithSample()).length).toBe(1);
   });
 
   test('shows an error for a sample that is not valid', async ({

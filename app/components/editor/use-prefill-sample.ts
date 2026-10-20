@@ -25,7 +25,7 @@ export type PrefillState =
 /**
  * Loads a sample from `?sample=` or `?sampleUrl=` into the editor store, as
  * a new unsaved project. It never runs the code: the user must read it and
- * click Run. The query is removed after the load, so that a reload does not
+ * click Save, which runs and saves it. The query is removed after the load, so that a reload does not
  * replace the edits of the user.
  */
 export function usePrefillSample(enabled: boolean) {
@@ -38,14 +38,28 @@ export function usePrefillSample(enabled: boolean) {
   const url = searchParams.get(SAMPLE_URL_PARAM);
 
   useEffect(() => {
-    if (!enabled || (!encoded && !url)) return;
+    if (!enabled || (!encoded && !url)) {
+      // The query went away during a load (for example "New project"). Keep
+      // a loaded or error state: the query is also removed after a load.
+      setState((current) =>
+        current.status === 'loading' ? { status: 'none' } : current
+      );
+      return;
+    }
 
     let cancelled = false;
     setState({ status: 'loading' });
 
+    // The same precedence as readSamplePrefill: the inline sample wins, so
+    // the source of the code is never a URL that was not fetched.
     const params = new URLSearchParams();
-    if (encoded) params.set(SAMPLE_PARAM, encoded);
-    else if (url) params.set(SAMPLE_URL_PARAM, url);
+    let source = 'the link';
+    if (encoded) {
+      params.set(SAMPLE_PARAM, encoded);
+    } else if (url) {
+      params.set(SAMPLE_URL_PARAM, url);
+      source = url;
+    }
 
     readSamplePrefill(params)
       .then((sample) => {
@@ -64,7 +78,7 @@ export function usePrefillSample(enabled: boolean) {
         setSceneName(name);
         setState({
           status: 'loaded',
-          source: url ? new URL(url).host : 'the link',
+          source: source === 'the link' ? source : new URL(source).host,
           collectionId: sample.collectionId,
           bands: sample.bands
         });

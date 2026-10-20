@@ -8,6 +8,33 @@
  * `scripts/generate-sample-schema.mjs` writes the JSON Schema of this type.
  * Studio publishes the schema at `agents/sample.schema.json`.
  */
+/**
+ * A date, `YYYY-MM-DD`.
+ *
+ * @pattern ^\d{4}-\d{2}-\d{2}$
+ */
+export type SampleDate = string;
+
+/**
+ * A band name of the collection, for example `B04` or
+ * `reflectance|bands=b04`.
+ *
+ * @minLength 1
+ */
+export type SampleBand = string;
+
+/**
+ * @minimum -180
+ * @maximum 180
+ */
+export type SampleLongitude = number;
+
+/**
+ * @minimum -90
+ * @maximum 90
+ */
+export type SampleLatitude = number;
+
 export interface SamplePrefill {
   /** The JSON Schema of this document. Studio ignores it. */
   $schema?: string;
@@ -29,16 +56,24 @@ export interface SamplePrefill {
    */
   collectionId: string;
   /** Start and end date, `YYYY-MM-DD`. */
-  temporalRange: [string, string];
+  temporalRange: [SampleDate, SampleDate];
   /**
    * The band ids of the collection, for example `reflectance|bands=b04`.
    * The script reads `data[i]` in this order.
    *
    * @minItems 1
    */
-  bands: string[];
-  /** west, south, east, north in EPSG:4326 degrees. */
-  boundingBox?: [number, number, number, number];
+  bands: SampleBand[];
+  /**
+   * west, south, east, north in EPSG:4326 degrees. Longitudes are from -180
+   * to 180, latitudes from -90 to 90, and south is not more than north.
+   */
+  boundingBox?: [
+    SampleLongitude,
+    SampleLatitude,
+    SampleLongitude,
+    SampleLatitude
+  ];
   /**
    * The maximum cloud cover in percent. The default is 100.
    *

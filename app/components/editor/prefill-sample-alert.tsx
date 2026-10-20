@@ -62,7 +62,7 @@ export function PrefillSampleAlert({
           <Alert.Description>
             {isError
               ? state.message
-              : 'Read the code before you click Run. The code runs in your browser, in your session.'}
+              : 'Read the code before you click Save. Save runs the code in your browser, in your session, and saves the project to your account.'}
             {state.status === 'loaded' && missing.length > 0 && (
               <Text mt={1}>
                 The collection <Code size='sm'>{state.collectionId}</Code> has

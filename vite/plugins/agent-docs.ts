@@ -106,7 +106,7 @@ function llmsTxt(v: AgentDocsValues): string {
 
 > ${v.description}. openEO Studio is a web editor: the user writes openEO Python client code, Studio runs it in the browser (Pyodide) and shows the result as map tiles. This deployment uses the openEO backend at ${v.openeoApiUrl}.
 
-To give a user a ready sample: start from the sample that is nearest to the request, change the code and the configuration, and give the user a prefill link (\`${u}/editor?sample=…\`). The user must log in, read the code, and click Run. Studio never runs a sample from a link on its own.
+To give a user a ready sample: start from the sample that is nearest to the request, change the code and the configuration, and give the user a prefill link (\`${u}/editor?sample=…\`). The user must log in, read the code, and click Save. Save runs the code and saves the project to the account of the user. Studio never runs a sample from a link on its own.
 
 Band names and the band dimension name are different on each backend. Get them from \`${v.openeoApiUrl}/collections/{collectionId}\` before you write a sample. Read [backend.md](${u}/agents/backend.md).
 
@@ -277,7 +277,7 @@ function prefillMd(v: AgentDocsValues): string {
   const u = v.rootUrl;
   return `# Prefill link
 
-A prefill link opens the editor with your code and your configuration. Studio loads it as a new project that is not saved. Studio does not run it: the user reads the code and clicks Run.
+A prefill link opens the editor with your code and your configuration. Studio loads it as a new project that is not saved. Studio does not run it: the user reads the code and clicks Save. Save runs the code, shows the layers, and saves the project to the account of the user.
 
 ## 1. Write the sample
 
@@ -328,8 +328,7 @@ ${u}/editor?sampleUrl=<URL-encoded https URL>
 ## 3. Tell the user
 
 - They must log in. The link opens after the login.
-- They must read the code, then click Run.
-- They can save the project to keep it.
+- They must read the code, then click Save. Save runs the code and saves the project to their account.
 `;
 }
 
@@ -417,6 +416,16 @@ const CONTENT_TYPES: Record<string, string> = {
   '.json': 'application/json; charset=utf-8'
 };
 
+/** True for a path that buildAgentDocs can write. */
+export function isAgentDocPath(file: string): boolean {
+  return (
+    file === 'llms.txt' ||
+    file === 'llms-full.txt' ||
+    file === '.well-known/openeo-studio.json' ||
+    file.startsWith('agents/')
+  );
+}
+
 export function agentDocs(options: {
   rootDir: string;
   values: AgentDocsValues;
@@ -434,6 +443,8 @@ export function agentDocs(options: {
         const pathname = (req.url ?? '').split('?')[0];
         if (!pathname.startsWith(`${base}/`)) return next();
         const file = pathname.slice(base.length + 1);
+        // Build the documents only for a document path, not for each module.
+        if (!isAgentDocPath(file)) return next();
         const docs = build();
         if (!(file in docs)) return next();
         res.setHeader(

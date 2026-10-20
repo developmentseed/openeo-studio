@@ -14,7 +14,8 @@ export const MAX_CODE_LENGTH = 100000;
 
 export class SamplePrefillError extends Error {}
 
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** The same pattern as `SampleDate` in the schema. */
+export const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Encodes a sample as base64url of its UTF-8 JSON. */
 export function encodeSamplePrefill(sample: SamplePrefill): string {
@@ -68,7 +69,7 @@ export function validateSamplePrefill(value: unknown): SamplePrefill {
   if (
     !Array.isArray(range) ||
     range.length !== 2 ||
-    !range.every((date) => typeof date === 'string' && DATE.test(date))
+    !range.every((date) => typeof date === 'string' && DATE_PATTERN.test(date))
   ) {
     fail('"temporalRange" must be two dates, YYYY-MM-DD.');
   }
@@ -88,6 +89,16 @@ export function validateSamplePrefill(value: unknown): SamplePrefill {
       !bbox.every((n) => typeof n === 'number' && Number.isFinite(n))
     ) {
       fail('"boundingBox" must be four numbers: west, south, east, north.');
+    }
+    const [west, south, east, north] = bbox as number[];
+    if ([west, east].some((lon) => lon < -180 || lon > 180)) {
+      fail('"boundingBox" longitudes must be from -180 to 180.');
+    }
+    if ([south, north].some((lat) => lat < -90 || lat > 90)) {
+      fail('"boundingBox" latitudes must be from -90 to 90.');
+    }
+    if (south > north) {
+      fail('"boundingBox" south must not be more than north.');
     }
   }
   const cloudCover = sample.cloudCover;
