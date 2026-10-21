@@ -218,7 +218,14 @@ export function AssistantTab({
               status: 'pending' as const,
               held: true
             };
-            if (item.name === 'propose_code_edit') {
+            // Only a proposal the toolset took becomes a card; one it refused
+            // (bad line numbers, code that won't run) is retried by the model.
+            // ponytail: "Proposed" is the toolset's success wording; a
+            // structured result would say it without the prose.
+            if (
+              item.name === 'propose_code_edit' &&
+              event.content.startsWith('Proposed')
+            ) {
               const { edits, rationale } = JSON.parse(item.args);
               const base = sentCode.current;
               const change = { kind: 'code' as const, edits, base };
@@ -235,8 +242,6 @@ export function AssistantTab({
               algorithmProposed.current = true;
               return [finished];
             }
-            // ponytail: the toolset's own success wording marks an accepted
-            // proposal; a structured result would say it without the prose.
             if (
               item.name === 'propose_configuration' &&
               event.content.startsWith('Proposed')
