@@ -108,4 +108,20 @@ describe('agent docs', () => {
     expect(isAgentDocPath('app/main.tsx')).toBe(false);
     expect(isAgentDocPath('@vite/client')).toBe(false);
   });
+
+  it('says that reflectance is from 0 to 1, with the source', () => {
+    const contract = docs['agents/script-contract.md'];
+    expect(contract).toContain('## Data values');
+    expect(contract).toContain('reflectance is from 0 to 1');
+    expect(contract).toContain('0009-scale-offset-sources.md');
+    expect(docs['llms.txt']).toContain('Reflectance is from 0 to 1');
+  });
+
+  it('explains how to size the area and the dates', () => {
+    const prefill = docs['agents/prefill.md'];
+    expect(prefill).toContain('## Area and dates');
+    expect(prefill).toContain('NoDataAvailable');
+    expect(prefill).toContain('ItemsLimitExceeded');
+    expect(docs['llms.txt']).toContain('prefill.md#area-and-dates');
+  });
 });
