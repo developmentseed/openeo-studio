@@ -1,4 +1,4 @@
-import { Alert, ProgressCircle, Box } from '@chakra-ui/react';
+import { Alert, ProgressCircle, Box, Text } from '@chakra-ui/react';
 import type { TileLoadStatus } from './use-map-tile-status';
 
 interface TileStatusAlertProps {
@@ -7,6 +7,29 @@ interface TileStatusAlertProps {
 
 export function TileStatusAlert({ status }: TileStatusAlertProps) {
   if (status.status === 'idle') return null;
+
+  if (status.status === 'error' && status.error) {
+    const { error, failed = 1 } = status;
+    return (
+      <Box position='absolute' left={4} right={4} bottom={4} zIndex={10}>
+        <Alert.Root status='error' variant='subtle' size='sm' maxW='lg'>
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>
+              {failed > 1 ? `${failed} tiles failed` : 'A tile failed'}:{' '}
+              {error.code}
+            </Alert.Title>
+            <Alert.Description>
+              {error.advice && <Text>{error.advice}</Text>}
+              <Text fontSize='xs' color='fg.muted' wordBreak='break-word'>
+                {error.message}
+              </Text>
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      </Box>
+    );
+  }
 
   const isLoading = status.status === 'loading';
   const alertStatus = isLoading ? 'info' : 'warning';
@@ -26,7 +49,7 @@ export function TileStatusAlert({ status }: TileStatusAlertProps) {
         </Alert.Indicator>
         <Alert.Content>
           <Alert.Title>
-            {isLoading ? 'Loading...' : 'No tiles returned for this view'}
+            {isLoading ? 'Processing…' : 'No tiles returned for this view'}
           </Alert.Title>
         </Alert.Content>
       </Alert.Root>
