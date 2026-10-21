@@ -152,14 +152,16 @@ export function PropertyFilters({
                 <LuX />
               </IconButton>
             </Flex>
-            {kind === 'number' && typeof filter.value === 'number' && (
-              <FilterValueSlider
-                property={filter.property}
-                schema={schema}
-                value={filter.value}
-                onChange={(value) => updateFilter(index, { value })}
-              />
-            )}
+            {kind === 'number' &&
+              !schema.enum?.length &&
+              typeof filter.value === 'number' && (
+                <FilterValueSlider
+                  property={filter.property}
+                  schema={schema}
+                  value={filter.value}
+                  onChange={(value) => updateFilter(index, { value })}
+                />
+              )}
           </VStack>
         );
       })}

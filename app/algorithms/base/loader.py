@@ -73,12 +73,15 @@ def property_parameter_name(property_name: str) -> str:
 # One parameter per filter, so services can override the value
 properties = {}
 ALLOWED_OPERATORS = {"lt", "lte", "gt", "gte", "eq", "neq"}
-for property_filter in default_property_filters:
+for index, property_filter in enumerate(default_property_filters):
     property_name = property_filter["property"]
     operator = property_filter["operator"]
     if property_name in properties or operator not in ALLOWED_OPERATORS:
         continue
     parameter_name = property_parameter_name(property_name)
+    # Distinct properties can give the same name (`a:b` and `a_b`)
+    if any(parameter.name == parameter_name for parameter in parameters):
+        parameter_name = f"{parameter_name}_{index}"
     parameters.append(Parameter(parameter_name, default=property_filter["value"], optional=True))
     properties[property_name] = property_condition(operator, parameter_name)
 
