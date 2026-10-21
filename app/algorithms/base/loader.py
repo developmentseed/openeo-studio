@@ -92,12 +92,21 @@ if properties:
 # Load collection with parameterized configuration
 graph = PGNode("load_collection", **load_collection_args)
 
+class _BandsOnlyMetadata(CollectionMetadata):
+    """Metadata that names the bands, and leaves every other dimension name in
+    the user's code to the backend, as it did without metadata: code written
+    for one backend's names (`"bands"`, `"t"`) still builds on another."""
+
+    def assert_valid_dimension(self, dimension: str) -> str:
+        return dimension
+
+
 # What load_collection loads, so the client's band helpers (`.band()`,
 # `filter_bands`) name the backend's own bands dimension and know the bands.
 # Studio narrows the bands dimension to the configured bands, in order.
 cube_dimensions = RUN_CONFIG.get("cubeDimensions")
 metadata = (
-    CollectionMetadata({"id": default_collection_id, "cube:dimensions": cube_dimensions})
+    _BandsOnlyMetadata({"id": default_collection_id, "cube:dimensions": cube_dimensions})
     if cube_dimensions
     else None
 )
