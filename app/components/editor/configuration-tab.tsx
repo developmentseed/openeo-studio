@@ -35,7 +35,7 @@ export function ConfigurationTab() {
     [collection]
   );
 
-  const queryables = useCollectionQueryables(selectedConfig.collectionId);
+  const { queryables } = useCollectionQueryables(selectedConfig.collectionId);
   const propertyFilters = selectedConfig.propertyFilters ?? [];
 
   return (

@@ -44,7 +44,10 @@ function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
     ...(config.algorithmParams || {})
   };
 
-  const runConfigCode = `RUN_CONFIG = ${JSON.stringify(runConfig)}`;
+  // Parse the configuration as JSON: a JSON literal is not always valid
+  // Python (`true`, `false` and `null` are not).
+  const runConfigCode = `import json
+RUN_CONFIG = json.loads(${JSON.stringify(JSON.stringify(runConfig))})`;
 
   return `${runConfigCode}
 

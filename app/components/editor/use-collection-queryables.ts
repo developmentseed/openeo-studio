@@ -6,12 +6,13 @@ import {
 } from '$utils/openeo/queryables';
 
 /**
- * Returns the queryables of the collection. Returns `null` while loading, and
- * when the backend has no queryables endpoint.
+ * Returns the queryables of the collection. `queryables` is `null` while
+ * loading (`isLoading`), and when the backend has no queryables endpoint.
  */
-export function useCollectionQueryables(
-  collectionId: string
-): CollectionQueryables | null {
+export function useCollectionQueryables(collectionId: string): {
+  queryables: CollectionQueryables | null;
+  isLoading: boolean;
+} {
   const [result, setResult] = useState<{
     collectionId: string;
     queryables: CollectionQueryables | null;
@@ -27,5 +28,6 @@ export function useCollectionQueryables(
     };
   }, [collectionId]);
 
-  return result?.collectionId === collectionId ? result.queryables : null;
+  const isLoading = result?.collectionId !== collectionId;
+  return { queryables: isLoading ? null : result.queryables, isLoading };
 }
