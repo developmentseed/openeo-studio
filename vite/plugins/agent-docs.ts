@@ -142,7 +142,7 @@ function scriptContractMd(v: AgentDocsValues, loaderScript: string): string {
 
 Studio does not run your script alone. It runs this program in the browser (Pyodide, openEO Python client \`openeo<0.50\`):
 
-1. \`RUN_CONFIG = {...}\`: the configuration of the project (collection, dates, bands, bounding box, cloud cover).
+1. \`RUN_CONFIG = json.loads(...)\`: the configuration of the project (collection, dates, bands, bounding box, property filters such as cloud cover).
 2. \`loader.py\` (below).
 3. Your script.
 
@@ -150,10 +150,10 @@ Studio does not run your script alone. It runs this program in the browser (Pyod
 
 | Name | What it is |
 | --- | --- |
-| \`datacube\` | A \`DataCube\` from \`load_collection\` with the configured collection, dates, bands, bounding box and cloud-cover filter. |
+| \`datacube\` | A \`DataCube\` from \`load_collection\` with the configured collection, dates, bands, bounding box and property filters. |
 | \`reduced\` | \`datacube\` after \`apply_pixel_selection(pixel_selection="first")\`: one time step, no time dimension. Start from this one for a map. |
 | \`add_graph_to_map(graph, name)\` | Adds a result to the map as a layer. Call it one time for each layer. |
-| \`parameters\` | The openEO \`Parameter\` objects \`time\`, \`bounding_box\`, \`bands\`, \`cloud_cover_max\`. |
+| \`parameters\` | The openEO \`Parameter\` objects \`time\`, \`bounding_box\`, \`bands\`, and one \`filter_<property>\` for each property filter (for example \`filter_eo_cloud_cover\`). |
 | \`array_create\`, \`absolute\`, \`and_\`, \`clip\`, \`if_\`, \`linear_scale_range\`, \`process\`, \`sqrt\` | Imported from \`openeo.processes\`. |
 
 ## Rules
@@ -226,7 +226,7 @@ ${sample.description}
 - Collection: \`${sample.collectionId}\`
 - Dates: ${sample.temporalRange.join(' to ')}
 - Bounding box (west, south, east, north): ${bbox}
-- Cloud cover max: ${sample.cloudCover ?? 100} %
+- Cloud cover max: ${sample.cloudCover !== undefined ? `${sample.cloudCover} %` : 'no filter'}
 - Bands, in order: ${sample.defaultBands.map((b) => `\`${b}\``).join(', ')}
 `;
   });
@@ -281,7 +281,7 @@ Studio removes each configured band that the collection does not have, and the c
 
 ## Other notes for Studio
 
-- Studio filters the items with \`eo:cloud_cover < cloud_cover_max\`.
+- Studio filters the items with the property filters of the project. A sample with \`cloudCover\` gets \`eo:cloud_cover < cloudCover\`. A sample without \`cloudCover\` gets no cloud cover filter: use this for collections without \`eo:cloud_cover\` (Sentinel-1, DEMs).
 - The dates of a sample must be in the temporal extent of the collection (\`extent.temporal.interval\`). Use dates for which the collection has data.
 - The user logs in with the provider from \`/credentials/oidc\`. A link that you give opens after the login.
 `;
@@ -316,7 +316,7 @@ The sample is a JSON document. The schema is [sample.schema.json](sample.schema.
 | \`temporalRange\` | yes | Two dates, \`YYYY-MM-DD\`. |
 | \`bands\` | yes | Band names of the collection, exactly as the collection writes them (read [backend.md](backend.md)). The script reads \`data[i]\` in this order. |
 | \`boundingBox\` | no | west, south, east, north, in degrees (EPSG:4326). |
-| \`cloudCover\` | no | Maximum cloud cover, 0 to 100. The default is 100. |
+| \`cloudCover\` | no | Maximum cloud cover, 0 to 100. Without it, there is no cloud cover filter. Leave it out for collections without \`eo:cloud_cover\` (Sentinel-1, DEMs). |
 | \`name\` | no | The project name. |
 
 ## Area and dates

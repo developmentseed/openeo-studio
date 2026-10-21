@@ -75,7 +75,8 @@ export interface SamplePrefill {
     SampleLatitude
   ];
   /**
-   * The maximum cloud cover in percent. The default is 100.
+   * The maximum cloud cover in percent (filter `eo:cloud_cover < cloudCover`).
+   * Without it, there is no cloud cover filter.
    *
    * @minimum 0
    * @maximum 100
