@@ -361,6 +361,12 @@ export function AssistantTab({
       changes.flatMap((change) => change.edits)
     );
     if (after === null) return false;
+    // Into the editor as well as the store: the run reads the editor, and
+    // the editor's own sync from the store runs only after the effect that
+    // saves an accepted change.
+    editor?.dispatch({
+      changes: { from: 0, to: editor.state.doc.length, insert: after }
+    });
     setCode(after);
     return true;
   };
