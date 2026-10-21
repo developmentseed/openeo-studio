@@ -15,8 +15,12 @@ export type TileLoadStatus = {
 interface UseMapTileStatusOptions {
   mapRef: RefObject<MapRef | null>;
   isMapReady: boolean;
+  /** The number of visible services. Each one has a tile source. */
   serviceCount: number;
-  /** The ids of the services. A new run starts with no tile error. */
+  /**
+   * The ids of the visible services. When it changes (a new run, a layer
+   * hidden or shown), the status starts again with no tile error.
+   */
   serviceKey?: string;
   onStatusChange?: (status: TileLoadStatus) => void;
 }
@@ -29,7 +33,11 @@ export function useMapTileStatus({
   onStatusChange
 }: UseMapTileStatusOptions) {
   useEffect(() => {
-    if (!isMapReady || !onStatusChange || serviceCount === 0) return;
+    if (!isMapReady || !onStatusChange) return;
+    // The visible layers changed: an error of a layer that is now hidden or
+    // gone must not stay on the map.
+    onStatusChange({ pending: 0, status: 'idle' });
+    if (serviceCount === 0) return;
     const map = mapRef.current;
     if (!map) return;
 
@@ -40,6 +48,9 @@ export function useMapTileStatus({
     let lastError: TileError | undefined;
     let failedCount = 0;
     let disposed = false;
+    // Counts the views. Reading an error body is async, so a read that ends
+    // after a move belongs to an old view and is ignored.
+    let view = 0;
 
     const updateStatus = (
       pending: number,
@@ -101,8 +112,9 @@ export function useMapTileStatus({
       if (!event.sourceId?.startsWith('service-')) return;
       if (pendingCount > 0) pendingCount--;
       failedCount++;
+      const errorView = view;
       void readAjaxError(event.error).then((response) => {
-        if (disposed) return;
+        if (disposed || errorView !== view) return;
         lastError = response
           ? parseTileError(response.status, response.body)
           : {
@@ -118,6 +130,7 @@ export function useMapTileStatus({
     };
 
     const handleMoveStart = () => {
+      view++;
       pendingCount = 0;
       lastError = undefined;
       failedCount = 0;
