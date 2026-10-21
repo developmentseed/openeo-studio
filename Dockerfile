@@ -33,6 +33,7 @@ ENV OPENEO_API_URL=https://api.explorer.eopf.copernicus.eu/openeo \
     APP_TITLE="openEO Studio" \
     APP_DESCRIPTION="Interactive code editor for openEO satellite imagery processing" \
     MAPTILER_KEY= \
+    BASEMAPS= \
     AUTH_AUTHORITY= \
     AUTH_CLIENT_ID= \
     AUTH_REDIRECT_URI= \
