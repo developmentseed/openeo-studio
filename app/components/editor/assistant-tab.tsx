@@ -26,6 +26,16 @@ import { useCodeEditor } from './code-editor';
 
 const isHeld = (item: Item) => item.kind === 'proposal' && item.held;
 
+/** A tool call's arguments, or null when the model sent malformed JSON: that
+ * proposal is dropped rather than the run. */
+const parsedArgs = (args: string) => {
+  try {
+    return JSON.parse(args);
+  } catch {
+    return null;
+  }
+};
+
 /** Where `propose_algorithm` stores what it proposes, in the agent's state. */
 const ALGORITHM_PROPOSAL = 'openeo-studio/propose_algorithm/proposal';
 
@@ -226,7 +236,9 @@ export function AssistantTab({
               item.name === 'propose_code_edit' &&
               event.content.startsWith('Proposed')
             ) {
-              const { edits, rationale } = JSON.parse(item.args);
+              const args = parsedArgs(item.args);
+              if (!Array.isArray(args?.edits)) return [finished];
+              const { edits, rationale } = args;
               const base = sentCode.current;
               const change = { kind: 'code' as const, edits, base };
               if (applyEdits(base, edits) === null || repeats(change))
@@ -246,7 +258,8 @@ export function AssistantTab({
               item.name === 'propose_configuration' &&
               event.content.startsWith('Proposed')
             ) {
-              const args = JSON.parse(item.args);
+              const args = parsedArgs(item.args);
+              if (!args) return [finished];
               const change = {
                 kind: 'configuration' as const,
                 values: configurationOf(args),
@@ -463,7 +476,11 @@ export function AssistantTab({
           if (item.kind === 'assistant') {
             return item.text ? (
               <Box key={item.id}>
-                <MarkdownRenderer>{item.text}</MarkdownRenderer>
+                {/* No images: a URL the model writes, perhaps from text it read
+                    in a catalogue, would load and could carry data out. */}
+                <MarkdownRenderer disallowedElements={['img']}>
+                  {item.text}
+                </MarkdownRenderer>
               </Box>
             ) : null;
           }
