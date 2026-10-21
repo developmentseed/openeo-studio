@@ -171,6 +171,35 @@ test.describe('Visual tab', () => {
     await expect(canvas.getByText('sentinel-2-l2a')).toBeVisible();
   });
 
+  test('tells the user when no data covers the AOI/TOI', async ({
+    authenticatedPage
+  }) => {
+    // The map only fires `load` once its base style loads. CI has no MapTiler
+    // key, so serve an empty style instead.
+    await authenticatedPage.route('https://api.maptiler.com/**', (route) =>
+      fulfillJson(route, { version: 8, sources: {}, layers: [] })
+    );
+    // Registered after the beforeEach stub, so it takes precedence.
+    await authenticatedPage.route('https://tiles.test/**', (route) =>
+      route.fulfill({
+        status: 404,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: 'NoDataAvailable',
+          message: 'There is no data available for the given extents.'
+        })
+      })
+    );
+
+    await authenticatedPage.goto('/editor/sentinel-2-apa');
+
+    await expect(
+      authenticatedPage.getByText(
+        'No data available for this area and time range'
+      )
+    ).toBeVisible({ timeout: 30_000 });
+  });
+
   test('shows the empty state before any code has run', async ({
     authenticatedPage
   }) => {
