@@ -27,7 +27,7 @@ export function LoginButton(props: LoginButtonProps) {
     if (isLoading) return;
 
     signinRedirect({
-      state: { returnTo: location.pathname }
+      state: { returnTo: location.pathname + location.search }
     });
   };
 

@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "The JSON Schema of this document. Studio ignores it."
+    },
+    "name": {
+      "type": "string",
+      "description": "The project name that the editor shows."
+    },
+    "code": {
+      "type": "string",
+      "description": "The Python script. Studio runs it after `loader.py`, which defines `datacube`, `reduced` and `add_graph_to_map`. Read `agents/script-contract.md`.",
+      "minLength": 1,
+      "maxLength": 100000
+    },
+    "collectionId": {
+      "type": "string",
+      "description": "The id of a collection of the openEO backend.",
+      "minLength": 1
+    },
+    "temporalRange": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/SampleDate" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "Start and end date, `YYYY-MM-DD`."
+    },
+    "bands": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/SampleBand" },
+      "description": "The band ids of the collection, for example `reflectance|bands=b04`. The script reads `data[i]` in this order.",
+      "minItems": 1
+    },
+    "boundingBox": {
+      "type": "array",
+      "minItems": 4,
+      "items": [
+        { "$ref": "#/definitions/SampleLongitude" },
+        { "$ref": "#/definitions/SampleLatitude" },
+        { "$ref": "#/definitions/SampleLongitude" },
+        { "$ref": "#/definitions/SampleLatitude" }
+      ],
+      "maxItems": 4,
+      "description": "west, south, east, north in EPSG:4326 degrees. Longitudes are from -180 to 180, latitudes from -90 to 90, and south is not more than north."
+    },
+    "cloudCover": {
+      "type": "number",
+      "description": "The maximum cloud cover in percent. The default is 100.",
+      "minimum": 0,
+      "maximum": 100
+    }
+  },
+  "required": ["code", "collectionId", "temporalRange", "bands"],
+  "additionalProperties": false,
+  "definitions": {
+    "SampleDate": {
+      "type": "string",
+      "description": "A date, `YYYY-MM-DD`.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "SampleBand": {
+      "type": "string",
+      "description": "A band name of the collection, for example `B04` or `reflectance|bands=b04`.",
+      "minLength": 1
+    },
+    "SampleLongitude": { "type": "number", "minimum": -180, "maximum": 180 },
+    "SampleLatitude": { "type": "number", "minimum": -90, "maximum": 90 }
+  },
+  "$id": "https://github.com/developmentseed/openeo-studio/sample.schema.json",
+  "title": "openEO Studio prefill sample",
+  "$comment": "Generated from app/types/sample-prefill.ts. Do not edit by hand. Run `pnpm schema:sample`."
+}

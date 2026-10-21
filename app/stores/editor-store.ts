@@ -39,7 +39,7 @@ type EditorActions = {
   resetToDefaults: (defaults: ResetDefaults) => void;
   clearEditor: () => void;
   hydrateFromScene: (
-    sceneId: string,
+    sceneId: string | null,
     scene: {
       name: string;
       collectionId: string;
