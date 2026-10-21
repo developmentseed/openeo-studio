@@ -85,11 +85,13 @@ export function MapViewer({
     applyFitBounds();
   }, [sceneId, isMapReady]);
 
+  // Only a visible service has a tile source on the map (see MapLayers).
+  const visibleServices = services.filter((service) => service.visible);
   useMapTileStatus({
     mapRef,
     isMapReady,
-    serviceCount: services.length,
-    serviceKey: services.map((service) => service.id).join(','),
+    serviceCount: visibleServices.length,
+    serviceKey: visibleServices.map((service) => service.id).join(','),
     onStatusChange: onTileStatusChange
   });
 

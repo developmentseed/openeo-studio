@@ -36,16 +36,24 @@ function setup() {
   const { map, fire } = fakeMap();
   const statuses: TileLoadStatus[] = [];
   const mapRef = { current: map } as unknown as RefObject<MapRef | null>;
-  renderHook(() =>
-    useMapTileStatus({
-      mapRef,
-      isMapReady: true,
-      serviceCount: 1,
-      serviceKey: 'a',
-      onStatusChange: (status) => statuses.push(status)
-    })
+  const onStatusChange = (status: TileLoadStatus) => statuses.push(status);
+  const { rerender } = renderHook(
+    ({ serviceKey }: { serviceKey: string }) =>
+      useMapTileStatus({
+        mapRef,
+        isMapReady: true,
+        serviceCount: serviceKey ? serviceKey.split(',').length : 0,
+        serviceKey,
+        onStatusChange
+      }),
+    { initialProps: { serviceKey: 'a' } }
   );
-  return { fire, statuses, last: () => statuses[statuses.length - 1] };
+  return {
+    fire,
+    statuses,
+    last: () => statuses[statuses.length - 1],
+    setVisible: (serviceKey: string) => rerender({ serviceKey })
+  };
 }
 
 const tileError = (code: string) => ({
@@ -93,6 +101,43 @@ describe('useMapTileStatus', () => {
   it('ignores errors of other sources', () => {
     const { fire, statuses } = setup();
     fire('error', { sourceId: 'maptiler', error: new Error('x') });
-    expect(statuses).toEqual([]);
+    expect(statuses.every((status) => status.status === 'idle')).toBe(true);
+  });
+
+  it('clears the error when the failed layer is hidden', async () => {
+    const { fire, last, setVisible } = setup();
+    fire('sourcedataloading', { sourceId: 'service-a' });
+    fire('error', tileError('NoDataAvailable'));
+    await waitFor(() => expect(last().status).toBe('error'));
+
+    setVisible('');
+    expect(last().status).toBe('idle');
+  });
+
+  it('ignores an error body that is read after the map moved', async () => {
+    const { fire, last, statuses } = setup();
+    let resolveBody: (text: string) => void = () => {};
+    const slowBody = new Blob([]);
+    Object.defineProperty(slowBody, 'text', {
+      value: () => new Promise<string>((resolve) => (resolveBody = resolve))
+    });
+
+    fire('sourcedataloading', { sourceId: 'service-a' });
+    fire('error', {
+      sourceId: 'service-a',
+      error: Object.assign(new Error('Bad Request'), {
+        status: 400,
+        body: slowBody
+      })
+    });
+    fire('movestart');
+    expect(last().status).toBe('loading');
+
+    await act(async () => {
+      resolveBody('{"code":"NoDataAvailable","message":"old view"}');
+    });
+    fire('idle');
+    expect(statuses.some((status) => status.status === 'error')).toBe(false);
+    expect(last().status).toBe('idle');
   });
 });
