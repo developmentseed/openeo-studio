@@ -32,3 +32,19 @@ describe('the assistant conversation follows the project', () => {
     expect(useAssistantStore.getState().items).toHaveLength(0);
   });
 });
+
+it('saves a held proposal released, so a reload mid-run still shows it', () => {
+  useAssistantStore.getState().setItems(() => [
+    {
+      kind: 'proposal',
+      id: 'p',
+      rationale: 'r',
+      status: 'pending',
+      held: true,
+      change: { kind: 'code', edits: [], base: '' }
+    }
+  ]);
+  const saved = JSON.parse(sessionStorage.getItem('openeo-assistant-storage')!);
+  expect(saved.state.items[0].held).toBe(false);
+  expect(useAssistantStore.getState().items[0]).toMatchObject({ held: true });
+});

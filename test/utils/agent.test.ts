@@ -1,7 +1,12 @@
 // user-defined-processes.ts imports $config/runtime, which reads import.meta.env.
 jest.mock('$config/runtime', () => ({ appConfig: {} }));
 
-import { applyEdits, projectParameters, replaceAll } from '$utils/agent';
+import {
+  applyEdits,
+  projectParameters,
+  replaceAll,
+  type CodeEdit
+} from '$utils/agent';
 import { deriveConfigFromProject } from '$utils/openeo/user-defined-processes';
 
 describe('applyEdits', () => {
@@ -37,6 +42,16 @@ describe('applyEdits', () => {
         { start_line: 2, end_line: 3, replace: 'y' }
       ])
     ).toBeNull();
+  });
+
+  it('refuses an edit that is not line numbers and text', () => {
+    const malformed = [
+      { end_line: 1, replace: 'x' },
+      { start_line: '1', end_line: 1, replace: 'x' },
+      { start_line: 1.5, end_line: 1, replace: 'x' },
+      { start_line: 1, end_line: 1, replace: 2 }
+    ] as unknown as CodeEdit[];
+    malformed.forEach((edit) => expect(applyEdits(code, [edit])).toBeNull());
   });
 });
 

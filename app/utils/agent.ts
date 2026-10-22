@@ -33,6 +33,13 @@ export interface CodeEdit {
  * overlaps another. Every line number refers to `code` as given.
  */
 export function applyEdits(code: string, edits: CodeEdit[]): string | null {
+  // The edits are the model's JSON: a missing or fractional line number
+  // would pass the range checks below and splice in the wrong place.
+  const wellFormed = (edit: CodeEdit) =>
+    Number.isInteger(edit.start_line) &&
+    Number.isInteger(edit.end_line) &&
+    typeof edit.replace === 'string';
+  if (!edits.every(wellFormed)) return null;
   const lines = code.split('\n');
   const trailing = code.endsWith('\n');
   if (trailing) lines.pop();

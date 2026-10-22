@@ -7,9 +7,8 @@ conversation does not steer the next.
 The agent and its toolset are in
 [openeo-studio-assistant](https://github.com/developmentseed/openeo-studio-assistant),
 whose README says how to run them locally. Two catalogues were tried, set by
-the toolset's `OPENEO_CATALOGUE`; deployments use Ours. In development, a
-browser tab picks an agent with `?agent=<url>`, kept until the tab closes.
-Which algorithms each can run, and why the rest cannot, is in
+the toolset's `OPENEO_CATALOGUE`; deployments use Ours. Studio talks to
+one agent, `VITE_AGENT_URL`, so compare the two in separate sessions. Which algorithms each can run, and why the rest cannot, is in
 [assistant-algorithms.md](assistant-algorithms.md).
 
 | Assistant | Knows | `OPENEO_CATALOGUE` |
