@@ -64,8 +64,7 @@ sees:
 **The agent panel (the Assistant tab).**
 
 - The tab is enabled when an agent is configured (`AGENT_URL` in the image,
-  or `VITE_AGENT_URL`). In development, `?agent=<url>` picks the agent for
-  one browser tab.
+  or `VITE_AGENT_URL`).
 - The conversation is kept per project in `sessionStorage`
   (`assistant-store.ts`). It survives a tab switch, a reload and a save.
 - A proposal is a card: a line diff for code, `before → after` for the

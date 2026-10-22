@@ -77,22 +77,5 @@ export const appConfig: AppConfig = {
     import.meta.env.VITE_PARTNER_LOGO_URL
   ),
   partnerName: pick(runtime.partnerName, import.meta.env.VITE_PARTNER_NAME),
-  agentUrl: pick(
-    (import.meta.env.DEV && devAgentUrl()) || runtime.agentUrl,
-    import.meta.env.VITE_AGENT_URL
-  )
+  agentUrl: pick(runtime.agentUrl, import.meta.env.VITE_AGENT_URL)
 };
-
-/**
- * In development, `?agent=<url>` points this browser tab's assistant at
- * another agent, for running two side by side. The tab keeps it until closed.
- */
-function devAgentUrl(): string | undefined {
-  try {
-    const url = new URLSearchParams(window.location.search).get('agent');
-    if (url) sessionStorage.setItem('agentUrl', url);
-    return sessionStorage.getItem('agentUrl') ?? undefined;
-  } catch {
-    return undefined;
-  }
-}

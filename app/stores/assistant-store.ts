@@ -86,7 +86,13 @@ export const useAssistantStore = create<AssistantState & AssistantActions>()(
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         threadId: state.threadId,
-        items: state.items,
+        // A run ends in this tab or not at all: one cut off by a reload
+        // still releases its proposals, or they would stay hidden.
+        items: state.items.map((item) =>
+          item.kind === 'proposal' && item.held
+            ? { ...item, held: false }
+            : item
+        ),
         project: state.project
       })
     }
