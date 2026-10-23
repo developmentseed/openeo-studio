@@ -150,10 +150,11 @@ export function EditorWorkspace({
   };
 
   useEffect(() => {
-    if (!saveAfterAccept) return;
+    // Saving runs the code first: wait until it can run.
+    if (!saveAfterAccept || !isRuntimeReady || isExecuting) return;
     setSaveAfterAccept(false);
     handleSaveClick();
-  }, [saveAfterAccept]);
+  }, [saveAfterAccept, isRuntimeReady, isExecuting]);
 
   return (
     <Stack
