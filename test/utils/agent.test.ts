@@ -62,14 +62,32 @@ describe('projectParameters', () => {
       selectedBands: ['B04', 'B08'],
       temporalRange: ['2025-07-01', '2025-07-31'] as [string, string],
       boundingBox: [9.0, 45.4, 9.3, 45.5] as [number, number, number, number],
-      cloudCover: 10
+      propertyFilters: [
+        { property: 'eo:cloud_cover', operator: 'lt' as const, value: 10 }
+      ]
     };
     const project = {
       id: 'p',
       process_graph: {
         load: {
           process_id: 'load_collection',
-          arguments: { id: config.collectionId }
+          arguments: {
+            id: config.collectionId,
+            properties: {
+              'eo:cloud_cover': {
+                process_graph: {
+                  cc: {
+                    process_id: 'lt',
+                    arguments: {
+                      x: { from_parameter: 'value' },
+                      y: { from_parameter: 'cloud_cover_max' }
+                    },
+                    result: true
+                  }
+                }
+              }
+            }
+          }
         }
       },
       parameters: projectParameters(config)

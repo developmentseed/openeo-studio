@@ -14,6 +14,7 @@ import {
 } from '$stores/assistant-store';
 import { useEditorStore } from '$stores/editor-store';
 import { getSceneById } from '$config/sample-scenes';
+import type { PropertyFilter } from '$types';
 import type { AgentEvent } from '$types/agent';
 import {
   applyEdits,
@@ -22,7 +23,9 @@ import {
   runAgent,
   studioDocument
 } from '$utils/agent';
+import { withCloudCover } from '$utils/property-filters';
 import { useCodeEditor } from './code-editor';
+import { OPERATOR_LABELS } from './setup/property-filters';
 
 const isHeld = (item: Item) => item.kind === 'proposal' && item.held;
 
@@ -46,7 +49,8 @@ type AlgorithmProposal = Parameters<typeof configurationOf>[0] & {
 };
 
 /** The arguments of `propose_configuration`, in the loader's openEO terms, as
- * the editor store names them: the inverse of `projectParameters`. */
+ * the editor store names them: the inverse of `projectParameters`. The cloud
+ * cover replaces the cloud cover filter, and keeps the other filters. */
 function configurationOf(args: {
   collection_id?: string;
   bands?: string[];
@@ -61,7 +65,10 @@ function configurationOf(args: {
     ...(args.time && { temporalRange: args.time }),
     ...(box && { boundingBox: [box.west, box.south, box.east, box.north] }),
     ...(args.cloud_cover_max !== undefined && {
-      cloudCover: args.cloud_cover_max
+      propertyFilters: withCloudCover(
+        useEditorStore.getState().selectedConfig.propertyFilters,
+        args.cloud_cover_max
+      )
     })
   };
 }
@@ -71,14 +78,21 @@ const CONFIGURATION_LABELS: Record<keyof EditorConfigValues, string> = {
   selectedBands: 'Bands',
   temporalRange: 'Dates',
   boundingBox: 'Area',
-  cloudCover: 'Max cloud cover'
+  propertyFilters: 'Filters'
 };
+
+const isFilter = (value: unknown): value is PropertyFilter =>
+  typeof value === 'object' && value !== null && 'operator' in value;
 
 /** A configuration value as text: `–` when unset, lists comma-separated. */
 const shown = (value: unknown) => {
-  const parts = (Array.isArray(value) ? value : [value]).filter(
-    (part) => part !== undefined && part !== null && part !== ''
-  );
+  const parts = (Array.isArray(value) ? value : [value])
+    .map((part) =>
+      isFilter(part)
+        ? `${part.property} ${OPERATOR_LABELS[part.operator]} ${part.value}`
+        : part
+    )
+    .filter((part) => part !== undefined && part !== null && part !== '');
   return parts.length ? parts.join(', ') : '–';
 };
 
@@ -139,7 +153,7 @@ export function AssistantTab({
     setSelectedBands,
     setTemporalRange,
     setBoundingBox,
-    setCloudCover
+    setPropertyFilters
   } = useEditorStore();
   const { items, setItems, busy, setBusy, reset } = useAssistantStore();
   const [draft, setDraft] = useState('');
@@ -364,7 +378,7 @@ export function AssistantTab({
     if (values.selectedBands) setSelectedBands(values.selectedBands);
     if (values.temporalRange) setTemporalRange(values.temporalRange);
     if (values.boundingBox) setBoundingBox(values.boundingBox);
-    if (values.cloudCover !== undefined) setCloudCover(values.cloudCover);
+    if (values.propertyFilters) setPropertyFilters(values.propertyFilters);
   };
 
   /** Apply code changes made against the same code, together. False when

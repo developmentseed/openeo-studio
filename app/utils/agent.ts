@@ -12,6 +12,7 @@ import { HttpAgent } from '@ag-ui/client';
 
 import type { EditorConfigValues } from '$config/default-editor-config';
 import { authHeader } from '$utils/api';
+import { cloudCoverOf } from '$utils/property-filters';
 import type { GraphResult, ServiceInfo } from '$types';
 import {
   AGENT_CONTRACT_VERSION,
@@ -122,7 +123,9 @@ const BAND_NAME: OpenEOJsonSchema = { type: 'string', subtype: 'band-name' };
 /**
  * The configuration as the parameters `app/algorithms/base/loader.py`
  * declares: the same names, and the shapes of their openEO subtypes. The
- * inverse of `deriveConfigFromProject`.
+ * inverse of `deriveConfigFromProject`. One exception: the agent contract
+ * knows the cloud cover filter only, as `cloud_cover_max`, where the loader
+ * declares one parameter per property filter.
  */
 export function projectParameters(
   config: EditorConfigValues
@@ -157,7 +160,7 @@ export function projectParameters(
       description: 'The highest cloud cover to load, in percent.',
       schema: { type: 'number', minimum: 0, maximum: 100 },
       optional: true,
-      default: config.cloudCover
+      default: cloudCoverOf(config.propertyFilters)
     }
   ];
 }

@@ -117,9 +117,11 @@ sees:
 - `propose_configuration` takes openEO names and shapes: `time` as a
   temporal interval, `bounding_box` as a bounding box with
   `west`/`south`/`east`/`north`, plus `bands` and `cloud_cover_max`. These are
-  the names that `loader.py` declares. `projectParameters()` and
-  `deriveConfigFromProject()` convert in both directions, and a test checks
-  that they agree.
+  the names that `loader.py` declares, except `cloud_cover_max`: the loader
+  declares one parameter per property filter, and `cloud_cover_max` stands
+  for the `eo:cloud_cover < max` filter only. Studio keeps the other filters
+  as they are. `projectParameters()` and `deriveConfigFromProject()` convert
+  in both directions, and a test checks that they agree.
 - Every change is a proposal. The user accepts or rejects each one. The apply
   mode is `ask`, the only mode that ADR-0004 builds first.
 - Proposal statuses are the contract's (`pending`, `accepted`, `rejected`,
