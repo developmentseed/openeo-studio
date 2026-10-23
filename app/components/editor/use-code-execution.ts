@@ -36,7 +36,7 @@ export function useCodeExecution(
   const { pyodide } = usePyodide();
   const { user } = useAuth();
 
-  const { sceneId, sceneName, markClean } = useEditorStore();
+  const { sceneId, sceneName, markClean, setLastRun } = useEditorStore();
   const saveProject = useProjectsStore((state) => state.saveProject);
 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -49,11 +49,32 @@ export function useCodeExecution(
 
     const content = editor.state.doc.toString();
     const token = user?.access_token ?? '';
-    const graphs = await runAndValidateScript(pyodide, token, content, config);
-    const services = await createServicesFromGraphs(graphs, token);
-    setServices(services);
-    return { content, graphs, services };
-  }, [pyodide, editor, user?.access_token, config, setServices]);
+    let graphs: GraphResult[] = [];
+    // Which step failed tells the assistant where to look: the code, the
+    // graph it built, or the map services built from a valid graph.
+    let step = 'Running the code';
+    try {
+      await runAndValidateScript(
+        pyodide,
+        token,
+        content,
+        config,
+        (produced) => {
+          graphs = produced;
+          step = 'Validating the graph with the backend';
+        }
+      );
+      step = 'Creating the map services (the backend validated the graph)';
+      const services = await createServicesFromGraphs(graphs, token);
+      setLastRun({ graphs, error: null });
+      setServices(services);
+      return { content, graphs, services };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLastRun({ graphs, error: `${step} failed: ${message}` });
+      throw error;
+    }
+  }, [pyodide, editor, user?.access_token, config, setServices, setLastRun]);
 
   /** Auto-execute: run code and create map services. Never persists. */
   const createServices = useCallback(async () => {
@@ -90,17 +111,28 @@ export function useCodeExecution(
           !shouldNavigateAfterSave(sceneId) && sceneId
             ? sceneId
             : kebabCase(sceneName);
-        await saveProject(user?.access_token ?? '', {
-          id,
-          summary: sceneName,
-          code: content,
-          processGraph: mergeProcessGraphs(
-            graphs.map((graph) => graph.process_graph)
-          ),
-          parameters: resolveSharedParameters(
-            graphs.map((graph) => graph.parameters)
-          )
-        });
+        try {
+          await saveProject(user?.access_token ?? '', {
+            id,
+            summary: sceneName,
+            code: content,
+            processGraph: mergeProcessGraphs(
+              graphs.map((graph) => graph.process_graph)
+            ),
+            parameters: resolveSharedParameters(
+              graphs.map((graph) => graph.parameters)
+            )
+          });
+        } catch (error) {
+          // The code ran and the map rendered; only storing the project failed.
+          const message =
+            error instanceof Error ? error.message : String(error);
+          setLastRun({
+            graphs,
+            error: `Saving the project as "${id}" failed (the code ran and the map rendered): ${message}`
+          });
+          throw error;
+        }
 
         markClean();
         return { status: 'saved', id };
@@ -120,6 +152,7 @@ export function useCodeExecution(
       sceneId,
       sceneName,
       saveProject,
+      setLastRun,
       user?.access_token
     ]);
 

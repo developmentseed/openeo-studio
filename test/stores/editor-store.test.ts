@@ -134,3 +134,21 @@ describe('editor-store property filters', () => {
     sessionStorage.clear();
   });
 });
+
+describe('editor-store last run', () => {
+  it('belongs to one project: opening another clears it', () => {
+    const store = useEditorStore.getState();
+    store.setLastRun({ graphs: [], error: 'Running the code failed: x' });
+    store.hydrateFromScene('other', {
+      name: 'Other',
+      collectionId: 'sentinel-2-l2a',
+      temporalRange: ['2025-07-01', '2025-07-31'],
+      propertyFilters: [
+        { property: 'eo:cloud_cover', operator: 'lt', value: 20 }
+      ],
+      defaultBands: ['B04'],
+      boundingBox: [9, 45, 9.3, 45.5]
+    });
+    expect(useEditorStore.getState().lastRun).toBeNull();
+  });
+});

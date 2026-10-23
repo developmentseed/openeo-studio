@@ -40,7 +40,7 @@ helm install my-studio charts/openeo-studio \
 
 ### About `env`
 
-The app image is built once and configured per-container at startup, not at build time. Every key under `env` becomes a container environment variable; the entrypoint script reads a fixed set of them (`OPENEO_API_URL`, `BASE_URL`, `APP_TITLE`, `APP_DESCRIPTION`, `MAPTILER_KEY`, `BASEMAPS`, `AUTH_AUTHORITY`, `AUTH_CLIENT_ID`, `AUTH_REDIRECT_URI`, `ENABLE_NARRATIVE_EXPORT`) and writes them into `index.html` and nginx's rewrite rules. `BASE_URL` is the single source of truth for the app's mount path — there is no separate `PATH_PREFIX` variable to set.
+The app image is built once and configured per-container at startup, not at build time. Every key under `env` becomes a container environment variable; the entrypoint script reads a fixed set of them (`OPENEO_API_URL`, `BASE_URL`, `APP_TITLE`, `APP_DESCRIPTION`, `MAPTILER_KEY`, `BASEMAPS`, `AUTH_AUTHORITY`, `AUTH_CLIENT_ID`, `AUTH_REDIRECT_URI`, `ENABLE_NARRATIVE_EXPORT`, `PARTNER_LOGO_URL`, `PARTNER_NAME`, and `AGENT_URL`, the AG-UI agent the Assistant tab talks to, which enables the tab) and writes them into `index.html` and nginx's rewrite rules. `BASE_URL` is the single source of truth for the app's mount path — there is no separate `PATH_PREFIX` variable to set.
 
 ### Base maps
 

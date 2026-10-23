@@ -96,6 +96,34 @@ describe('runAndValidateScript', () => {
   });
 });
 
+describe('the run configuration', () => {
+  it('gives the loader the dimensions load_collection loads', async () => {
+    const pyodide = {
+      runPythonAsync: jest.fn().mockResolvedValue(JSON.stringify([]))
+    };
+    fetchJson.mockResolvedValueOnce({
+      'cube:dimensions': {
+        t: { type: 'temporal', extent: ['2015-06-27T10:25:31Z', null] },
+        spectral: { type: 'bands', values: ['B01', 'B04', 'B08'] }
+      }
+    });
+
+    await runAndValidateScript(pyodide as never, 'token', 'pass', {
+      collectionId: 'sentinel-2-l2a',
+      selectedBands: ['B08', 'B04'],
+      temporalRange: ['', '']
+    });
+
+    const program: string = pyodide.runPythonAsync.mock.calls[0][0];
+    const literal = program.match(/^RUN_CONFIG = json\.loads\((.*)\)$/m)![1];
+    const runConfig = JSON.parse(JSON.parse(literal));
+    expect(runConfig.cubeDimensions).toEqual({
+      t: { type: 'temporal', extent: ['2015-06-27T10:25:31Z', null] },
+      spectral: { type: 'bands', values: ['B08', 'B04'] }
+    });
+  });
+});
+
 describe('createServicesFromGraphs', () => {
   beforeEach(() => {
     fetchJson.mockReset();
