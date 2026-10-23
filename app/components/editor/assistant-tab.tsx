@@ -155,14 +155,15 @@ export function AssistantTab({
     setBoundingBox,
     setPropertyFilters
   } = useEditorStore();
-  const { items, setItems, busy, setBusy, reset } = useAssistantStore();
+  const { items, setItems, busy, setBusy, setUnsaved, reset } =
+    useAssistantStore();
   const [draft, setDraft] = useState('');
   const sentCode = useRef('');
+  /** The run in flight, which its code cards name. */
+  const runId = useRef('');
   /** Whether this run proposed a published algorithm. */
   const algorithmProposed = useRef(false);
   const end = useRef<HTMLDivElement>(null);
-  // An accepted change not yet saved, which the last decision saves.
-  const unsaved = useRef(false);
 
   const currentCode = () =>
     editor?.state.doc.toString() ?? useEditorStore.getState().code;
@@ -254,7 +255,12 @@ export function AssistantTab({
               if (!Array.isArray(args?.edits)) return [finished];
               const { edits, rationale } = args;
               const base = sentCode.current;
-              const change = { kind: 'code' as const, edits, base };
+              const change = {
+                kind: 'code' as const,
+                edits,
+                base,
+                run: runId.current
+              };
               if (applyEdits(base, edits) === null || repeats(change))
                 return [finished];
               return [finished, { ...proposal, rationale, change }];
@@ -310,16 +316,24 @@ export function AssistantTab({
       ...all,
       { kind: 'user', id: crypto.randomUUID(), text }
     ]);
+    const { threadId } = useAssistantStore.getState();
+    // A run belongs to its conversation: once the project or the
+    // conversation changes, what it still sends is dropped, or project A's
+    // cards could change project B.
+    const current = () => useAssistantStore.getState().threadId === threadId;
     try {
       const state = studioState();
-      const { threadId } = useAssistantStore.getState();
       sentCode.current = state.studio.code.userCode;
+      runId.current = crypto.randomUUID();
+      const run = runId.current;
       algorithmProposed.current = false;
       await runAgent(
         { url: appConfig.agentUrl, threadId, message: text, state, token },
-        onEvent
+        (event) => {
+          if (current()) onEvent(event);
+        }
       );
-      if (algorithmProposed.current) {
+      if (algorithmProposed.current && current()) {
         // ponytail: the key holds the run's last proposal, so a run proposing
         // two algorithms shows the second only; read each by turn if it matters.
         const { code, rationale, ...configuration } =
@@ -329,6 +343,7 @@ export function AssistantTab({
             ALGORITHM_PROPOSAL,
             token
           );
+        if (!current()) return;
         const id = crypto.randomUUID();
         const base = sentCode.current;
         setItems((all) => [
@@ -351,24 +366,32 @@ export function AssistantTab({
             status: 'pending',
             held: true,
             rationale: 'Its code, in place of yours.',
-            change: { kind: 'code', edits: [replaceAll(base, code)], base }
+            change: {
+              kind: 'code',
+              edits: [replaceAll(base, code)],
+              base,
+              run
+            }
           }
         ]);
       }
     } catch (error) {
+      if (!current()) return;
       onEvent({
         type: 'RUN_ERROR',
         message: error instanceof Error ? error.message : String(error)
       });
     } finally {
-      setBusy(false);
-      // The run's proposals are decided together, after its answer: a later
-      // one is computed against the same code as an earlier one, so deciding
-      // mid-run would make the rest superseded.
-      setItems((all) => [
-        ...all.filter((item) => !isHeld(item)),
-        ...all.filter(isHeld).map((item) => ({ ...item, held: false }))
-      ]);
+      if (current()) {
+        setBusy(false);
+        // The run's proposals are decided together, after its answer: a later
+        // one is computed against the same code as an earlier one, so deciding
+        // mid-run would make the rest superseded.
+        setItems((all) => [
+          ...all.filter((item) => !isHeld(item)),
+          ...all.filter(isHeld).map((item) => ({ ...item, held: false }))
+        ]);
+      }
     }
   };
 
@@ -381,17 +404,30 @@ export function AssistantTab({
     if (values.propertyFilters) setPropertyFilters(values.propertyFilters);
   };
 
-  /** Apply code changes made against the same code, together. False when
-   * the code moved on, or the edits overlap: line numbers only mean anything
-   * in the code they were read from. */
+  /** Apply code changes of one run, together, on top of the run's changes
+   * accepted before. False when the code moved on, or the edits overlap: line
+   * numbers only mean anything in the code they were read from. */
   const applyCode = (changes: CodeChange[]) => {
-    const { base } = changes[0];
-    if (changes.some((change) => change.base !== base)) return false;
-    if (currentCode() !== base) return false;
-    const after = applyEdits(
-      base,
-      changes.flatMap((change) => change.edits)
-    );
+    const { base, run } = changes[0];
+    if (changes.some((change) => change.base !== base || change.run !== run))
+      return false;
+    const accepted = run
+      ? useAssistantStore
+          .getState()
+          .items.flatMap((item) =>
+            item.kind === 'proposal' &&
+            item.status === 'accepted' &&
+            item.change.kind === 'code' &&
+            item.change.run === run
+              ? item.change.edits
+              : []
+          )
+      : [];
+    if (currentCode() !== applyEdits(base, accepted)) return false;
+    const after = applyEdits(base, [
+      ...accepted,
+      ...changes.flatMap((change) => change.edits)
+    ]);
     if (after === null) return false;
     // Into the editor as well as the store: the run reads the editor, and
     // the editor's own sync from the store runs only after the effect that
@@ -441,9 +477,14 @@ export function AssistantTab({
         status.has(item.id) ? { ...item, status: status.get(item.id)! } : item
       )
     );
-    if ([...status.values()].includes('accepted')) unsaved.current = true;
-    if (unsaved.current && pending.every((item) => ids.includes(item.id))) {
-      unsaved.current = false;
+    // Kept with the conversation: a reload between the accepted card and the
+    // last decision still saves.
+    if ([...status.values()].includes('accepted')) setUnsaved(true);
+    if (
+      useAssistantStore.getState().unsaved &&
+      pending.every((item) => ids.includes(item.id))
+    ) {
+      setUnsaved(false);
       onAccepted?.();
     }
   };

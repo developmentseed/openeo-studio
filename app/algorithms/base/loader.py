@@ -189,13 +189,22 @@ def algorithm(url: str, **values):
         else:
             unresolved.append(name)
 
-    def resolve(node):
+    # In a callback, its own parameters win over the UDP's of the same name,
+    # as openEO resolves them. Callbacks declare theirs only through the
+    # process that calls them: these are the names openEO's processes use.
+    callback_parameters = {"x", "y", "data", "context", "value", "index", "label", "parameters"}
+
+    def resolve(node, shadowed=frozenset()):
         if isinstance(node, dict):
-            if node.get("from_parameter") in substitutes:
-                return substitutes[node["from_parameter"]]
-            return {k: resolve(v) for k, v in node.items()}
+            name = node.get("from_parameter")
+            if name in substitutes and name not in shadowed:
+                return substitutes[name]
+            return {
+                k: resolve(v, callback_parameters if k == "process_graph" else shadowed)
+                for k, v in node.items()
+            }
         if isinstance(node, list):
-            return [resolve(v) for v in node]
+            return [resolve(v, shadowed) for v in node]
         return node
 
     for node in graph.values():
@@ -224,6 +233,9 @@ def algorithm(url: str, **values):
                 "process_id": "apply_pixel_selection",
                 "arguments": {"data": {"from_node": key}, "pixel_selection": "first"},
             }
+            # A load that is the graph's output has no consumer to rewrite.
+            if graph[key].pop("result", False):
+                graph[key + "_first"]["result"] = True
     if unresolved:
         raise ValueError(f"{url} needs values for {sorted(unresolved)}: algorithm(url, name=value)")
     return DataCube(graph=PGNode.from_flat_graph(graph, parameters={p.name: p for p in parameters}))

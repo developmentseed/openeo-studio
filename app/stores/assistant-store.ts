@@ -10,6 +10,8 @@ export interface CodeChange {
   edits: CodeEdit[];
   /** The code the run was sent with, which the line numbers refer to. */
   base: string;
+  /** The run that proposed it: its cards accepted one by one stack up. */
+  run?: string;
 }
 
 export interface ConfigurationChange {
@@ -48,7 +50,10 @@ export type Item =
 type AssistantState = {
   threadId: string;
   items: Item[];
+  /** A run of this conversation is in flight. */
   busy: boolean;
+  /** An accepted change waits for the last decision to save it. */
+  unsaved: boolean;
   /** The saved project the conversation is about; null for an unsaved one. */
   project: string | null;
 };
@@ -56,6 +61,7 @@ type AssistantState = {
 type AssistantActions = {
   setItems: (change: (items: Item[]) => Item[]) => void;
   setBusy: (busy: boolean) => void;
+  setUnsaved: (unsaved: boolean) => void;
   /** A new conversation about the same project. */
   reset: () => void;
   /** The project changed: a new conversation, unless it is this one's. */
@@ -64,16 +70,22 @@ type AssistantActions = {
   adopt: (project: string) => void;
 };
 
-const fresh = () => ({ threadId: crypto.randomUUID(), items: [] });
+// A run of an earlier conversation does not hold up this one.
+const fresh = () => ({
+  threadId: crypto.randomUUID(),
+  items: [],
+  busy: false,
+  unsaved: false
+});
 
 export const useAssistantStore = create<AssistantState & AssistantActions>()(
   persist(
     (set, get) => ({
       ...fresh(),
-      busy: false,
       project: null,
       setItems: (change) => set((state) => ({ items: change(state.items) })),
       setBusy: (busy) => set({ busy }),
+      setUnsaved: (unsaved) => set({ unsaved }),
       reset: () => set(fresh()),
       forProject: (project) => {
         if (project !== null && get().project === project) return;
@@ -93,6 +105,7 @@ export const useAssistantStore = create<AssistantState & AssistantActions>()(
             ? { ...item, held: false }
             : item
         ),
+        unsaved: state.unsaved,
         project: state.project
       })
     }
