@@ -5,7 +5,8 @@ import {
   createInitialConfig,
   type EditorConfigValues
 } from '$config/default-editor-config';
-import type { ServiceInfo } from '$types';
+import type { PropertyFilter, ServiceInfo } from '$types';
+import { resolvePropertyFilters } from '$utils/property-filters';
 
 type BoundingBox = [number, number, number, number];
 
@@ -28,7 +29,7 @@ type EditorActions = {
   setCode: (code: string) => void;
   setCollectionId: (id: string) => void;
   setTemporalRange: (range: [string, string]) => void;
-  setCloudCover: (cover: number) => void;
+  setPropertyFilters: (filters: PropertyFilter[]) => void;
   setSelectedBands: (bands: string[]) => void;
   setBoundingBox: (bbox: BoundingBox | undefined) => void;
   setServices: (services: ServiceInfo[]) => void;
@@ -44,7 +45,7 @@ type EditorActions = {
       name: string;
       collectionId: string;
       temporalRange: [string, string];
-      cloudCover: number;
+      propertyFilters?: PropertyFilter[];
       defaultBands: string[];
       boundingBox?: BoundingBox;
       suggestedAlgorithm?: string;
@@ -76,9 +77,9 @@ export const useEditorStore = create<EditorStore>()(
           services: [],
           isDirty: true
         })),
-      setCloudCover: (cloudCover) =>
+      setPropertyFilters: (propertyFilters) =>
         set((state) => ({
-          selectedConfig: { ...state.selectedConfig, cloudCover },
+          selectedConfig: { ...state.selectedConfig, propertyFilters },
           services: [],
           isDirty: true
         })),
@@ -129,7 +130,7 @@ export const useEditorStore = create<EditorStore>()(
         const sceneConfig = createInitialConfig({
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
-          cloudCover: scene.cloudCover,
+          propertyFilters: scene.propertyFilters ?? [],
           selectedBands: scene.defaultBands,
           boundingBox: scene.boundingBox
         });
@@ -146,6 +147,26 @@ export const useEditorStore = create<EditorStore>()(
     {
       name: 'openeo-editor-storage',
       storage: createJSONStorage(() => sessionStorage),
+      // v1: the deprecated `cloudCover` field became an `eo:cloud_cover`
+      // property filter.
+      version: 1,
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<EditorState>;
+        if (version < 1 && state?.selectedConfig) {
+          const { cloudCover, ...config } =
+            state.selectedConfig as ConfigValues & {
+              cloudCover?: number;
+            };
+          state.selectedConfig = {
+            ...config,
+            propertyFilters: resolvePropertyFilters({
+              cloudCover,
+              propertyFilters: config.propertyFilters
+            })
+          };
+        }
+        return state as EditorStore;
+      },
       partialize: (state) => ({
         code: state.code,
         selectedConfig: state.selectedConfig,

@@ -133,6 +133,32 @@ test.describe('Persistence', () => {
 
       expect(cloudCoverAfter).toBe(cloudCoverValue);
     });
+
+    test('removed cloud cover filter persists across page reloads', async ({
+      authenticatedPage
+    }) => {
+      await authenticatedPage.goto('/editor');
+
+      const configTab = authenticatedPage.getByRole('tab', {
+        name: /configuration/i
+      });
+      await configTab.click();
+
+      const removeButton = authenticatedPage.getByRole('button', {
+        name: 'Remove eo:cloud_cover filter'
+      });
+      await removeButton.click();
+      await expect(removeButton).toHaveCount(0);
+
+      await authenticatedPage.reload();
+      await authenticatedPage.waitForURL('/editor');
+
+      await configTab.click();
+      await expect(
+        authenticatedPage.getByText(/no filter: all the items/i)
+      ).toBeVisible();
+      await expect(removeButton).toHaveCount(0);
+    });
   });
 
   test.describe('Scene Management', () => {

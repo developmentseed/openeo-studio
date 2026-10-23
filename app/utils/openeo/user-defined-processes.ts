@@ -4,7 +4,11 @@
  */
 import { isEqual } from 'lodash-es';
 import { appConfig } from '$config/runtime';
-import type { UserDefinedProcess } from '$types';
+import type {
+  PropertyFilter,
+  PropertyFilterOperator,
+  UserDefinedProcess
+} from '$types';
 import type {
   ProcessGraph,
   ProcessNode,
@@ -87,7 +91,7 @@ export async function upsertUserDefinedProcess(
 export interface DerivedProjectConfig {
   collectionId?: string;
   temporalRange?: [string, string];
-  cloudCover?: number;
+  propertyFilters?: PropertyFilter[];
   selectedBands?: string[];
   boundingBox?: [number, number, number, number];
 }
@@ -112,6 +116,63 @@ export function findLoadCollectionId(
     }
   }
   return undefined;
+}
+
+const PROPERTY_FILTER_OPERATORS: PropertyFilterOperator[] = [
+  'lt',
+  'lte',
+  'gt',
+  'gte',
+  'eq',
+  'neq'
+];
+
+/**
+ * Reverse-derives the property filters from the load_collection `properties`
+ * argument. Mirrors loader.py: each filter is a single
+ * `<operator>(value, <parameter>)` node, and the parameter holds the value.
+ * A literal value is also accepted. Projects saved before the generic filters
+ * use the `cloud_cover_max` parameter for `eo:cloud_cover`: this reads them
+ * the same way.
+ */
+function findPropertyFilters(
+  processGraph: ProcessGraph | undefined,
+  parameters: ProcessParameter[] | undefined
+): PropertyFilter[] {
+  const loadNode = Object.values(processGraph ?? {}).find(
+    (node) => node.process_id === 'load_collection'
+  );
+  const properties = loadNode?.arguments.properties;
+  if (
+    !properties ||
+    typeof properties !== 'object' ||
+    Array.isArray(properties)
+  ) {
+    return [];
+  }
+
+  const filters: PropertyFilter[] = [];
+  for (const [property, condition] of Object.entries(properties)) {
+    const nodes = Object.values(
+      (condition as { process_graph?: ProcessGraph })?.process_graph ?? {}
+    );
+    if (nodes.length !== 1) continue;
+    const operator = nodes[0].process_id as PropertyFilterOperator;
+    const y = nodes[0].arguments.y;
+    const value =
+      y && typeof y === 'object' && 'from_parameter' in y
+        ? findParameterDefault(parameters, String(y.from_parameter))
+        : y;
+    if (
+      PROPERTY_FILTER_OPERATORS.includes(operator) &&
+      (typeof value === 'number' ||
+        typeof value === 'string' ||
+        typeof value === 'boolean')
+    ) {
+      filters.push({ property, operator, value });
+    }
+  }
+  return filters;
 }
 
 /**
@@ -149,12 +210,12 @@ export function deriveConfigFromProject(
     config.selectedBands = selectedBands as string[];
   }
 
-  const cloudCover = findParameterDefault(
-    project.parameters,
-    'cloud_cover_max'
+  const propertyFilters = findPropertyFilters(
+    project.process_graph,
+    project.parameters
   );
-  if (typeof cloudCover === 'number') {
-    config.cloudCover = cloudCover;
+  if (propertyFilters.length > 0) {
+    config.propertyFilters = propertyFilters;
   }
 
   const boundingBox = findParameterDefault(
