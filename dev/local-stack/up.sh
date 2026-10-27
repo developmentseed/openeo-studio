@@ -35,11 +35,16 @@ IMAGE=titiler-openeo:$TAG   # one tag per commit, so a new commit always rolls t
 if kind get clusters 2>/dev/null | grep -x "$CLUSTER" >/dev/null; then
   kind export kubeconfig --name "$CLUSTER" --kubeconfig "$KUBECONFIG"   # recreates it if deleted
 else
-  for port in 8081 8082 9000; do
+  for port in 8081 8082; do   # fixed in kind.yaml: kind cannot bind them if busy
     if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
-      die "127.0.0.1:$port is in use; the stack needs 8081 (API), 8082 (Keycloak) and 9000 (Studio)"
+      die "127.0.0.1:$port is in use; the stack needs 8081 (API) and 8082 (Keycloak)"
     fi
   done
+  # 9000 is Studio's, not the stack's: busy is fine when it is your Studio dev server.
+  if (exec 3<>/dev/tcp/127.0.0.1/9000) 2>/dev/null; then
+    echo "up.sh: 127.0.0.1:9000 is in use. Fine if it is your Studio dev server; otherwise free it" \
+      "before starting Studio: Keycloak only accepts logins redirected to localhost:9000." >&2
+  fi
   kind create cluster --config kind.yaml --kubeconfig "$KUBECONFIG"
 fi
 

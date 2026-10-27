@@ -21,7 +21,7 @@ For local use only: the credentials are fixed and every port listens on 127.0.0.
 
 - Docker (Docker Desktop on macOS), [kind](https://kind.sigs.k8s.io/) 0.32 (older versions may not run the
   pinned node image), kubectl, [helm](https://helm.sh/) 3.8 or later (OCI charts), jq, curl, git and make.
-- Free ports on 127.0.0.1: 8081, 8082 and 9000.
+- Free ports on 127.0.0.1: 8081 and 8082 for the stack, and 9000 for Studio.
 - About 8 GB of Docker disk: the titiler-openeo image (about 770 MB) and its build cache (about 1.7 GB), the
   kind node image (about 1.3 GB), the cluster's own volume (about 2.8 GB: Keycloak, Postgres and a copy of the
   titiler-openeo image; `make down` frees it), `node:22-slim` (about 350 MB), and Studio's `node_modules` and
@@ -130,7 +130,8 @@ docker builder prune                   # clears all of Docker's build cache, not
 | Symptom | Fix |
 |---|---|
 | `up.sh: docker is not reachable` | Start Docker (Docker Desktop on macOS); on Linux, also check that your user can run `docker` without `sudo`. Then run `make up` again. |
-| `up.sh: 127.0.0.1:8081 is in use` (or 8082, 9000) | Stop what uses the port (titiler-openeo's own docker compose publishes 8080-8082). Ports 8081 and 8082 are fixed in `kind.yaml`; 9000 is Studio's (Vite and the Keycloak redirect). |
+| `up.sh: 127.0.0.1:8081 is in use` (or 8082) | Stop what uses the port (titiler-openeo's own docker compose publishes 8080-8082). Both ports are fixed in `kind.yaml`. |
+| `up.sh: 127.0.0.1:9000 is in use`, or Vite starts on 9001 and login fails | Fine if it is your Studio dev server. Otherwise stop what holds 9000 (MinIO and Portainer default to it), then start Studio again: Keycloak only accepts logins redirected to `localhost:9000`. |
 | `make up` waits on `/healthz`, then fails | `kubectl -n openeo-dev get pods` and `kubectl -n openeo-dev logs deploy/dev-titiler-openeo` (with `KUBECONFIG` set as in [kubectl](#kubectl)). |
 | A pod stays `Pending` (Insufficient memory) or is `OOMKilled` | Give Docker more memory (Docker Desktop: Settings > Resources), then run `make up` again. |
 | Keycloak shows "Invalid parameter: redirect_uri" | Open http://localhost:9000, not http://127.0.0.1:9000. |
