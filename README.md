@@ -110,6 +110,8 @@ Compiles the sass files, javascript, and launches the server making the site ava
 The system will watch files and execute tasks whenever one of them changes.
 The site will automatically refresh since it is bundled with livereload.
 
+To run Studio against a local titiler-openeo backend with Keycloak login, see [dev/local-stack](dev/local-stack/README.md).
+
 ## Deployment
 
 To prepare the app for deployment run:
