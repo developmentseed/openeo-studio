@@ -47,15 +47,16 @@ Then, in the browser:
 
 1. Open http://localhost:9000 (`localhost`, not `127.0.0.1`: Keycloak only accepts that redirect) and log in
    as `dev` / `dev`, the test user from [`realm/openeo-realm.json`](realm/openeo-realm.json).
-2. Read the Ulysse scenario seed,
-   [`scenarios/ulysse-oil-spill-2018/seed.js`](https://github.com/lhoupert/openeo-studio-scenarios/blob/cb06000c7adb088c79880c6c06fbc20c93884a38/scenarios/ulysse-oil-spill-2018/seed.js):
-   it only writes a Studio project (Python code and editor settings) to the tab's `sessionStorage`. Paste it
-   into the browser console of the Studio tab and press Enter (Chrome asks you to type `allow pasting` once).
-3. In the same tab, open http://localhost:9000/editor: the editor shows the scenario's code. The editor reads
-   the seed when the page loads, so paste first, then open or reload `/editor`.
-4. Click Save, which runs the code and saves the project. The address changes to `/editor/<project id>`, the
-   project appears under "My projects", and layer 1 shows grey Sentinel-1 radar tiles off Cap Corse, with the
-   slick as a dark line. Tiles outside the data return 404, which is normal.
+2. Run `make sample` and open the link it prints, in the same browser: the editor opens with a one-layer
+   sample ([`samples/s2-true-colour.json`](samples/s2-true-colour.json): one Sentinel-2 scene of Cap Corse,
+   9 Oct 2018, with Studio's own true-colour code).
+3. Click Save, which runs the code and saves the project. The address changes to `/editor/<project id>`, the
+   project appears under "My projects", and Cap Corse appears in true colour. Tiles outside the scene return
+   404, which is normal.
+
+Fuller scenarios (several layers, heavier processing) are in
+[openeo-studio-scenarios](https://github.com/lhoupert/openeo-studio-scenarios): paste a scenario's `seed.js` in
+the browser console of the Studio tab, then open `/editor` in the same tab.
 
 To change the realm (clients, users), edit `realm/openeo-realm.json` and run `make up`: it restarts Keycloak,
 so log in again.
@@ -99,6 +100,19 @@ TITILER_REPO=/absolute/path/to/titiler-openeo TITILER_REF=HEAD make up
 - Use a commit at or after `c9b6ee3`: the scenarios need `apply_kernel` and `/queryables`, which the `v0.19.0`
   tag lacks.
 - `CHART_VERSION` selects another chart version; `values/titiler.yaml` holds the chart values.
+
+## Checking an upgrade
+
+Each repository's pull-request CI is the gate for dependency and base-image upgrades. This stack is a manual
+check of the two apps together (login, CORS, real tiles), worth running before a release, after a base-image
+family change or a major dependency bump:
+
+1. `TITILER_REPO=/abs/path TITILER_REF=<branch or sha> make up smoke`: ends with "0 failure(s)".
+2. `make studio` from the Studio branch under test, then `make sample`, open the link, Save: Cap Corse appears in
+   true colour and no error alert shows.
+
+Planetary Computer sometimes fails (502, 504, "upstream request timeout"): run `make smoke` again, and on a
+second failure run it on `main` before blaming the upgrade.
 
 ## Teardown
 

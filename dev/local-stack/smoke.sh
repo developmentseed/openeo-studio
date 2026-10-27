@@ -6,21 +6,27 @@ API=${API:-http://localhost:8081}
 IDP=${IDP:-http://localhost:8082/realms/openeo}
 IMAGE=${IMAGE:-$(kubectl --kubeconfig "$(dirname "$0")/kubeconfig" -n openeo-dev get deploy dev-titiler-openeo \
   -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null)}   # the deployed image
-OUT=${OUT:-$(mktemp -d)}
+OUT=${OUT:-$(mktemp -d "${TMPDIR:-/tmp}/smoke.XXXXXX")}
 fails=0
 check() {  # check <name> <expected glob> <actual>
   # shellcheck disable=SC2053  # <expected> is a glob pattern on purpose
-  if [[ "$3" == $2 ]]; then echo "PASS  $1 (${3:0:80})"; else echo "FAIL  $1: expected $2, got ${3:0:200}"; fails=$((fails + 1)); fi
+  if [[ "$3" == $2 ]]; then echo "PASS  $1 (${3:0:80})"; return; fi
+  echo "FAIL  $1: expected $2, got ${3:0:200}"
+  [[ -s "$OUT/body" ]] && echo "      last response: $(head -c 200 "$OUT/body")"
+  fails=$((fails + 1))
 }
 code() { curl -s -o "$OUT/body" -w '%{http_code}' "$@"; }
 stats() {  # stats <file>: band count, size, valid fraction and mean of band 1 (decoded with rasterio), or "all nodata"
-  docker run --rm -i "$IMAGE" python -c '
+  # stderr goes to a file (rasterio warns on PNGs); it is shown only when there is no result, e.g. docker errors.
+  local out
+  out=$(docker run --rm -i "$IMAGE" python -c '
 import sys, numpy as np, rasterio
 with rasterio.MemoryFile(sys.stdin.buffer.read()) as m, m.open() as d:
     a = d.read(1, masked=True)
     v = 1 - np.ma.getmaskarray(a).mean()
     print(f"bands={d.count} {d.width}x{d.height} " + (f"valid={v:.2f} mean={float(a.mean()):.3f}" if v else "all nodata"))
-' < "$1" 2>/dev/null
+' < "$1" 2>"$OUT/stats.err")
+  echo "${out:-$(tail -n 1 "$OUT/stats.err")}"
 }
 
 check "GET /healthz" 200 "$(code "$API/healthz")"
