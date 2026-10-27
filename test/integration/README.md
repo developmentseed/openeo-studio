@@ -4,9 +4,8 @@ Frontend integration tests using Playwright with mocked backend APIs and authent
 
 ## Running Tests
 
-Playwright starts Vite on port 9000 when needed (or reuses one already
-running). Prefer an existing `pnpm dev` session locally — Playwright will
-attach to it instead of starting another process.
+Playwright starts its own Vite server on port 9100 when needed (or reuses
+the one that it started before), so it can run beside `pnpm dev` on port 9000.
 
 ```bash
 # Run all tests (headless)
@@ -47,6 +46,7 @@ pnpm test:integration auth.spec.ts
 ### Other APIs
 
 - **STAC API**: Mocked via route interception as needed
+- **openEO API**: `playwright.config.ts` sets `VITE_OPENEO_API_URL` to `https://openeo.invalid/openeo` (the `.env` files do not change it), so a call that a test does not mock fails instead of reaching a real backend
 
 ## Writing Tests
 
