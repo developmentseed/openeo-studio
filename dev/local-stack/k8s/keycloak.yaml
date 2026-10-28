@@ -1,0 +1,31 @@
+# Keycloak in dev mode with the "openeo" realm (realm/openeo-realm.json, imported at startup only).
+# Fixed admin credentials: local use only.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: keycloak}
+spec:
+  selector: {matchLabels: {app: keycloak}}
+  template:
+    metadata: {labels: {app: keycloak}}
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.4.0
+          # Browser sees issuer http://localhost:8082; pods reach the backchannel (jwks) in-cluster.
+          args: [start-dev, --import-realm, --http-port=8080,
+                 --hostname=http://localhost:8082, --hostname-backchannel-dynamic=true]
+          env:
+            - {name: KC_BOOTSTRAP_ADMIN_USERNAME, value: admin}
+            - {name: KC_BOOTSTRAP_ADMIN_PASSWORD, value: admin}
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /realms/openeo, port: http}, periodSeconds: 5}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {memory: 1Gi}
+          volumeMounts: [{name: realm, mountPath: /opt/keycloak/data/import}]
+      volumes: [{name: realm, configMap: {name: keycloak-realm}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: keycloak}
+spec: {selector: {app: keycloak}, ports: [{name: http, port: 8080, targetPort: http}]}

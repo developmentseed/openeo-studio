@@ -1,0 +1,8 @@
+{"realm": "openeo", "enabled": true, "sslRequired": "none", "accessTokenLifespan": 3600,
+ "clients": [{"clientId": "openeo-studio", "publicClient": true, "standardFlowEnabled": true,
+   "directAccessGrantsEnabled": true,
+   "redirectUris": ["http://localhost:9000/*"], "webOrigins": ["+"],
+   "attributes": {"pkce.code.challenge.method": "S256"}}],
+ "users": [{"id": "00000000-0000-0000-0000-000000000001", "username": "dev", "enabled": true,
+   "email": "dev@example.org", "emailVerified": true, "firstName": "Dev", "lastName": "User",
+   "credentials": [{"type": "password", "value": "dev", "temporary": false}]}]}
