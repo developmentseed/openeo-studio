@@ -7,32 +7,16 @@ const QUERYABLES_ENDPOINT = {
 };
 
 /**
- * Adds the queryables endpoint to the backend capabilities, and serves
- * `properties` as the queryables of every collection.
+ * Serves backend capabilities with the queryables endpoint, and `properties`
+ * as the queryables of every collection.
  */
 async function mockQueryables(page: Page, properties: Record<string, unknown>) {
   await page.route(
-    (url) => url.port !== '9000' && url.pathname.endsWith('/'),
-    async (route) => {
-      if (route.request().resourceType() !== 'fetch') {
-        return route.fallback();
-      }
-      let capabilities: Record<string, unknown> = {};
-      try {
-        capabilities = await (await route.fetch()).json();
-      } catch {
-        // Offline: serve the endpoint list only.
-      }
-      const endpoints = Array.isArray(capabilities.endpoints)
-        ? capabilities.endpoints
-        : [];
-      await route.fulfill({
-        json: {
-          ...capabilities,
-          endpoints: [...endpoints, QUERYABLES_ENDPOINT]
-        }
-      });
-    }
+    (url) => url.hostname !== 'localhost' && url.pathname.endsWith('/'),
+    (route) =>
+      route.request().resourceType() === 'fetch'
+        ? route.fulfill({ json: { endpoints: [QUERYABLES_ENDPOINT] } })
+        : route.fallback()
   );
   await page.route('**/collections/*/queryables', (route) =>
     route.fulfill({ json: { type: 'object', properties } })
