@@ -78,13 +78,18 @@ async function initializePyodide(): Promise<PyodideAPI> {
     });
   });
 
-  // Pinned to <0.50 because openeo 0.50.0 added geopandas as a hard
+  // Pinned below 0.50 because openeo 0.50.0 added geopandas as a hard
   // runtime dependency, which currently fails to resolve in Pyodide.
   // See https://github.com/developmentseed/openeo-studio/issues/70
+  // micropip takes pystac and deprecated from PyPI, so they are pinned to
+  // their latest versions when openeo 0.49.0 came out: a new release must
+  // not change what users run. (openeo 0.49.0 already caps xarray.)
   await runStep('openeo', async () => {
     await pyodide.loadPackage('micropip');
     const micropip = pyodide.pyimport('micropip');
-    await micropip.install('openeo<0.50');
+    await micropip.install.callKwargs('openeo==0.49.0', {
+      constraints: ['pystac==1.14.3', 'deprecated==1.3.1']
+    });
   });
 
   await runStep('linter', () => ruffInit());

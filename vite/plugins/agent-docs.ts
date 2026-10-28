@@ -140,7 +140,7 @@ Choose the area and the dates with care. Too narrow gives no image (\`NoDataAvai
 function scriptContractMd(v: AgentDocsValues, loaderScript: string): string {
   return `# Script contract
 
-Studio does not run your script alone. It runs this program in the browser (Pyodide, openEO Python client \`openeo<0.50\`):
+Studio does not run your script alone. It runs this program in the browser (Pyodide, openEO Python client \`openeo==0.49.0\`):
 
 1. \`RUN_CONFIG = json.loads(...)\`: the configuration of the project (collection, dates, bands, bounding box, property filters such as cloud cover).
 2. \`loader.py\` (below).
