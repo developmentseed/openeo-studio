@@ -3,8 +3,10 @@ jest.mock('$config/runtime', () => ({ appConfig: {} }));
 
 import {
   applyEdits,
+  manifestUrl,
   projectParameters,
   replaceAll,
+  studioDocument,
   type CodeEdit
 } from '$utils/agent';
 import { deriveConfigFromProject } from '$utils/openeo/user-defined-processes';
@@ -97,5 +99,41 @@ describe('projectParameters', () => {
         project as Parameters<typeof deriveConfigFromProject>[0]
       )
     ).toEqual(config);
+  });
+});
+
+describe('the docs of the deployment', () => {
+  it('is an absolute URL, with or without a path prefix', () => {
+    expect(manifestUrl('https://studio.example.org', '')).toBe(
+      'https://studio.example.org/.well-known/openeo-studio.json'
+    );
+    expect(manifestUrl('https://example.org', '/studio')).toBe(
+      'https://example.org/studio/.well-known/openeo-studio.json'
+    );
+  });
+
+  it('is in the state document', () => {
+    const url = 'https://example.org/studio/.well-known/openeo-studio.json';
+    const document = studioDocument({
+      sceneId: null,
+      sceneName: 'New Project',
+      isSample: false,
+      isDirty: false,
+      revision: 0,
+      config: {
+        collectionId: 'sentinel-2-l2a',
+        selectedBands: ['B04'],
+        temporalRange: ['2025-07-01', '2025-07-31'],
+        boundingBox: undefined,
+        propertyFilters: []
+      },
+      code: '',
+      services: [],
+      lastRun: null,
+      openeoApiUrl: 'https://api.example.org',
+      manifestUrl: url
+    });
+    expect(document.docs).toEqual({ manifestUrl: url });
+    expect(document.contractVersion).toBe('1.1');
   });
 });

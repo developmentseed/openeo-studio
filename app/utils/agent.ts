@@ -183,6 +183,14 @@ interface ProjectSnapshot {
   services: ServiceInfo[];
   lastRun: { graphs: GraphResult[]; error: string | null; at?: string } | null;
   openeoApiUrl: string;
+  /** The deployment's manifest for agents: see `manifestUrl`. */
+  manifestUrl: string;
+}
+
+/** Where the deployment's manifest for agents is, from where the app is
+ * served. Absolute: the agent fetches it from its own server. */
+export function manifestUrl(origin: string, pathPrefix: string): string {
+  return `${origin}${pathPrefix}/.well-known/openeo-studio.json`;
 }
 
 /** The project in the contract's terms, for one run. */
@@ -215,6 +223,7 @@ export function studioDocument(project: ProjectSnapshot): StudioState {
       lint: []
     },
     backend: { openeoApiUrl: project.openeoApiUrl },
+    docs: { manifestUrl: project.manifestUrl },
     sources: [],
     applyMode: 'ask',
     graphs: lastRun?.graphs ?? []
