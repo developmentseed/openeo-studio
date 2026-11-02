@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "basemaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label"],
+        "anyOf": [{ "required": ["light"] }, { "required": ["dark"] }],
+        "properties": {
+          "label": { "type": "string", "minLength": 1 },
+          "light": { "type": "string", "minLength": 1 },
+          "dark": { "type": "string", "minLength": 1 },
+          "attribution": { "type": "string" },
+          "maxzoom": { "type": "number" }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -35,11 +35,31 @@ helm install my-studio charts/openeo-studio \
 | `securityContext` | no privilege escalation, all capabilities dropped | Container-level `securityContext` |
 | `env` | see `values.yaml` | Runtime configuration passed to the container as env vars — read by `docker/90-app-config.sh` at container start (see the [Docker section of the project README](../../README.md#docker)) |
 | `envFromSecret` | `[]` | Source specific `env` keys from a pre-existing Secret instead of a literal value — see below |
+| `basemaps` | `[]` | Base maps for the map viewer, as a YAML list — see below |
 | `nodeSelector` / `tolerations` / `affinity` | `{}` / `[]` / `{}` | Standard pod scheduling controls |
 
 ### About `env`
 
-The app image is built once and configured per-container at startup, not at build time. Every key under `env` becomes a container environment variable; the entrypoint script reads a fixed set of them (`OPENEO_API_URL`, `BASE_URL`, `APP_TITLE`, `APP_DESCRIPTION`, `MAPTILER_KEY`, `AUTH_AUTHORITY`, `AUTH_CLIENT_ID`, `AUTH_REDIRECT_URI`, `ENABLE_NARRATIVE_EXPORT`) and writes them into `index.html` and nginx's rewrite rules. `BASE_URL` is the single source of truth for the app's mount path — there is no separate `PATH_PREFIX` variable to set.
+The app image is built once and configured per-container at startup, not at build time. Every key under `env` becomes a container environment variable; the entrypoint script reads a fixed set of them (`OPENEO_API_URL`, `BASE_URL`, `APP_TITLE`, `APP_DESCRIPTION`, `MAPTILER_KEY`, `BASEMAPS`, `AUTH_AUTHORITY`, `AUTH_CLIENT_ID`, `AUTH_REDIRECT_URI`, `ENABLE_NARRATIVE_EXPORT`) and writes them into `index.html` and nginx's rewrite rules. `BASE_URL` is the single source of truth for the app's mount path — there is no separate `PATH_PREFIX` variable to set.
+
+### Base maps
+
+`basemaps` sets the base maps for the map. The chart renders the list as JSON into the `BASEMAPS` env var, so you write YAML, not JSON. The fields are described in the [Base maps section of the project README](../../README.md#base-maps).
+
+```yaml
+basemaps:
+  - label: Streets
+    light: https://tiles.openfreemap.org/styles/positron
+    dark: https://tiles.openfreemap.org/styles/dark
+  - label: OpenStreetMap
+    light: https://tile.openstreetmap.org/{z}/{x}/{y}.png
+    attribution: "&copy; OpenStreetMap contributors"
+```
+
+`values.schema.json` checks the entries on install. When `basemaps` is set, it replaces any `env.BASEMAPS`. A Secret listed in `envFromSecret` (see below) takes over from both.
+
+> [!IMPORTANT]
+> A Secret does not keep an API key private: the browser loads the base maps, so every URL, key included, ends up in the page each visitor downloads. The same goes for `MAPTILER_KEY`. Restrict such keys to your domain at the map provider.
 
 ### Sourcing a value from a Secret
 

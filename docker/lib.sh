@@ -35,3 +35,13 @@ derive_prefix() {
       ;;
   esac
 }
+
+# Escapes a value for use inside a double-quoted string in an inline <script>.
+# Newlines become \n and CRs are dropped, so multi-line values (e.g.
+# BASEMAPS JSON from a YAML block) stay on one line. `<` becomes \u003c, so a
+# value cannot close the <script> tag.
+json_escape() {
+  printf '%s' "$1" | tr -d '\r' |
+    sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/</\\u003c/g' |
+    sed -e ':a' -e '$!N' -e '$!ba' -e 's/\n/\\n/g'
+}

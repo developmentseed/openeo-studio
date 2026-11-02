@@ -123,6 +123,14 @@ jobs:
           curl -fsS http://127.0.0.1:18080/ | tee /tmp/index.html
           grep -q '<title>openEO Studio CI</title>' /tmp/index.html
           grep -q 'window.__APP_CONFIG__' /tmp/index.html
+          echo "BASEMAPS reaches the page intact"
+          node -e '
+            const html = require("fs").readFileSync("/tmp/index.html", "utf8");
+            const window = {};
+            eval(html.match(/<script>\s*(window\.__APP_CONFIG__[\s\S]*?)<\/script>/)[1]);
+            const [entry] = JSON.parse(window.__APP_CONFIG__.basemaps);
+            require("assert").equal(entry.attribution, "&copy; <a href=\"https://example.org\">CI</a> \"quoted\"");
+          '
           echo "GET /assets/<bundle>.js (built asset served)"
           asset=$(grep -oE '/assets/[^"]+\.js' /tmp/index.html | head -1)
           curl -fsS -o /dev/null http://127.0.0.1:18080"${asset}"

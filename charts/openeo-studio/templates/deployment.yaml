@@ -14,7 +14,7 @@ spec:
       labels:
         {{- include "openeo-studio.selectorLabels" . | nindent 8 }}
       annotations:
-        checksum/config: {{ toJson (dict "env" .Values.env "envFromSecret" .Values.envFromSecret) | sha256sum }}
+        checksum/config: {{ toJson (dict "env" .Values.env "envFromSecret" .Values.envFromSecret "basemaps" .Values.basemaps) | sha256sum }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -41,11 +41,17 @@ spec:
             {{- range .Values.envFromSecret }}
             {{- $secretKeys = append $secretKeys .name }}
             {{- end }}
+            {{- /* basemaps renders BASEMAPS, unless a Secret provides it */}}
+            {{- $renderBasemaps := and .Values.basemaps (not (has "BASEMAPS" $secretKeys)) }}
             {{- range $key, $value := .Values.env }}
-            {{- if not (has $key $secretKeys) }}
+            {{- if not (or (has $key $secretKeys) (and $renderBasemaps (eq $key "BASEMAPS"))) }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+            {{- end }}
+            {{- if $renderBasemaps }}
+            - name: BASEMAPS
+              value: {{ toJson .Values.basemaps | quote }}
             {{- end }}
             {{- range .Values.envFromSecret }}
             - name: {{ .name }}

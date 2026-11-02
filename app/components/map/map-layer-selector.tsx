@@ -13,22 +13,14 @@ import {
 } from '@chakra-ui/react';
 import { LuHardDriveUpload, LuLayers, LuX } from 'react-icons/lu';
 import type { ServiceInfo } from '$types';
+import type { BaseLayer } from '$config/basemaps';
 import { Tip } from '$components/tooltip';
-
-interface BaseLayerOption {
-  id: string;
-  label: string;
-  styleUrl: {
-    light: string;
-    dark: string;
-  };
-}
 
 interface MapLayerSelectorProps {
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
   onServicePublish?: (service: ServiceInfo) => void;
-  baseOptions: BaseLayerOption[];
+  baseOptions: BaseLayer[];
   baseValue: string;
   onBaseChange: (id: string) => void;
 }

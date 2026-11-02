@@ -105,6 +105,78 @@ tests:
                 name: openeo-studio-secrets
                 key: MAPTILER_KEY
 
+  - it: renders basemaps as JSON in the BASEMAPS env var
+    set:
+      basemaps:
+        - label: Streets
+          light: https://tiles.example.org/light.json
+          dark: https://tiles.example.org/dark.json
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BASEMAPS
+            value: '[{"dark":"https://tiles.example.org/dark.json","label":"Streets","light":"https://tiles.example.org/light.json"}]'
+
+  - it: does not render BASEMAPS when basemaps is empty
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: BASEMAPS
+
+  - it: lets basemaps take over from a literal env.BASEMAPS (no duplicate env name)
+    set:
+      env:
+        BASEMAPS: '[{"label":"Old","light":"https://old.example.org/style.json"}]'
+      basemaps:
+        - label: New
+          light: https://new.example.org/style.json
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BASEMAPS
+            value: '[{"label":"Old","light":"https://old.example.org/style.json"}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BASEMAPS
+            value: '[{"label":"New","light":"https://new.example.org/style.json"}]'
+
+  - it: sources BASEMAPS from a Secret when listed in envFromSecret, even with basemaps set
+    set:
+      basemaps:
+        - label: Streets
+          light: https://tiles.example.org/light.json
+      envFromSecret:
+        - name: BASEMAPS
+          secretName: openeo-studio-secrets
+          secretKey: basemaps
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BASEMAPS
+            value: '[{"label":"Streets","light":"https://tiles.example.org/light.json"}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BASEMAPS
+            valueFrom:
+              secretKeyRef:
+                name: openeo-studio-secrets
+                key: basemaps
+
+  - it: rejects a basemaps entry without a light or dark URL
+    set:
+      basemaps:
+        - label: Streets
+    asserts:
+      - failedTemplate:
+          errorPattern: "anyOf"
+
   - it: probes / on the http port for liveness and readiness
     asserts:
       - equal:

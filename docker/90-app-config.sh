@@ -17,10 +17,6 @@ mkdir -p "$RUNTIME_DIR"
 # derive the path prefix from it instead of a separate env var.
 PATH_PREFIX="$(normalize_prefix "$(derive_prefix "$BASE_URL")")"
 
-json_escape() {
-  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
-}
-
 if [ "$ENABLE_NARRATIVE_EXPORT" = "true" ]; then
   ENABLE_NARRATIVE_EXPORT_JS=true
 else
@@ -45,6 +41,7 @@ window.__APP_CONFIG__ = {
   appTitle: "$(json_escape "$APP_TITLE")",
   appDescription: "$(json_escape "$APP_DESCRIPTION")",
   maptilerKey: "$(json_escape "$MAPTILER_KEY")",
+  basemaps: "$(json_escape "$BASEMAPS")",
   authAuthority: "$(json_escape "$AUTH_AUTHORITY")",
   authClientId: "$(json_escape "$AUTH_CLIENT_ID")",
   authRedirectUri: "$(json_escape "$AUTH_REDIRECT_URI")",
@@ -77,3 +74,6 @@ else
 fi
 
 echo "openeo-studio: templated ${INDEX_HTML} (PATH_PREFIX='${PATH_PREFIX}', OPENEO_API_URL='${OPENEO_API_URL}')"
+
+# The browser validates BASEMAPS; log only that it is set (URLs may hold keys).
+[ -z "$BASEMAPS" ] || echo "openeo-studio: BASEMAPS set (${#BASEMAPS} characters)"
