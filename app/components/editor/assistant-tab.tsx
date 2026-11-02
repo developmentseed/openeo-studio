@@ -510,7 +510,7 @@ export function AssistantTab({
   );
 
   /** The last question from elsewhere that was sent. */
-  const asked = useRef<number>();
+  const asked = useRef<number>(undefined);
   useEffect(() => {
     // A question asked during a run waits for the run to end. One asked in
     // another conversation is about another project: it is dropped.
