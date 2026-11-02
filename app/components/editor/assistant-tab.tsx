@@ -6,6 +6,7 @@ import { MarkdownRenderer } from '$components/common/md-renderer';
 import { appConfig } from '$config/runtime';
 import type { EditorConfigValues } from '$config/default-editor-config';
 import {
+  supersedePending,
   useAssistantStore,
   type CodeChange,
   type ConfigurationChange,
@@ -316,9 +317,14 @@ export function AssistantTab({
     setDraft('');
     setBusy(true);
     setItems((all) => [
-      ...all,
+      ...supersedePending(all),
       { kind: 'user', id: crypto.randomUUID(), text }
     ]);
+    // A card accepted before still waited for the last decision to save.
+    if (useAssistantStore.getState().unsaved) {
+      setUnsaved(false);
+      onAccepted?.();
+    }
     const { threadId } = useAssistantStore.getState();
     // A run belongs to its conversation: once the project or the
     // conversation changes, what it still sends is dropped, or project A's
@@ -621,7 +627,8 @@ export function AssistantTab({
                     {
                       accepted: 'Accepted.',
                       rejected: 'Rejected.',
-                      superseded: 'The code changed since this was proposed.'
+                      superseded:
+                        'Superseded: the code changed, or you asked again.'
                     }[item.status]
                   }
                 </Text>

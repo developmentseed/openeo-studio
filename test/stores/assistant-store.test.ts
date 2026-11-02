@@ -1,4 +1,8 @@
-import { useAssistantStore } from '$stores/assistant-store';
+import {
+  supersedePending,
+  useAssistantStore,
+  type Item
+} from '$stores/assistant-store';
 
 const talk = () =>
   useAssistantStore
@@ -64,4 +68,23 @@ it('saves the pending save, so the last decision after a reload still saves', ()
   const saved = JSON.parse(sessionStorage.getItem('openeo-assistant-storage')!);
   expect(saved.state.unsaved).toBe(true);
   expect(saved.state).not.toHaveProperty('busy');
+});
+
+it('supersedes the cards still waiting when the user asks again', () => {
+  const card = (id: string, status: 'pending' | 'accepted'): Item => ({
+    kind: 'proposal',
+    id,
+    rationale: 'r',
+    status,
+    held: false,
+    change: { kind: 'code', edits: [], base: '' }
+  });
+  const items = supersedePending([
+    { kind: 'user', id: 'u', text: 'hi' },
+    card('waiting', 'pending'),
+    card('done', 'accepted')
+  ]);
+  expect(
+    items.map((item) => (item.kind === 'proposal' ? item.status : item.kind))
+  ).toEqual(['user', 'superseded', 'accepted']);
 });

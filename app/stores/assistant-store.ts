@@ -42,6 +42,18 @@ export type Item =
     };
 
 /**
+ * The proposals still waiting for a decision, superseded: the user asked
+ * again instead of deciding them. Accepting one later would apply what the
+ * user iterated away from, and "Accept all" would take it with the new ones.
+ */
+export const supersedePending = (items: Item[]): Item[] =>
+  items.map((item) =>
+    item.kind === 'proposal' && item.status === 'pending'
+      ? { ...item, status: 'superseded' }
+      : item
+  );
+
+/**
  * The Assistant tab's conversation, kept outside the tab so that it survives
  * the tab unmounting and a reload, and tied to the project it is about. The
  * thread itself lives on the agent; `threadId` is how the next message finds
