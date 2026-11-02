@@ -41,6 +41,14 @@ export type Item =
       change: CodeChange | ConfigurationChange;
     };
 
+/** A question for the assistant from elsewhere in the editor: an error. */
+export interface AskAssistant {
+  text: string;
+  at: number;
+  /** The conversation it was asked in. */
+  thread: string;
+}
+
 /**
  * The proposals still waiting for a decision, superseded: the user asked
  * again instead of deciding them. Accepting one later would apply what the
@@ -68,12 +76,18 @@ type AssistantState = {
   unsaved: boolean;
   /** The saved project the conversation is about; null for an unsaved one. */
   project: string | null;
+  /** The last question asked from elsewhere in the editor. Not persisted. */
+  question: AskAssistant | null;
 };
 
 type AssistantActions = {
   setItems: (change: (items: Item[]) => Item[]) => void;
   setBusy: (busy: boolean) => void;
   setUnsaved: (unsaved: boolean) => void;
+  /** Asks the assistant from elsewhere in the editor: the tab sends it. */
+  ask: (text: string) => void;
+  /** The question waiting to be sent, which is then no longer waiting. */
+  takeQuestion: () => AskAssistant | null;
   /** A new conversation about the same project. */
   reset: () => void;
   /** The project changed: a new conversation, unless it is this one's. */
@@ -87,7 +101,8 @@ const fresh = () => ({
   threadId: crypto.randomUUID(),
   items: [],
   busy: false,
-  unsaved: false
+  unsaved: false,
+  question: null
 });
 
 export const useAssistantStore = create<AssistantState & AssistantActions>()(
@@ -98,6 +113,15 @@ export const useAssistantStore = create<AssistantState & AssistantActions>()(
       setItems: (change) => set((state) => ({ items: change(state.items) })),
       setBusy: (busy) => set({ busy }),
       setUnsaved: (unsaved) => set({ unsaved }),
+      ask: (text) =>
+        set((state) => ({
+          question: { text, at: Date.now(), thread: state.threadId }
+        })),
+      takeQuestion: () => {
+        const { question } = get();
+        set({ question: null });
+        return question;
+      },
       reset: () => set(fresh()),
       forProject: (project) => {
         if (project !== null && get().project === project) return;
