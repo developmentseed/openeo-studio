@@ -16,6 +16,13 @@ client of that contract. It talks to an agent built on
 with its tools in the `openeo-studio` toolset of
 [openeo-studio-assistant](https://github.com/developmentseed/openeo-studio-assistant).
 
+Studio already describes itself to agents: `vite/plugins/agent-docs.ts`
+publishes `llms.txt`, `agents/script-contract.md` (the variables and rules of
+the loader, and `loader.py` itself), `agents/backend.md`, `agents/prefill.md`
+and the manifest `.well-known/openeo-studio.json`. These documents are Studio's
+description of the code's environment. The agent should read them, and not
+keep its own copy (departure 4).
+
 Most of the tab follows ADR-0004. A few things cannot, yet, without losing
 what the tab does today. This ADR records each departure: what ADR-0004
 says, what the tab does instead, why, and the way back.
@@ -24,7 +31,9 @@ says, what the tab does instead, why, and the way back.
 
 - Keep to ADR-0004 wherever the tab can do so at no loss.
 - Keep the token cost of a run low: the agent reads the project by
-  reference, never by copying the code into the conversation.
+  reference, never by copying the code into the conversation. The one
+  exception is an algorithm published only as a process graph: the model
+  writes its Python, so that code goes through the model.
 - The user stays in control: no change applies without the user.
 - Every departure is written down, with what ends it.
 
@@ -49,10 +58,6 @@ sees:
   `filter_bands` know the configured bands and the backend's name for the
   bands dimension. `code-runner.ts` passes it as `cubeDimensions`, and
   `RUN_CONFIG` is now read with `json.loads`.
-- `loader.py` adds `algorithm(url)`, which runs a published process graph on
-  the project's area, dates and cloud cover. When the graph leaves time alone,
-  it takes the first clear pixel, as `reduced` does. The editor's linter knows
-  the name (`ruff-linter.ts`).
 - A failed run says which step failed: running the code, validating the
   graph, creating the map services, or saving. An HTTP error shows the
   backend's message (`api.ts`).
@@ -96,8 +101,9 @@ sees:
   `.band()` inside a reducer, and a collection that lacks the configured
   bands.
 - The algorithm catalogue (`scripts/build_catalogue.py`, `catalogue.json`)
-  covers `openeo-udp` and APEx. Each entry has either code or the reason it
-  cannot run here (`docs/assistant-algorithms.md`).
+  covers `openeo-udp` and APEx. Each entry has code, a process graph for the
+  model to translate, or the reason it cannot run here
+  (`docs/assistant-algorithms.md`).
 - The toolset, the agent and its system prompt are in
   [openeo-studio-assistant](https://github.com/developmentseed/openeo-studio-assistant),
   which publishes their images. `docs/assistant-prompts.md` holds prompts for
@@ -138,10 +144,10 @@ sees:
 | 1 | Studio declares the tools for each run in `RunAgentInput.tools`. | The tools live in the agent's MCP toolset. Studio declares none. Studio acts only on the three tool calls it knows: `propose_code_edit`, `propose_configuration` and `propose_algorithm`. Any other call is shown as a line and changes nothing. | The runtime runs server-side MCP tools and ignores `RunAgentInput.tools`. Its tools read the project from state by handle (`@state:studio`), which keeps the code out of the conversation. | The runtime runs client-declared AG-UI tools. Then the three `propose_*` tools become Studio-declared, and the lookups stay server-side. |
 | 2 | A proposal's tool call waits for the user's decision, and Studio returns a `ToolDecision` as a ToolMessage. | The `propose_*` tools return at once. Studio holds the cards until the run ends, so they are decided together. The agent is not told the decision. It sees the result in the next run's state: the code, the parameters and the `revision`. | The runtime can pause a run and resume it: a tool calls LangGraph `interrupt()`, the run finishes with an AG-UI `interrupt` outcome, and the next run carries `resume`. But only a tool in the agent's own process can call `interrupt()`, and the `propose_*` tools run in the MCP toolset's server. Pausing on each proposal would also end the run at the first card, where users asked for the cards after the answer, decided together. | The runtime gates a named toolset tool on the user's answer: it pauses after the tool returns and resumes with the decision. Studio then answers with `ToolDecision`. One pause per run, holding every proposal of the run, would keep the cards decided together. |
 | 3 | A proposal is a `Proposal`: a JSON Patch, its inverse, `baseRevision` and `toolCallId`. The kinds are `collection`, `parameters` and `code`. | The tab keeps a smaller record: the code edits with the code they were made against, or the configuration values with the values before them. One configuration proposal may change both the collection and the parameters. A code proposal is superseded when the code no longer matches the code it was made against. | The patch and its inverse exist to support undo and the `auto` modes. Neither is built, and ADR-0004 defers both. Comparing against the base code catches every edit, including typing that the debounce has not yet stored. | Build `Proposal` records when undo or the `auto` modes are built. Each configuration proposal then splits into a `collection` proposal and a `parameters` proposal. |
-| 4 | Studio sends `loader.py` in the AG-UI `context`, so that the agent sees the code's environment, and nothing else describes it. | The agent's prompt names what the loader defines (`datacube`, `reduced`, `add_graph_to_map`, `algorithm(url)`). The rest comes back in tool results, when it is needed: `read_code` lists the bands loaded and the bands dimension's name, with the rules for Studio code, and `check_project` adds what to look for when debugging. | The runtime passes `state` to the agent, not `context`. And `loader.py` is 7.6k characters, about 2k tokens: sent with every model call, it would add half again to a call that now starts at about 4k. | The runtime gives `context` to the model. Before Studio sends `loader.py`, weigh that cost against the drift below; sending it once per thread, rather than per call, would remove most of it. |
+| 4 | Studio sends `loader.py` in the AG-UI `context`, so that the agent sees the code's environment, and nothing else describes it. | The agent's prompt names what the loader defines (`datacube`, `reduced`, `add_graph_to_map`). The rest comes back in tool results, when it is needed: `read_code` lists the bands loaded and the bands dimension's name, with the rules for Studio code, and `check_project` adds what to look for when debugging. These rules are a copy, in the toolset, of the rules that Studio publishes in `agents/script-contract.md`. | The runtime passes `state` to the agent, not `context`. And `loader.py` is 7.6k characters, about 2k tokens: sent with every model call, it would add half again to a call that now starts at about 4k. | Studio sends the URL of its manifest in the state document, and the toolset reads the rules from Studio's agent documents, when they are needed, in place of its copy. Or the runtime gives `context` to the model: before Studio sends `loader.py`, weigh that cost against the drift below; sending it once per thread, rather than per call, would remove most of it. |
 | 5 | The state document holds the fields of `StudioStateDocument`. | The document also carries `graphs`: the process graphs of the last run. | `check_project` traces and validates the graph that the code built. Rebuilding it from the code would mean running Python in the agent. | Add `graphs` (or `lastRun.graphs`) to `StudioStateDocument`, and regenerate the schema with `pnpm schema:agent`. |
 | 6 | `diagnostics` is sent for the error triggers only. | `diagnostics.execution` is sent with every run after a failed run. `validation` and `lint` are always empty. No trigger kind is sent: the "Ask the assistant" button on the error is the `editor.executionError` trigger in all but name. | A typed question such as "why is nothing rendering?" needs the error too. The message is one line, not a traceback. | Send the trigger kind with each run, and let the trigger decide what the document carries. Lift the validation and lint diagnostics into the editor store. |
-| 7 | The agent proposes a catalogue item as a `catalogueItem` reference, from a provider in `sources`. | `sources` is empty. The agent's knowledge of published algorithms is the toolset's own catalogue, built from `openeo-udp` and the APEx `apex_algorithms` repository. An algorithm comes back as one `propose_algorithm` call that names the stored algorithm by handle. Studio reads the proposal (the configuration and the code) from the agent's state route and shows it as a configuration card and a code card. For an APEx process graph, the code calls `algorithm(url)` in `loader.py`. | The catalogue providers of the catalogue ADR (0004) are not built. | Once the `openeo-udp` and `apex` providers exist, `propose_algorithm` becomes a `catalogueItem` proposal of `{providerId, sourceRef}`, and Studio opens the item through its provider instead of reading the code from the agent. `algorithm(url)` is what an APEx provider needs to open an item that is only a graph. |
+| 7 | The agent proposes a catalogue item as a `catalogueItem` reference, from a provider in `sources`. | `sources` is empty. The agent's knowledge of published algorithms is the toolset's own catalogue, built from `openeo-udp` and the APEx `apex_algorithms` repository. An algorithm comes back as one `propose_algorithm` call that names the stored algorithm by handle. Studio reads the proposal (the configuration and the code) from the agent's state route and shows it as a configuration card and a code card. An APEx algorithm published only as a process graph is a user-defined process, not a standard openEO process, and the backend cannot call it by namespace. The model translates its graph to Python, and the toolset checks that code before it stores the proposal, so Studio gets Python only. | The catalogue providers of the catalogue ADR (0004) are not built. | Once the `openeo-udp` and `apex` providers exist, `propose_algorithm` becomes a `catalogueItem` proposal of `{providerId, sourceRef}`, and Studio opens the item through its provider instead of reading the code from the agent (issue #102). An APEx provider then needs its own way to open an item that is only a graph. |
 | 8 | The agent publishes `/.well-known/agent-card` with its contract versions. | The runtime publishes no card, and Studio checks none. | The runtime has no such endpoint. | The runtime serves the card, and Studio refuses an agent whose card lacks `AGENT_CONTRACT_VERSION`. |
 | 9 | (not covered) | The state document is sent under the key `studio`: `{"studio": <document>}`. | The runtime stores each top-level key of `state` as a handle that tools can read. | None needed. The document itself is unchanged. |
 
@@ -153,8 +159,10 @@ sees:
   in Studio beyond deleting a workaround.
 - Bad: until #2 is closed, the agent cannot tell a rejected proposal from one
   that the user has not yet decided.
-- Bad: until #4 is closed, the loader is described in two places, the agent's
-  prompt and `read_code`'s rules, and either can fall behind `loader.py`.
+- Bad: until #4 is closed, the loader and its rules are described in three
+  places: Studio's agent documents (generated from `loader.py`), the agent's
+  prompt, and the toolset's `read_code` and `check_project` rules. The two
+  copies in the agent can fall behind Studio.
 - Bad: until #7 is closed, the catalogue is copied into the toolset and must be
   rebuilt (`scripts/build_catalogue.py`) when `openeo-udp` or APEx changes.
 

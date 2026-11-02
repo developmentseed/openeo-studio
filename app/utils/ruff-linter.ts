@@ -24,8 +24,7 @@ async function initRuff() {
           'RUN_CONFIG', // defined in code-runner.ts
           'datacube', // defined in loader.py
           'reduced', // defined in loader.py
-          'add_graph_to_map', // defined in loader.py
-          'algorithm' // defined in loader.py
+          'add_graph_to_map' // defined in loader.py
         ],
         'target-version': 'py310',
         'line-length': 88,
