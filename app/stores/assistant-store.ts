@@ -19,6 +19,15 @@ export interface ConfigurationChange {
   values: Partial<EditorConfigValues>;
   /** The configuration when it was proposed, to show what changes. */
   before: EditorConfigValues;
+  /** The run that proposed it: its code cards are checked with it. */
+  run?: string;
+}
+
+/** Whether a run's code builds and the backend validates it, before Accept. */
+export interface CodeCheck {
+  status: 'checking' | 'passed' | 'failed';
+  /** The error, when it failed. */
+  message?: string;
 }
 
 /** The contract's statuses that the `ask` apply mode reaches. */
@@ -39,6 +48,8 @@ export type Item =
       /** Still arriving: the run that made it has not finished. */
       held: boolean;
       change: CodeChange | ConfigurationChange;
+      /** For a code card: the check of its code. */
+      check?: CodeCheck;
     };
 
 /** A question for the assistant from elsewhere in the editor: an error. */
@@ -136,9 +147,16 @@ export const useAssistantStore = create<AssistantState & AssistantActions>()(
         threadId: state.threadId,
         // A run ends in this tab or not at all: one cut off by a reload
         // still releases its proposals, or they would stay hidden.
+        // A check cut off by a reload never ends: it is dropped.
         items: state.items.map((item) =>
-          item.kind === 'proposal' && item.held
-            ? { ...item, held: false }
+          item.kind === 'proposal' &&
+          (item.held || item.check?.status === 'checking')
+            ? {
+                ...item,
+                held: false,
+                check:
+                  item.check?.status === 'checking' ? undefined : item.check
+              }
             : item
         ),
         unsaved: state.unsaved,

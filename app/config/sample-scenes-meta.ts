@@ -116,6 +116,24 @@ export const SAMPLE_SCENES_META: SampleSceneMeta[] = [
     cloudCover: 20 // Max cloud cover percentage
   },
   {
+    id: 'sentinel-2-dnbr',
+    name: 'Burn Severity (dNBR) with Sentinel-2 L2A',
+    description:
+      'Differenced Normalized Burn Ratio of the 22 July 2026 Saumos / Le Porge wildfire (Gironde): a pre-fire scene, loaded in the code, against the post-fire scene of the project dates.',
+    collectionId: 'sentinel-2-l2a',
+    algorithm: 'visualizations/dnbr.py',
+    defaultBands: [
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04',
+      'reflectance|bands=b8a',
+      'reflectance|bands=b12'
+    ], // Blue, Green, Red for true colour; Narrow NIR, SWIR 2 for the NBR
+    temporalRange: ['2026-08-01', '2026-09-30'], // Post-fire; the code loads 1-21 July as pre-fire
+    boundingBox: [-1.26, 44.66, -0.78, 45.02], // west, south, east, north around Saumos and Le Porge
+    cloudCover: 20 // Max cloud cover percentage
+  },
+  {
     id: 'sentinel-2-cloud-detection',
     name: 'Cloud Detection with Sentinel-2 L2A',
     description:
