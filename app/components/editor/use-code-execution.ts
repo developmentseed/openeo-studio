@@ -14,7 +14,7 @@ import {
 } from '$utils/openeo/user-defined-processes';
 import { shouldNavigateAfterSave } from '$config/sample-scenes';
 import type { ExecutionConfig, GraphResult, ServiceInfo } from '$types';
-import { useEditorStore } from '$stores/editor-store';
+import { useEditorStore, type LastRun } from '$stores/editor-store';
 import { useProjectsStore } from '$stores/projects-store';
 
 type RunResult = {
@@ -28,6 +28,13 @@ export type SaveProjectResult =
   | { status: 'no-graph' }
   | { status: 'error' };
 
+/** What a run tells the assistant, unless another project opened since the
+ * run started (`opened`): it is about that project. */
+const recordRun = (opened: number, lastRun: LastRun) => {
+  const state = useEditorStore.getState();
+  if (state.opened === opened) state.setLastRun(lastRun);
+};
+
 export function useCodeExecution(
   setServices: (services: ServiceInfo[]) => void,
   editor: EditorView | null,
@@ -36,7 +43,7 @@ export function useCodeExecution(
   const { pyodide } = usePyodide();
   const { user } = useAuth();
 
-  const { sceneId, sceneName, markClean, setLastRun } = useEditorStore();
+  const { sceneId, sceneName, markClean } = useEditorStore();
   const saveProject = useProjectsStore((state) => state.saveProject);
 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -49,6 +56,7 @@ export function useCodeExecution(
 
     const content = editor.state.doc.toString();
     const token = user?.access_token ?? '';
+    const { opened } = useEditorStore.getState();
     let graphs: GraphResult[] = [];
     // Which step failed tells the assistant where to look: the code, the
     // graph it built, or the map services built from a valid graph.
@@ -66,15 +74,15 @@ export function useCodeExecution(
       );
       step = 'Creating the map services (the backend validated the graph)';
       const services = await createServicesFromGraphs(graphs, token);
-      setLastRun({ graphs, error: null });
+      recordRun(opened, { graphs, error: null });
       setServices(services);
       return { content, graphs, services };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      setLastRun({ graphs, error: `${step} failed: ${message}` });
+      recordRun(opened, { graphs, error: `${step} failed: ${message}` });
       throw error;
     }
-  }, [pyodide, editor, user?.access_token, config, setServices, setLastRun]);
+  }, [pyodide, editor, user?.access_token, config, setServices]);
 
   /** Auto-execute: run code and create map services. Never persists. */
   const createServices = useCallback(async () => {
@@ -100,6 +108,7 @@ export function useCodeExecution(
 
       setIsExecuting(true);
       setErrorMessage(null);
+      const { opened } = useEditorStore.getState();
       try {
         const { content, graphs, services } = await runAndCreateServices();
 
@@ -127,7 +136,7 @@ export function useCodeExecution(
           // The code ran and the map rendered; only storing the project failed.
           const message =
             error instanceof Error ? error.message : String(error);
-          setLastRun({
+          recordRun(opened, {
             graphs,
             error: `Saving the project as "${id}" failed (the code ran and the map rendered): ${message}`
           });
@@ -152,7 +161,6 @@ export function useCodeExecution(
       sceneId,
       sceneName,
       saveProject,
-      setLastRun,
       user?.access_token
     ]);
 

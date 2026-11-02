@@ -208,6 +208,9 @@ def algorithm(url: str, **values):
         return node
 
     for node in graph.values():
+        # The UDP's parameters first: the references put in below are this
+        # project's, which a default of the same name must not replace.
+        node["arguments"] = resolve(node["arguments"])
         if node["process_id"] == "load_collection":
             arguments = node["arguments"]
             same = _squashed(arguments.get("id", "")) == _squashed(default_collection_id)
@@ -218,24 +221,30 @@ def algorithm(url: str, **values):
                 arguments["properties"] = properties
             elif same:
                 arguments.pop("properties", None)
-        node["arguments"] = resolve(node["arguments"])
     # A graph that leaves time alone would read every scene in the dates for
     # every tile, and a map shows one image anyway: take the first clear
     # pixel at each load, as `reduced` does.
     if not _handles_time(graph):
         loads = [key for key, node in graph.items() if node["process_id"] == "load_collection"]
+        # Each load's selection, at an id the graph does not use yet.
+        first = {}
+        for key in loads:
+            name = key + "_first"
+            while name in graph or name in first.values():
+                name += "_"
+            first[key] = name
         for node in graph.values():
             for argument, value in node["arguments"].items():
-                if isinstance(value, dict) and value.get("from_node") in loads:
-                    node["arguments"][argument] = {"from_node": value["from_node"] + "_first"}
-        for key in loads:
-            graph[key + "_first"] = {
+                if isinstance(value, dict) and value.get("from_node") in first:
+                    node["arguments"][argument] = {"from_node": first[value["from_node"]]}
+        for key, name in first.items():
+            graph[name] = {
                 "process_id": "apply_pixel_selection",
                 "arguments": {"data": {"from_node": key}, "pixel_selection": "first"},
             }
             # A load that is the graph's output has no consumer to rewrite.
             if graph[key].pop("result", False):
-                graph[key + "_first"]["result"] = True
+                graph[name]["result"] = True
     if unresolved:
         raise ValueError(f"{url} needs values for {sorted(unresolved)}: algorithm(url, name=value)")
     return DataCube(graph=PGNode.from_flat_graph(graph, parameters={p.name: p for p in parameters}))

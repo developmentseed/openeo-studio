@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/shallow';
 import { useNavigate } from 'react-router';
 
 import { useEditorStore } from '$stores/editor-store';
+import { useAssistantStore } from '$stores/assistant-store';
 import { useAlertDialog } from '$components/common/use-alert-dialog';
 import { useConfirmDialog } from '$components/common/use-confirm-dialog';
 import { isSampleScene, shouldNavigateAfterSave } from '$config/sample-scenes';
@@ -150,11 +151,12 @@ export function EditorWorkspace({
   };
 
   useEffect(() => {
-    // Saving runs the code first: wait until it can run.
-    if (!saveAfterAccept || !isRuntimeReady || isExecuting) return;
+    // Saving runs the code first: wait until it can run, with the
+    // queryables of a collection the change selected.
+    if (!saveAfterAccept || !isExecutionReady || isExecuting) return;
     setSaveAfterAccept(false);
     handleSaveClick();
-  }, [saveAfterAccept, isRuntimeReady, isExecuting]);
+  }, [saveAfterAccept, isExecutionReady, isExecuting]);
 
   return (
     <Stack
@@ -233,7 +235,8 @@ export function EditorWorkspace({
                 ? () => {
                     setAsk({
                       text: `My code failed to run. Why, and how do I fix it?\n\n${useEditorStore.getState().lastRun?.error ?? errorMessage}`,
-                      at: Date.now()
+                      at: Date.now(),
+                      thread: useAssistantStore.getState().threadId
                     });
                     setActiveTab('assistant');
                     setIsErrorDismissed(true);

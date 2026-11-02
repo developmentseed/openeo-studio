@@ -23,7 +23,7 @@ import {
   runAgent,
   studioDocument
 } from '$utils/agent';
-import { withCloudCover } from '$utils/property-filters';
+import { cloudCoverOf, withCloudCover } from '$utils/property-filters';
 import { useCodeEditor } from './code-editor';
 import { OPERATOR_LABELS } from './setup/property-filters';
 
@@ -50,7 +50,8 @@ type AlgorithmProposal = Parameters<typeof configurationOf>[0] & {
 
 /** The arguments of `propose_configuration`, in the loader's openEO terms, as
  * the editor store names them: the inverse of `projectParameters`. The cloud
- * cover replaces the cloud cover filter, and keeps the other filters. */
+ * cover replaces the cloud cover filter, and keeps the other filters: the
+ * filters shown on the card; acceptance merges the cloud cover again. */
 function configurationOf(args: {
   collection_id?: string;
   bands?: string[];
@@ -135,6 +136,8 @@ function CodeDiff({ change }: { change: CodeChange }) {
 export interface AskAssistant {
   text: string;
   at: number;
+  /** The conversation it was asked in. */
+  thread: string;
 }
 
 export function AssistantTab({
@@ -401,7 +404,19 @@ export function AssistantTab({
     if (values.selectedBands) setSelectedBands(values.selectedBands);
     if (values.temporalRange) setTemporalRange(values.temporalRange);
     if (values.boundingBox) setBoundingBox(values.boundingBox);
-    if (values.propertyFilters) setPropertyFilters(values.propertyFilters);
+    // The cloud cover only, into the filters as they are now: the user can
+    // change another filter while the card waits.
+    if (values.propertyFilters) {
+      const max = cloudCoverOf(values.propertyFilters);
+      setPropertyFilters(
+        max === undefined
+          ? values.propertyFilters
+          : withCloudCover(
+              useEditorStore.getState().selectedConfig.propertyFilters,
+              max
+            )
+      );
+    }
   };
 
   /** Apply code changes of one run, together, on top of the run's changes
@@ -494,10 +509,15 @@ export function AssistantTab({
       item.kind === 'proposal' && item.status === 'pending' && !item.held
   );
 
+  /** The last question from elsewhere that was sent. */
+  const asked = useRef<number>();
   useEffect(() => {
-    if (ask) send(ask.text);
-    // Only a new question sends.
-  }, [ask?.at]);
+    // A question asked during a run waits for the run to end. One asked in
+    // another conversation is about another project: it is dropped.
+    if (!ask || busy || asked.current === ask.at) return;
+    asked.current = ask.at;
+    if (ask.thread === useAssistantStore.getState().threadId) send(ask.text);
+  }, [ask?.at, busy]);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'end' });

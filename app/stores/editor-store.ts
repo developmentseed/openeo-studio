@@ -34,6 +34,9 @@ type EditorState = {
   sceneId: string | null;
   sceneName: string;
   lastRun: LastRun | null;
+  /** Counts the projects opened: a run of an earlier one must not set
+   * `lastRun`. Not persisted. */
+  opened: number;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
@@ -86,6 +89,7 @@ export const useEditorStore = create<EditorStore>()(
       sceneId: null,
       sceneName: DEFAULT_SCENE_NAME,
       lastRun: null,
+      opened: 0,
       setCode: (code) => set((state) => ({ code, ...changed(state) })),
       setLastRun: (lastRun) =>
         set({
@@ -140,27 +144,29 @@ export const useEditorStore = create<EditorStore>()(
       markClean: () => set({ isDirty: false }),
       resetToDefaults: (defaults) => {
         const newConfig = createInitialConfig(defaults);
-        set({
+        set((state) => ({
           code: '',
           isDirty: false,
           selectedConfig: newConfig,
           services: [],
           lastRun: null,
+          opened: state.opened + 1,
           sceneName: DEFAULT_SCENE_NAME
-        });
+        }));
       },
       clearEditor: () => {
         useAssistantStore.getState().forProject(null);
         const initialConfig = createInitialConfig();
-        set({
+        set((state) => ({
           code: '',
           isDirty: false,
           selectedConfig: initialConfig,
           services: [],
           lastRun: null,
+          opened: state.opened + 1,
           sceneId: null,
           sceneName: DEFAULT_SCENE_NAME
-        });
+        }));
       },
       hydrateFromScene: (sceneId, scene) => {
         useAssistantStore.getState().forProject(sceneId);
@@ -171,15 +177,16 @@ export const useEditorStore = create<EditorStore>()(
           selectedBands: scene.defaultBands,
           boundingBox: scene.boundingBox
         });
-        set({
+        set((state) => ({
           sceneId,
           sceneName: scene.name,
           selectedConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
           isDirty: false,
           services: [],
-          lastRun: null
-        });
+          lastRun: null,
+          opened: state.opened + 1
+        }));
       }
     }),
     {
