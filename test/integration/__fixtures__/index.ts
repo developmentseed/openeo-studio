@@ -28,14 +28,14 @@ export const test = base.extend<{
           providers: [
             {
               id: 'oidc',
-              issuer: 'http://localhost:9000/mock-oidc',
+              issuer: 'http://localhost:9100/mock-oidc',
               title: 'Mock OIDC',
               scopes: ['openid', 'profile', 'email'],
               default_clients: [
                 {
                   id: 'test-client-id',
                   grant_types: ['authorization_code+pkce'],
-                  redirect_urls: ['http://localhost:9000/']
+                  redirect_urls: ['http://localhost:9100/']
                 }
               ]
             }
@@ -60,7 +60,7 @@ export const test = base.extend<{
           token_type: 'Bearer',
           scope: 'openid profile email',
           profile: {
-            iss: 'http://localhost:9000/mock-oidc',
+            iss: 'http://localhost:9100/mock-oidc',
             sub: '123',
             aud: 'test-client-id',
             exp: 1800000000,
