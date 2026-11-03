@@ -84,8 +84,7 @@ function extractBandsFromCubeDimensions(
   stacCollection: StacCollection
 ): BandVariable[] {
   const dimensions = stacCollection['cube:dimensions'] as
-    | Record<string, CubeDimension>
-    | undefined;
+    Record<string, CubeDimension> | undefined;
   const bandsDimension = Object.values(dimensions ?? {}).find(
     (dim) => dim?.type === 'bands' && Array.isArray(dim.values)
   );
