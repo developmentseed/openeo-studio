@@ -14,7 +14,7 @@
 import type { ProcessParameter } from './openeo-process';
 
 /** Version of this contract. Studio sends it in every run. */
-export const AGENT_CONTRACT_VERSION = '1.0';
+export const AGENT_CONTRACT_VERSION = '1.1';
 
 /* -------------------------------------------------------------------------- */
 /* Studio state document                                                     */
@@ -100,6 +100,18 @@ export interface StudioBackend {
 }
 
 /**
+ * Where the deployment describes itself to agents. Since contract 1.1.
+ */
+export interface StudioDocs {
+  /**
+   * The absolute URL of the deployment's `.well-known/openeo-studio.json`. An
+   * agent reads the script contract, the rules for code and the backend from
+   * the documents that it links to, and does not keep its own copy.
+   */
+  manifestUrl: string;
+}
+
+/**
  * How Studio resolves a proposal.
  *
  *  - `ask`      the user decides every proposal. This is the default.
@@ -138,6 +150,8 @@ export interface StudioStateDocument {
    */
   diagnostics?: StudioDiagnostics;
   backend: StudioBackend;
+  /** Where the deployment describes itself to agents. Since contract 1.1. */
+  docs?: StudioDocs;
   /**
    * The catalogue providers that this deployment enables, for example
    * `json` or `apex`. The agent can propose an item from these providers
