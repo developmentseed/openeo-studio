@@ -9,6 +9,7 @@ import {
   supersedePending,
   useAssistantStore,
   type CodeChange,
+  type CodeCheck,
   type ConfigurationChange,
   type Item,
   type ProposalStatus
@@ -19,13 +20,16 @@ import type { PropertyFilter } from '$types';
 import type { AgentEvent } from '$types/agent';
 import {
   applyEdits,
+  configuredBy,
   manifestUrl,
   readState,
   replaceAll,
   runAgent,
   studioDocument
 } from '$utils/agent';
-import { cloudCoverOf, withCloudCover } from '$utils/property-filters';
+import { withCloudCover } from '$utils/property-filters';
+import { runAndValidateScript } from '$utils/code-runner';
+import { usePyodide } from '$stores/pyodide-store';
 import { useCodeEditor } from './code-editor';
 import { OPERATOR_LABELS } from './setup/property-filters';
 
@@ -105,6 +109,50 @@ const prefixed = (mark: string, text: string) =>
     .map((line) => `${mark} ${line}`)
     .join('\n');
 
+/** What the check of a code card found, before Accept. */
+function CheckResult({
+  check,
+  onAsk
+}: {
+  check: CodeCheck;
+  onAsk: () => void;
+}) {
+  if (check.status === 'checking') {
+    return (
+      <Text fontSize='xs' color='fg.muted'>
+        Checking that the code runs…
+      </Text>
+    );
+  }
+  if (check.status === 'passed') {
+    return (
+      <Text fontSize='xs' color='fg.muted'>
+        The code runs, and the backend validates it.
+      </Text>
+    );
+  }
+  return (
+    <Stack gap={1}>
+      <Text
+        fontSize='xs'
+        color='fg.error'
+        fontFamily='mono'
+        whiteSpace='pre-wrap'
+      >
+        This code fails: {check.message}
+      </Text>
+      <Button
+        size='xs'
+        variant='outline'
+        alignSelf='flex-start'
+        onClick={onAsk}
+      >
+        Ask to fix
+      </Button>
+    </Stack>
+  );
+}
+
 /** Each edit as the lines it removes from the code it was made against, then
  * the lines it adds. */
 function CodeDiff({ change }: { change: CodeChange }) {
@@ -142,6 +190,7 @@ export function AssistantTab({
 }) {
   const editor = useCodeEditor();
   const token = useAuth().user?.access_token;
+  const { pyodide } = usePyodide();
   const {
     setCode,
     setCollectionId,
@@ -158,7 +207,8 @@ export function AssistantTab({
     setUnsaved,
     reset,
     question,
-    takeQuestion
+    takeQuestion,
+    ask
   } = useAssistantStore();
   const [draft, setDraft] = useState('');
   const sentCode = useRef('');
@@ -287,7 +337,8 @@ export function AssistantTab({
               const change = {
                 kind: 'configuration' as const,
                 values: configurationOf(args),
-                before: useEditorStore.getState().selectedConfig
+                before: useEditorStore.getState().selectedConfig,
+                run: runId.current
               };
               if (repeats(change)) return [finished];
               return [
@@ -330,11 +381,11 @@ export function AssistantTab({
     // conversation changes, what it still sends is dropped, or project A's
     // cards could change project B.
     const current = () => useAssistantStore.getState().threadId === threadId;
+    runId.current = crypto.randomUUID();
+    const run = runId.current;
     try {
       const state = studioState();
       sentCode.current = state.studio.code.userCode;
-      runId.current = crypto.randomUUID();
-      const run = runId.current;
       algorithmProposed.current = false;
       await runAgent(
         { url: appConfig.agentUrl, threadId, message: text, state, token },
@@ -366,7 +417,8 @@ export function AssistantTab({
             change: {
               kind: 'configuration',
               values: configurationOf(configuration),
-              before: useEditorStore.getState().selectedConfig
+              before: useEditorStore.getState().selectedConfig,
+              run
             }
           },
           {
@@ -400,7 +452,61 @@ export function AssistantTab({
           ...all.filter((item) => !isHeld(item)),
           ...all.filter(isHeld).map((item) => ({ ...item, held: false }))
         ]);
+        void checkRun(run, current);
       }
+    }
+  };
+
+  /** Builds the code that the run's code cards make, with the configuration
+   * that its cards propose, and validates it: a card that fails says so
+   * before Accept. Nothing is shown on the map, and nothing is saved. */
+  const checkRun = async (run: string, current: () => boolean) => {
+    const cards = useAssistantStore
+      .getState()
+      .items.filter(
+        (item): item is Extract<Item, { kind: 'proposal' }> =>
+          item.kind === 'proposal' &&
+          item.status === 'pending' &&
+          item.change.run === run
+      );
+    const codes = cards.flatMap((item) =>
+      item.change.kind === 'code' ? [item.change] : []
+    );
+    const code =
+      codes.length > 0 &&
+      applyEdits(
+        codes[0].base,
+        codes.flatMap((change) => change.edits)
+      );
+    if (!pyodide || !code) return;
+    const ids = cards
+      .filter((item) => item.change.kind === 'code')
+      .map((item) => item.id);
+    const mark = (check: CodeCheck) =>
+      current() &&
+      setItems((all) =>
+        all.map((item) =>
+          item.kind === 'proposal' && ids.includes(item.id)
+            ? { ...item, check }
+            : item
+        )
+      );
+    const config = configuredBy(
+      useEditorStore.getState().selectedConfig,
+      cards.flatMap((item) =>
+        item.change.kind === 'configuration' ? [item.change.values] : []
+      )
+    );
+    mark({ status: 'checking' });
+    try {
+      await runAndValidateScript(pyodide, token ?? '', code, config);
+      mark({ status: 'passed' });
+    } catch (error) {
+      // A Python traceback ends with the error itself.
+      const lines = String(error instanceof Error ? error.message : error)
+        .trim()
+        .split('\n');
+      mark({ status: 'failed', message: lines.slice(-2).join('\n') });
     }
   };
 
@@ -413,14 +519,9 @@ export function AssistantTab({
     // The cloud cover only, into the filters as they are now: the user can
     // change another filter while the card waits.
     if (values.propertyFilters) {
-      const max = cloudCoverOf(values.propertyFilters);
       setPropertyFilters(
-        max === undefined
-          ? values.propertyFilters
-          : withCloudCover(
-              useEditorStore.getState().selectedConfig.propertyFilters,
-              max
-            )
+        configuredBy(useEditorStore.getState().selectedConfig, [values])
+          .propertyFilters
       );
     }
   };
@@ -594,6 +695,16 @@ export function AssistantTab({
             >
               <Text fontWeight='semibold'>{item.rationale}</Text>
               {item.change.kind === 'code' && <CodeDiff change={item.change} />}
+              {item.status === 'pending' && item.check && (
+                <CheckResult
+                  check={item.check}
+                  onAsk={() =>
+                    ask(
+                      `The code you proposed fails before it runs:\n\n${item.check?.message}\n\nFix it.`
+                    )
+                  }
+                />
+              )}
               {item.change.kind === 'configuration' &&
                 Object.entries(item.change.values).map(([key, value]) => {
                   const field = key as keyof EditorConfigValues;

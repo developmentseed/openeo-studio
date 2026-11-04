@@ -3,6 +3,7 @@ import apaAlgorithm from '../algorithms/visualizations/apa.py?raw';
 import ndciAlgorithm from '../algorithms/visualizations/ndci.py?raw';
 import lavaAlgorithm from '../algorithms/visualizations/lava.py?raw';
 import bais2Algorithm from '../algorithms/visualizations/bais2.py?raw';
+import dnbrAlgorithm from '../algorithms/visualizations/dnbr.py?raw';
 import cloudDetectionAlgorithm from '../algorithms/visualizations/cloud-detection.py?raw';
 
 import thumbS2RGB from '../media/scenes/sentinel-2-sunny-naples.png';
@@ -20,6 +21,7 @@ const ALGORITHMS: Record<string, string> = {
   'visualizations/ndci.py': ndciAlgorithm,
   'visualizations/lava.py': lavaAlgorithm,
   'visualizations/bais2.py': bais2Algorithm,
+  'visualizations/dnbr.py': dnbrAlgorithm,
   'visualizations/cloud-detection.py': cloudDetectionAlgorithm
 };
 
