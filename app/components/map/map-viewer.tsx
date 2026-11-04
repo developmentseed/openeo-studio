@@ -48,11 +48,15 @@ export function MapViewer({
     });
   };
 
-  // Apply fitBounds only when scene changes, not on viewport updates
+  // Fit the map when the scene changes, or when the area changes from outside
+  // the map (an accepted assistant card). An area from the user's own pan or
+  // zoom is where the map already is.
+  const area = bounds?.join();
+  const movedTo = useRef<string>(undefined);
   useEffect(() => {
-    if (!isMapReady) return;
+    if (!isMapReady || area === movedTo.current) return;
     applyFitBounds();
-  }, [sceneId, isMapReady]);
+  }, [sceneId, isMapReady, area]);
 
   // Only a visible service has a tile source on the map (see MapLayers).
   const visibleServices = services.filter((service) => service.visible);
@@ -78,12 +82,14 @@ export function MapViewer({
         const map = mapRef.current;
         if (!map) return;
         const nextBounds = map.getBounds();
-        onBoundingBoxChange([
+        const box: [number, number, number, number] = [
           nextBounds.getWest(),
           nextBounds.getSouth(),
           nextBounds.getEast(),
           nextBounds.getNorth()
-        ]);
+        ];
+        movedTo.current = box.join();
+        onBoundingBoxChange(box);
       }}
       reuseMaps
       initialViewState={{

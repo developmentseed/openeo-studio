@@ -18,6 +18,8 @@ export interface AppConfig {
   enableNarrativeExport: boolean;
   partnerLogoUrl: string;
   partnerName: string;
+  /** The AG-UI agent the Assistant tab talks to. Empty disables the tab. */
+  agentUrl: string;
 }
 
 declare global {
@@ -74,5 +76,6 @@ export const appConfig: AppConfig = {
     runtime.partnerLogoUrl,
     import.meta.env.VITE_PARTNER_LOGO_URL
   ),
-  partnerName: pick(runtime.partnerName, import.meta.env.VITE_PARTNER_NAME)
+  partnerName: pick(runtime.partnerName, import.meta.env.VITE_PARTNER_NAME),
+  agentUrl: pick(runtime.agentUrl, import.meta.env.VITE_AGENT_URL)
 };
