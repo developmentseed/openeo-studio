@@ -1,0 +1,30 @@
+# Values for the titiler-openeo chart (OCI, 3.1.0) in the local stack. up.sh sets image.tag.
+image: {repository: titiler-openeo, pullPolicy: Never}   # built and loaded by up.sh: the default tag 404s on ghcr, and published images are amd64-only
+stac:
+  apiUrl: https://planetarycomputer.microsoft.com/api/stac/v1
+env:
+  TITILER_OPENEO_ASSET_SIGNER: planetary-computer   # required since 0.18.0, else blob reads -> 409
+  # noaa-c-cap has a malformed provider URL that fails the whole GET /collections response.
+  TITILER_OPENEO_EXCLUDE_COLLECTIONS: noaa-c-cap
+  # Planetary Computer's Sentinel-2 L2A carries no scale/offset; take the BOA ones from each product's metadata.
+  TITILER_OPENEO_PROCESSING_SCALE_OFFSET_COLLECTIONS: '{"sentinel-2-l2a": ["sentinel2-boa"]}'
+resources:
+  requests: {cpu: 250m, memory: 1Gi}
+  limits: {cpu: "2", memory: 4Gi}
+# Postgres store: keeps Studio projects across pod restarts, and avoids the JSON
+# store's unpinned busybox init container that re-seeds the store on every start.
+database: {type: postgresql}
+postgresql:
+  enabled: true
+  auth: {password: dev}
+  persistence: {enabled: true, size: 1Gi}
+auth:
+  method: oidc
+  oidc:
+    enabled: true
+    clientId: openeo-studio
+    # In-cluster URL (namespace openeo-dev, set in up.sh): titiler fetches discovery and keys from inside the cluster.
+    wellKnownUrl: http://keycloak.openeo-dev.svc.cluster.local:8080/realms/openeo/.well-known/openid-configuration
+    redirectUrl: "http://localhost:9000/"   # Studio's root, with the trailing slash
+    nameClaim: preferred_username
+    title: Local Keycloak

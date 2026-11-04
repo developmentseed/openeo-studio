@@ -1,0 +1,11 @@
+# kind cluster for the local stack. Host ports listen on 127.0.0.1 only.
+# Changing a port mapping needs a new cluster: make down && make up.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: openeo-local   # up.sh and down.sh use this name
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.36.1   # the default of kind 0.32, pinned so other kind versions get the same Kubernetes
+    extraPortMappings:
+      - {containerPort: 30081, hostPort: 8081, listenAddress: "127.0.0.1"}  # titiler-openeo API
+      - {containerPort: 30082, hostPort: 8082, listenAddress: "127.0.0.1"}  # Keycloak

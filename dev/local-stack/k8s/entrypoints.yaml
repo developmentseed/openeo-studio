@@ -1,0 +1,14 @@
+# Fixed host ports via kind extraPortMappings; neither chart exposes a nodePort value.
+apiVersion: v1
+kind: Service
+metadata: {name: titiler-np}
+spec:
+  type: NodePort
+  publishNotReadyAddresses: true   # /readyz pings PC STAC + IdP with a 2 s timeout
+  selector: {app.kubernetes.io/name: titiler-openeo, app.kubernetes.io/instance: dev}
+  ports: [{port: 80, targetPort: http, nodePort: 30081}]   # named port skips the bundled postgres pod
+---
+apiVersion: v1
+kind: Service
+metadata: {name: keycloak-np}
+spec: {type: NodePort, selector: {app: keycloak}, ports: [{port: 8080, targetPort: http, nodePort: 30082}]}

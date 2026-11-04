@@ -1,0 +1,8 @@
+{
+  "name": "Local stack check: Sentinel-2 true colour",
+  "collectionId": "sentinel-2-l2a",
+  "temporalRange": ["2018-10-09", "2018-10-10"],
+  "bands": ["B04", "B03", "B02"],
+  "boundingBox": [9.3, 42.9, 9.5, 43.05],
+  "code": "\"\"\"One Sentinel-2 scene of Cap Corse (9 Oct 2018) in true colour: a quick end-to-end check.\"\"\"\n\nrgb = reduced.linear_scale_range(\n    input_min=0, input_max=1, output_min=0, output_max=255\n).apply(\"trunc\")\ncolor = rgb.process(\n    \"color_formula\",\n    data=rgb,\n    formula=\"Gamma RGB 1.5 Sigmoidal RGB 8 0.15 Saturation 1.2\",\n)\nadd_graph_to_map(color.save_result(\"PNG\"), \"True Color\")\n"
+}
