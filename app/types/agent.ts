@@ -174,11 +174,7 @@ export type ProposalStatus =
   | 'failed';
 
 export type ProposalKind =
-  | 'collection'
-  | 'parameters'
-  | 'code'
-  | 'project'
-  | 'catalogueItem';
+  'collection' | 'parameters' | 'code' | 'project' | 'catalogueItem';
 
 /**
  * A reference to one item of a catalogue provider.
