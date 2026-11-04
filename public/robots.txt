@@ -1,0 +1,4 @@
+# openEO Studio. Agents: read /llms.txt for the samples, the script contract
+# and the openEO backend of this deployment.
+User-agent: *
+Allow: /

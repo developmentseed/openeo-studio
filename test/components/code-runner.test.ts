@@ -63,12 +63,36 @@ describe('runAndValidateScript', () => {
         selectedBands: [],
         temporalRange: [],
         boundingBox: [0, 0, 1, 1],
-        cloudCover: 20
+        propertyFilters: [
+          { property: 'eo:cloud_cover', operator: 'lt', value: 20 }
+        ]
       }
     );
 
     expect(graphs).toEqual([graph]);
     expect(fetchHeaderLocation).not.toHaveBeenCalled();
+  });
+
+  it('passes the run configuration as JSON, so booleans are valid Python', async () => {
+    const pyodide = {
+      runPythonAsync: jest.fn().mockResolvedValue(JSON.stringify([graph]))
+    };
+    fetchJson.mockResolvedValue({ errors: [] });
+
+    await runAndValidateScript(pyodide as never, 'token', 'print("hi")', {
+      collectionId: 'sentinel-1-grd',
+      temporalRange: ['2024-01-01', '2024-01-02'],
+      propertyFilters: [{ property: 'x:flag', operator: 'eq', value: true }]
+    });
+
+    const code: string = pyodide.runPythonAsync.mock.calls[0][0];
+    const match = code.match(
+      /^import json\nRUN_CONFIG = json\.loads\((.*)\)$/m
+    );
+    expect(match).not.toBeNull();
+    expect(JSON.parse(JSON.parse(match![1])).propertyFilters).toEqual([
+      { property: 'x:flag', operator: 'eq', value: true }
+    ]);
   });
 });
 
