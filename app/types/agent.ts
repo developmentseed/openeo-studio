@@ -83,10 +83,26 @@ export interface ValidationDiagnostic {
   path?: string;
 }
 
+/**
+ * The last tile error of the current map view, as the backend sent it: the
+ * run built a valid graph, but the backend could not compute a tile.
+ * Since contract 1.1.
+ */
+export interface TileDiagnostic {
+  /** The openEO error code, for example `NoDataAvailable`. */
+  code: string;
+  message: string;
+  /** The number of tiles that failed in the view. */
+  failed: number;
+  at: string;
+}
+
 export interface StudioDiagnostics {
   execution: ExecutionDiagnostic | null;
   validation: ValidationDiagnostic[];
   lint: LintDiagnostic[];
+  /** Since contract 1.1. */
+  tiles?: TileDiagnostic | null;
 }
 
 /**
@@ -276,6 +292,7 @@ export type TriggerKind =
   | 'editor.executionError'
   | 'editor.validationError'
   | 'editor.lintDiagnostic'
+  | 'map.tileError'
   | 'home.kickstart';
 
 export const TRIGGER_KINDS: TriggerKind[] = [
@@ -283,6 +300,7 @@ export const TRIGGER_KINDS: TriggerKind[] = [
   'editor.executionError',
   'editor.validationError',
   'editor.lintDiagnostic',
+  'map.tileError',
   'home.kickstart'
 ];
 
