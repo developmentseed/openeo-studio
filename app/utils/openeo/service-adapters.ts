@@ -32,6 +32,19 @@ export function getServiceExtent(
   return fallback;
 }
 
+/**
+ * Zoom limits the backend set for a service's tiles, if any.
+ */
+export function getServiceZoom(
+  configuration: Record<string, unknown> | undefined
+): { minZoom?: number; maxZoom?: number } {
+  const { minZoom, maxZoom } = configuration ?? {};
+  return {
+    ...(typeof minZoom === 'number' && { minZoom }),
+    ...(typeof maxZoom === 'number' && { maxZoom })
+  };
+}
+
 export function backendServiceToServiceInfo(
   service: BackendService,
   visible: boolean,
@@ -43,6 +56,7 @@ export function backendServiceToServiceInfo(
     id: service.id,
     location: getServiceUrl(service.id),
     tileUrl: decodeServiceUrl(service.url),
+    ...getServiceZoom(service.configuration),
     visible,
     graphResult: {
       name,

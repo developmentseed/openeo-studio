@@ -81,6 +81,8 @@ export interface ServiceInfo {
   id: string;
   location: string;
   tileUrl: string;
+  minZoom?: number; // tile zoom limits the backend set, if any
+  maxZoom?: number;
   graphResult: GraphResult;
   visible: boolean;
 }
