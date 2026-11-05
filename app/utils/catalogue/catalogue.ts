@@ -2,6 +2,7 @@
  * The catalogue: fans listing out to sources, routes loading to loaders,
  * and checks every entry against the connected backend on the way out.
  */
+import { APIError } from '$utils/api';
 import { NotFound } from '$utils/errors';
 import { checkCompatibility } from './compatibility';
 import type {
@@ -27,6 +28,14 @@ export class IncompatibleProjectError extends NotFound {
     this.reason = reason;
   }
 }
+
+/**
+ * Whether an error means the thing doesn't exist, as opposed to a failure
+ * that might go away on retry.
+ */
+export const isNotFound = (error: unknown) =>
+  error instanceof NotFound ||
+  (error instanceof APIError && error.code === 404);
 
 export interface Catalogue {
   sources: { id: string; label: string }[];

@@ -235,5 +235,20 @@ test.describe('Persistence', () => {
         authenticatedPage.getByRole('heading', { name: '404' })
       ).toBeVisible();
     });
+
+    test('a backend error loading a project is not a 404', async ({
+      authenticatedPage
+    }) => {
+      await authenticatedPage.route('**/process_graphs/my-project', (route) =>
+        route.fulfill({ status: 503, body: 'down' })
+      );
+      await authenticatedPage.goto('/editor/my-project');
+      await expect(
+        authenticatedPage.getByText('Something went wrong')
+      ).toBeVisible();
+      await expect(
+        authenticatedPage.getByRole('heading', { name: '404' })
+      ).toHaveCount(0);
+    });
   });
 });

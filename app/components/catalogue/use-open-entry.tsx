@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router';
 import { useConfirmDialog } from '$components/common/use-confirm-dialog';
 import { catalogue } from '$config/catalogue';
 import { useEditorStore } from '$stores/editor-store';
-import { IncompatibleProjectError } from '$utils/catalogue/catalogue';
+import {
+  IncompatibleProjectError,
+  isNotFound
+} from '$utils/catalogue/catalogue';
 import type { LoadRef } from '$utils/catalogue/types';
-import { APIError } from '$utils/api';
-import { NotFound } from '$utils/errors';
 import { toaster } from '$utils/toaster';
 
 /**
@@ -55,10 +56,6 @@ export function useNewProject() {
 
   return { newProject, dialog };
 }
-
-const isNotFound = (error: unknown) =>
-  error instanceof NotFound ||
-  (error instanceof APIError && error.code === 404);
 
 interface OpenOptions {
   replace?: boolean;

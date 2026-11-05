@@ -5,8 +5,10 @@ jest.mock('$utils/catalogue/compatibility', () => ({
 import { checkCompatibility } from '$utils/catalogue/compatibility';
 import {
   createCatalogue,
-  IncompatibleProjectError
+  IncompatibleProjectError,
+  isNotFound
 } from '$utils/catalogue/catalogue';
+import { APIError } from '$utils/api';
 import type {
   CatalogueEntry,
   CatalogueSource,
@@ -51,6 +53,19 @@ beforeEach(() => {
 });
 
 afterEach(() => jest.restoreAllMocks());
+
+describe('isNotFound', () => {
+  it('is true for NotFound and an HTTP 404', () => {
+    expect(isNotFound(new NotFound('x'))).toBe(true);
+    expect(isNotFound(new APIError('x', 404, 'Not Found'))).toBe(true);
+  });
+
+  it('is false for other failures', () => {
+    expect(isNotFound(new APIError('x', 503, 'Unavailable'))).toBe(false);
+    expect(isNotFound(new TypeError('Failed to fetch'))).toBe(false);
+    expect(isNotFound(undefined)).toBe(false);
+  });
+});
 
 describe('createCatalogue', () => {
   it('exposes source ids and labels', () => {

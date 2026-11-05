@@ -11,7 +11,10 @@ import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
 import { useOpenEntry } from '$components/catalogue/use-open-entry';
 import { useEditorStore } from '$stores/editor-store';
-import { IncompatibleProjectError } from '$utils/catalogue/catalogue';
+import {
+  IncompatibleProjectError,
+  isNotFound
+} from '$utils/catalogue/catalogue';
 import { linkFromParams } from '$utils/catalogue/links';
 import { NotFound } from '$utils/errors';
 
@@ -100,8 +103,13 @@ export function EditorPage() {
     throw loadError;
   }
 
-  if (loadError) {
+  if (isNotFound(loadError)) {
     throw new NotFound(`Project not found: ${projectId}`);
+  }
+
+  // Anything else (network, 5xx) goes to the error page as is.
+  if (loadError) {
+    throw loadError;
   }
 
   if (isLoadingProject || isOpeningLink) {
