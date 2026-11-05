@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { test } from './__fixtures__';
+import { openSample, test } from './__fixtures__';
 
 test.describe('Unauthenticated UI', () => {
   test('should show restricted page on editor route', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Unauthenticated UI', () => {
   test('should show restricted page on other gated routes', async ({
     page
   }) => {
-    for (const path of ['/projects', '/projects/samples']) {
+    for (const path of ['/projects', '/projects/catalogue']) {
       await page.goto(path);
       await expect(
         page.getByRole('heading', { name: 'Restricted' })
@@ -102,7 +102,7 @@ test.describe('Authenticated UI', () => {
   test('should enable Save button after config change', async ({
     authenticatedPage
   }) => {
-    await authenticatedPage.goto('/editor/sentinel-2-apa');
+    await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
     const saveButton = authenticatedPage.getByRole('button', {
       name: /save/i

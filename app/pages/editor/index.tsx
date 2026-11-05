@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Flex, Spinner, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
-import { useParams } from 'react-router';
+import { useLocation, useParams, useSearchParams } from 'react-router';
 import { StacCollection } from 'stac-ts';
 import { useShallow } from 'zustand/shallow';
 
@@ -9,69 +9,54 @@ import { ResultsPanel } from '$components/editor/results-panel';
 import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
-import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
-import { getSceneById } from '$config/sample-scenes';
+import { useOpenEntry } from '$components/catalogue/use-open-entry';
 import { useEditorStore } from '$stores/editor-store';
+import { IncompatibleProjectError } from '$utils/catalogue/catalogue';
+import { linkFromParams } from '$utils/catalogue/links';
 import { NotFound } from '$utils/errors';
 
 export function EditorPage() {
-  const { sceneId } = useParams<{ sceneId: string }>();
+  const { projectId } = useParams<{ projectId: string }>();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const link = useMemo(() => linkFromParams(searchParams), [searchParams]);
 
-  const scene = getSceneById(sceneId!);
-  const isBlankScene = !sceneId;
-  const { storedSceneId, collectionId, temporalRange, code } = useEditorStore(
-    useShallow((state) => ({
-      storedSceneId: state.sceneId,
-      collectionId: state.selectedConfig.collectionId,
-      temporalRange: state.selectedConfig.temporalRange,
-      code: state.code
-    }))
-  );
+  const { collectionId, temporalRange, code, autoRun, contentVersion } =
+    useEditorStore(
+      useShallow((state) => ({
+        collectionId: state.selectedConfig.collectionId,
+        temporalRange: state.selectedConfig.temporalRange,
+        code: state.code,
+        autoRun: state.autoRun,
+        contentVersion: state.contentVersion
+      }))
+    );
 
   // Actions don't cause re-renders
-  const { setSceneId, resetToDefaults, hydrateFromScene, setTemporalRange } =
-    useEditorStore();
+  const { setDefaultTemporalRange } = useEditorStore();
 
-  // Sync store with route changes (scene switches)
+  // A link (?sample_id=, ?project_url=) loads once, then the URL becomes
+  // /editor.
+  const { openEntry, dialog: openEntryDialog } = useOpenEntry();
+  const [isOpeningLink, setIsOpeningLink] = useState(!!link);
+  const openedLinkRef = useRef<string | null>(null);
   useEffect(() => {
-    if (isBlankScene) {
-      if (storedSceneId !== null) {
-        resetToDefaults(DEFAULT_EDITOR_CONFIG);
-        setSceneId(null);
-      }
-      return;
-    }
-
-    if (!scene) return;
-
-    // Only hydrate when switching to a different scene
-    if (storedSceneId !== sceneId) {
-      hydrateFromScene(sceneId!, {
-        name: scene.name,
-        collectionId: scene.collectionId,
-        temporalRange: scene.temporalRange,
-        cloudCover: scene.cloudCover ?? 100,
-        defaultBands: scene.defaultBands ?? [],
-        boundingBox: scene.boundingBox,
-        suggestedAlgorithm: scene.suggestedAlgorithm
-      });
-    }
-  }, [
-    sceneId,
-    isBlankScene,
-    scene,
-    storedSceneId,
-    hydrateFromScene,
-    resetToDefaults,
-    setSceneId
-  ]);
+    if (!link) return;
+    const linkKey = `${link.loader}:${link.ref}`;
+    if (openedLinkRef.current === linkKey) return;
+    openedLinkRef.current = linkKey;
+    setIsOpeningLink(true);
+    openEntry(link, { replace: true, fromLink: true }).finally(() =>
+      setIsOpeningLink(false)
+    );
+  }, [link, openEntry]);
 
   const { collection: collectionRaw } = useCollection(collectionId);
   const collection = collectionRaw as unknown as StacCollection | null;
 
-  // For blank scenes, set temporal range from collection extent when available
+  // With no temporal range yet, default to the collection's last month
   useEffect(() => {
-    if (isBlankScene && collection?.extent?.temporal?.interval) {
+    if (collection?.extent?.temporal?.interval) {
       const intervals = collection.extent.temporal.interval;
       if (intervals.length > 0 && intervals[0].length >= 2) {
         const [, end] = intervals[0];
@@ -85,30 +70,48 @@ export function EditorPage() {
           const startDateStr = startDate.toISOString().split('T')[0];
           const endDateStr = endDate.toISOString().split('T')[0];
           if (!temporalRange[0] && !temporalRange[1]) {
-            setTemporalRange([startDateStr, endDateStr]);
+            setDefaultTemporalRange([startDateStr, endDateStr]);
           }
         }
       }
     }
-  }, [isBlankScene, collection, temporalRange, setTemporalRange]);
+  }, [collection, temporalRange, setDefaultTemporalRange]);
 
-  const { isLoading: isLoadingProject, notFound } = useLoadProject(
-    sceneId,
-    scene,
-    isBlankScene
+  // Picked when the content is replaced, so it doesn't flip while typing.
+  const defaultTab = useMemo(
+    () => (code.trim() ? 'code' : 'configuration'),
+    [contentVersion]
   );
 
-  // Early return
-  if (isLoadingProject) {
+  const {
+    isLoading: isLoadingProject,
+    error: loadError,
+    dialog: loadProjectDialog
+  } = useLoadProject(projectId);
+
+  const notFoundMessage = (location.state as { notFound?: string } | null)
+    ?.notFound;
+
+  if (notFoundMessage) {
+    throw new NotFound(notFoundMessage);
+  }
+
+  if (loadError instanceof IncompatibleProjectError) {
+    throw loadError;
+  }
+
+  if (loadError) {
+    throw new NotFound(`Project not found: ${projectId}`);
+  }
+
+  if (isLoadingProject || isOpeningLink) {
     return (
       <Flex flex={1} alignItems='center' justifyContent='center'>
         <Spinner size='lg' />
+        {openEntryDialog}
+        {loadProjectDialog}
       </Flex>
     );
-  }
-
-  if (notFound) {
-    throw new NotFound(`Scene not found: ${sceneId}`);
   }
 
   return (
@@ -128,16 +131,12 @@ export function EditorPage() {
           borderRadius='uni'
           display='flex'
         >
-          <CodeEditor.Root initialCode={scene?.suggestedAlgorithm || ''}>
+          {/* Remounts whenever the content is replaced, so the initial doc
+              and the one-shot auto-run follow the new content. */}
+          <CodeEditor.Root key={contentVersion} initialCode=''>
             <EditorWorkspace
-              defaultTab={isBlankScene ? 'configuration' : 'code'}
-              // Auto-execute only if not a blank scene. store.code covers
-              // both static sample scenes (hydrated synchronously enough
-              // before pyodide finishes loading) and loaded projects
-              // (hydrated async by useLoadProject) - by the time
-              // isExecutionReady flips true, code always reflects
-              // whichever source hydrated this session.
-              autoExecuteOnReady={!isBlankScene && !!code.trim()}
+              defaultTab={defaultTab}
+              autoExecuteOnReady={autoRun && !!code.trim()}
             />
           </CodeEditor.Root>
         </Splitter.Panel>

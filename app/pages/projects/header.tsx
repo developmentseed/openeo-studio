@@ -1,11 +1,13 @@
 import { Button, Flex, Heading, Text } from '@chakra-ui/react';
-import { LuPlus, LuAward, LuUser } from 'react-icons/lu';
+import { LuPlus, LuLibrary, LuUser } from 'react-icons/lu';
 import { NavLink } from 'react-router';
 
-import SmartLink from '$components/common/smart-link';
 import { InfoPopoverButton } from '$components/common/info-popover-button';
+import { useNewProject } from '$components/catalogue/use-open-entry';
 
 export function ProjectsHeader() {
+  const { newProject, dialog } = useNewProject();
+
   return (
     <Flex
       gap={4}
@@ -27,16 +29,15 @@ export function ProjectsHeader() {
           </NavLink>
         </Button>
         <Button size='sm' variant='ghost' asChild>
-          <NavLink to='/projects/samples'>
-            <LuAward /> <Text hideBelow='sm'>Samples</Text>
+          <NavLink to='/projects/catalogue'>
+            <LuLibrary /> <Text hideBelow='sm'>Catalogue</Text>
           </NavLink>
         </Button>
-        <Button size='sm' variant='outline' asChild>
-          <SmartLink to='/editor'>
-            <LuPlus /> <Text hideBelow='sm'>Create</Text>
-          </SmartLink>
+        <Button size='sm' variant='outline' onClick={newProject}>
+          <LuPlus /> <Text hideBelow='sm'>Create</Text>
         </Button>
       </Flex>
+      {dialog}
     </Flex>
   );
 }
