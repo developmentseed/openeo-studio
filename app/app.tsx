@@ -15,7 +15,7 @@ import { EditorPage } from '$pages/editor';
 import { DocsPage } from '$pages/docs';
 import { SharePage } from '$pages/share';
 import { ProjectsPage } from '$pages/projects';
-import { ProjectsSamplesPage } from '$pages/projects/samples';
+import { ProjectsCataloguePage } from '$pages/projects/catalogue';
 import { ServicesPage } from '$pages/services';
 import UhOh404 from '$pages/uhoh/404';
 import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
@@ -101,11 +101,14 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route element={<MobileWarn />}>
             <Route path='/editor' element={<EditorPage />} />
-            <Route path='/editor/:sceneId' element={<EditorPage />} />
+            <Route path='/editor/:projectId' element={<EditorPage />} />
             <Route path='/share/:serviceId' element={<SharePage />} />
           </Route>
           <Route path='/projects' element={<ProjectsPage />} />
-          <Route path='/projects/samples' element={<ProjectsSamplesPage />} />
+          <Route
+            path='/projects/catalogue'
+            element={<ProjectsCataloguePage />}
+          />
           <Route path='/services' element={<ServicesPage />} />
         </Route>
         <Route path='*' element={<UhOh404 />} />

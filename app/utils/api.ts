@@ -111,3 +111,23 @@ export async function fetchHeaderLocation(
 
   return location;
 }
+
+/**
+ * Plain fetch for third-party hosts (GitHub, raw project files): never sends
+ * openEO credentials. Throws an APIError naming the URL on a non-2xx
+ * response. Returns the raw Response so callers pick .json() or .text().
+ */
+export async function fetchPublic(
+  url: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  const response = await fetch(url, { signal });
+  if (!response.ok) {
+    throw new APIError(
+      `Failed to fetch ${url}: ${response.status}`,
+      response.status,
+      response.statusText
+    );
+  }
+  return response;
+}

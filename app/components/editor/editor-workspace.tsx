@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router';
 
 import { useEditorStore } from '$stores/editor-store';
 import { useAlertDialog } from '$components/common/use-alert-dialog';
-import { useConfirmDialog } from '$components/common/use-confirm-dialog';
-import { isSampleScene, shouldNavigateAfterSave } from '$config/sample-scenes';
 import { useCodeEditor } from './code-editor';
 import { useCodeExecution } from './use-code-execution';
 import { ConfigurationTab } from './configuration-tab';
@@ -34,7 +32,6 @@ export function EditorWorkspace({
   const { setSceneId, sceneId, isDirty, setServices } = useEditorStore();
 
   const editor = useCodeEditor();
-  const { confirm, dialog: confirmDialog } = useConfirmDialog();
   const { alert, dialog: alertDialog } = useAlertDialog();
 
   const [activeTab, setActiveTab] = useState<EditorTabId>(defaultTab);
@@ -74,27 +71,12 @@ export function EditorWorkspace({
   }, [errorMessage]);
 
   const navigateAfterSaveIfNeeded = (id: string) => {
-    if (!shouldNavigateAfterSave(sceneId)) return;
+    if (sceneId) return;
     setSceneId(id);
     navigate(`/editor/${id}`, { replace: true });
   };
 
   const handleSaveClick = async () => {
-    if (isSampleScene(sceneId)) {
-      const confirmed = await confirm({
-        title: 'Save to your account',
-        body: (
-          <Text fontSize='sm' color='fg.muted'>
-            This is a sample project and is not on your account yet. Saving will
-            add it as a project you can reopen later.
-          </Text>
-        ),
-        confirmLabel: 'Save',
-        cancelLabel: 'Cancel'
-      });
-      if (!confirmed) return;
-    }
-
     const result = await saveProjectAndServices();
     if (result.status === 'no-graph') {
       await alert({
@@ -139,7 +121,7 @@ export function EditorWorkspace({
           hasPendingChanges={isDirty}
           onDeleteClick={onDeleteClick}
           isDeleteBusy={isDeleteBusy}
-          isDeleteDisabled={isDeleteDisabled || isSampleScene(sceneId)}
+          isDeleteDisabled={isDeleteDisabled}
         />
         <Stack
           flexGrow={1}
@@ -188,7 +170,6 @@ export function EditorWorkspace({
           />
         )}
 
-        {confirmDialog}
         {alertDialog}
       </Tabs.Root>
     </Stack>

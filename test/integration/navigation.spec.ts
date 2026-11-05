@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { test } from './__fixtures__';
+import { openSample, test } from './__fixtures__';
 
 test.describe('Navigation', () => {
   test.describe('Page Loading', () => {
@@ -66,6 +66,28 @@ test.describe('Navigation', () => {
     });
   });
 
+  test.describe('Entry links', () => {
+    test('a sample_id link opens that sample', async ({
+      authenticatedPage: page
+    }) => {
+      await page.goto('/editor?sample_id=sentinel-2-rgb');
+      await page.waitForURL('/editor', { timeout: 15000 });
+      await expect(
+        page.getByRole('heading', { name: /Sunny day/i })
+      ).toBeVisible();
+    });
+
+    test('an unknown sample_id shows not found', async ({
+      authenticatedPage: page
+    }) => {
+      await page.goto('/editor?sample_id=nope');
+      await expect(page.getByRole('heading', { name: '404' })).toBeVisible({
+        timeout: 15000
+      });
+      await expect(page.getByText('Sample not found: nope')).toBeVisible();
+    });
+  });
+
   test.describe('Link Navigation', () => {
     test('navigation between pages works', async ({ page }) => {
       await page.goto('/');
@@ -86,30 +108,15 @@ test.describe('Navigation', () => {
     test('scene card navigation loads editor', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
-      // Click on first scene card
-      const sceneCard = authenticatedPage.getByRole('link').filter({
-        hasText: /sentinel|apa|ndvi/i
-      });
-      if (await sceneCard.count()) {
-        const firstCard = sceneCard.first();
-        const href = await firstCard.getAttribute('href');
-        await firstCard.click();
-
-        // Verify navigated to editor with scene
-        if (href) {
-          await expect(authenticatedPage).toHaveURL(href);
-        }
-
-        // Verify editor is loaded with Python tab selected for scenes
-        await expect(
-          authenticatedPage.getByRole('tab', {
-            name: /python/i,
-            selected: true
-          })
-        ).toBeVisible();
-      }
+      // Samples open on the Python tab
+      await expect(
+        authenticatedPage.getByRole('tab', {
+          name: /python/i,
+          selected: true
+        })
+      ).toBeVisible();
     });
 
     test('home link returns to landing page from editor', async ({
@@ -205,12 +212,11 @@ test.describe('Navigation', () => {
     test('selected scene persists after reload', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
       const urlBefore = authenticatedPage.url();
 
       await authenticatedPage.reload();
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await authenticatedPage.waitForURL('/editor');
 
       expect(authenticatedPage.url()).toBe(urlBefore);
     });

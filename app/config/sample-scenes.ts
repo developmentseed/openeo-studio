@@ -130,15 +130,3 @@ export const SAMPLE_SCENES: SampleScene[] = [
     thumbnail: thumbS2Cloud
   }
 ];
-
-export function getSceneById(id: string): SampleScene | undefined {
-  return SAMPLE_SCENES.find((scene) => scene.id === id);
-}
-
-export function isSampleScene(sceneId: string | null): boolean {
-  return sceneId != null && getSceneById(sceneId) !== undefined;
-}
-
-export function shouldNavigateAfterSave(sceneId: string | null): boolean {
-  return !sceneId || isSampleScene(sceneId);
-}

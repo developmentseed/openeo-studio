@@ -4,12 +4,13 @@
  */
 
 import type { GraphResult, ServiceInfo } from '$types';
+import { getServiceZoom } from './service-adapters';
 import { ephemeralTitleFor } from './service-titles';
 import {
   createOpenEOService,
   deleteOpenEOService,
+  getServiceTiles,
   getServiceUrl,
-  getTileUrl,
   listOpenEOServices
 } from './services';
 
@@ -92,12 +93,13 @@ export async function createEphemeralServices(
     const serviceLocation = await createOpenEOService(graphResult, authToken, {
       title: ephemeralTitle
     });
-    const tileUrl = await getTileUrl(serviceLocation, authToken);
+    const tiles = await getServiceTiles(serviceLocation, authToken);
 
     const serviceInfo: ServiceInfo = {
       id: crypto.randomUUID(),
       location: serviceLocation,
-      tileUrl,
+      tileUrl: tiles.url,
+      ...getServiceZoom(tiles.configuration),
       graphResult,
       visible: graphResult.visible
     };

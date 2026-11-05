@@ -5,6 +5,20 @@ import type {
 } from './openeo-process';
 
 /**
+ * What the editor is hydrated with when a project is opened, whichever
+ * catalogue loader produced it.
+ */
+export interface EditorSeed {
+  name: string;
+  collectionId: string;
+  temporalRange: [string, string];
+  cloudCover: number;
+  defaultBands: string[];
+  boundingBox?: [number, number, number, number];
+  suggestedAlgorithm?: string;
+}
+
+/**
  * Sample configuration for quick-starting analysis.
  */
 export interface SampleScene {
@@ -81,6 +95,8 @@ export interface ServiceInfo {
   id: string;
   location: string;
   tileUrl: string;
+  minZoom?: number; // tile zoom limits the backend set, if any
+  maxZoom?: number;
   graphResult: GraphResult;
   visible: boolean;
 }

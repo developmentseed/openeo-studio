@@ -103,12 +103,11 @@ export async function listOpenEOServices(
 }
 
 /**
- * Fetches the tile URL from an OpenEO service location.
+ * Fetches a service's tile URL and configuration from its location.
  */
-export async function getTileUrl(
+export async function getServiceTiles(
   serviceLocation: string,
   authToken: string
-): Promise<string> {
-  const tileJson = await fetchJson<{ url: string }>(serviceLocation, authToken);
-  return tileJson.url;
+): Promise<Pick<BackendService, 'url' | 'configuration'>> {
+  return fetchJson(serviceLocation, authToken);
 }

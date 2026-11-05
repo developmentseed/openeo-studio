@@ -79,12 +79,24 @@ const fetchMock = jest.fn(
     const body =
       url === `${API}/services`
         ? { services: backendServices }
-        : { url: 'https://tiles.example/{z}/{x}/{y}' };
+        : {
+            url: 'https://tiles.example/{z}/{x}/{y}',
+            configuration: { scope: 'public', minZoom: 3, maxZoom: 12 }
+          };
     return new Response(JSON.stringify(body), { status: 200 });
   }
 );
 global.fetch = fetchMock as unknown as typeof fetch;
 jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+describe('createEphemeralServices', () => {
+  it('keeps the zoom limits the backend set for the tiles', async () => {
+    const [service] = await createEphemeralServices([graph], 'token', INSTANCE);
+    expect(service.tileUrl).toBe('https://tiles.example/{z}/{x}/{y}');
+    expect(service.minZoom).toBe(3);
+    expect(service.maxZoom).toBe(12);
+  });
+});
 
 describe('ephemeral service cleanup', () => {
   beforeEach(() => {

@@ -1,84 +1,92 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
+import { useNavigate } from 'react-router';
 
-import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
+import { useReplaceEditorContents } from '$components/catalogue/use-open-entry';
+
+import { catalogue } from '$config/catalogue';
 import { useEditorStore } from '$stores/editor-store';
-import { useProjectsStore } from '$stores/projects-store';
-import {
-  deriveConfigFromProject,
-  extractCodeFromDescription
-} from '$utils/openeo/user-defined-processes';
-import type { SampleScene } from '$types';
 
 interface UseLoadProjectResult {
   isLoading: boolean;
-  notFound: boolean;
+  error: unknown;
+  dialog: ReactNode;
 }
 
 /**
- * Loads a saved project into the editor store when the route points at an
- * id that isn't a static sample scene and isn't already the active project.
- * No-ops for blank scenes, static samples (EditorPage's existing effect
- * handles those), and ids that are already hydrated. Assumes the caller is
- * authenticated (EditorPage is only reachable behind RequireAuth).
+ * Loads the saved project named by the /editor/:projectId route into the
+ * editor store, unless it is already the active project. Unsaved work is
+ * only replaced after the user confirms; on cancel the URL goes back to the
+ * content the editor still holds. Assumes the caller
+ * is authenticated (EditorPage is only reachable behind RequireAuth).
  */
 export function useLoadProject(
-  sceneId: string | undefined,
-  scene: SampleScene | undefined,
-  isBlankScene: boolean
+  projectId: string | undefined
 ): UseLoadProjectResult {
   const { user } = useAuth();
   const storedSceneId = useEditorStore((state) => state.sceneId);
   const hydrateFromScene = useEditorStore((state) => state.hydrateFromScene);
-  const loadProject = useProjectsStore((state) => state.loadProject);
+  const navigate = useNavigate();
+  const { replaceEditorContents, dialog } = useReplaceEditorContents();
 
   const [isFetching, setIsFetching] = useState(false);
-  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<unknown>(null);
 
-  const needsLoad = !isBlankScene && !scene && storedSceneId !== sceneId;
+  const needsLoad = !!projectId && storedSceneId !== projectId;
 
   useEffect(() => {
-    if (!needsLoad) {
-      setNotFound(false);
-      return;
+    let cancelled = false;
+
+    async function run() {
+      if (!needsLoad) {
+        setError(null);
+        return;
+      }
+
+      setIsFetching(true);
+      setError(null);
+
+      try {
+        const { seed, autoRun } = await catalogue.load(
+          { loader: 'saved-project', ref: projectId! },
+          { authToken: user?.access_token }
+        );
+
+        if (cancelled) return;
+        const replaced = await replaceEditorContents(() =>
+          hydrateFromScene(projectId!, seed, autoRun)
+        );
+
+        if (!replaced && !cancelled) {
+          const { sceneId } = useEditorStore.getState();
+          navigate(sceneId ? `/editor/${sceneId}` : '/editor', {
+            replace: true
+          });
+        }
+      } catch (err) {
+        if (!cancelled) setError(err);
+      } finally {
+        if (!cancelled) setIsFetching(false);
+      }
     }
 
-    let cancelled = false;
-    setIsFetching(true);
-    setNotFound(false);
-
-    loadProject(user?.access_token ?? '', sceneId!)
-      .then((project) => {
-        if (cancelled) return;
-        const derived = deriveConfigFromProject(project);
-        hydrateFromScene(project.id, {
-          name: project.summary ?? project.id,
-          collectionId:
-            derived.collectionId ?? DEFAULT_EDITOR_CONFIG.collectionId,
-          temporalRange:
-            derived.temporalRange ?? DEFAULT_EDITOR_CONFIG.temporalRange,
-          cloudCover: derived.cloudCover ?? DEFAULT_EDITOR_CONFIG.cloudCover,
-          defaultBands:
-            derived.selectedBands ?? DEFAULT_EDITOR_CONFIG.selectedBands,
-          boundingBox: derived.boundingBox,
-          suggestedAlgorithm:
-            extractCodeFromDescription(project.description) ?? ''
-        });
-      })
-      .catch(() => {
-        if (!cancelled) setNotFound(true);
-      })
-      .finally(() => {
-        if (!cancelled) setIsFetching(false);
-      });
+    run();
 
     return () => {
       cancelled = true;
     };
-  }, [needsLoad, user?.access_token, sceneId, loadProject, hydrateFromScene]);
+  }, [
+    needsLoad,
+    user?.access_token,
+    projectId,
+    hydrateFromScene,
+    replaceEditorContents,
+    navigate
+  ]);
 
   return {
     isLoading: needsLoad && isFetching,
-    notFound: needsLoad && notFound
+    error: needsLoad ? error : null,
+    dialog
   };
 }
