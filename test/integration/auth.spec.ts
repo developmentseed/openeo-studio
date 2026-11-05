@@ -68,6 +68,16 @@ test.describe('Authenticated UI', () => {
     await expect(logoutButton.locator('img')).toBeVisible();
   });
 
+  test('can save a loaded sample without changing it', async ({
+    authenticatedPage
+  }) => {
+    await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
+
+    await expect(
+      authenticatedPage.getByRole('button', { name: /save/i })
+    ).toBeEnabled({ timeout: 15000 });
+  });
+
   test('should enable Save button after code change', async ({
     authenticatedPage
   }) => {
@@ -99,18 +109,11 @@ test.describe('Authenticated UI', () => {
     ).toBeEnabled();
   });
 
-  test('should enable Save button after config change', async ({
-    authenticatedPage
-  }) => {
+  test('marks a config change as unsaved', async ({ authenticatedPage }) => {
     await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
-    const saveButton = authenticatedPage.getByRole('button', {
-      name: /save/i
-    });
-    await expect(
-      saveButton,
-      'Save button should be initially disabled'
-    ).toBeDisabled();
+    const unsavedDot = authenticatedPage.getByLabel('Unsaved changes');
+    await expect(unsavedDot).toHaveCount(0);
 
     // Switch to configuration tab and change temporal range
     const configTab = authenticatedPage.getByRole('tab', {
@@ -126,9 +129,9 @@ test.describe('Authenticated UI', () => {
     await startDateInput.fill('05/02/2025');
     await startDateInput.press('Enter');
 
+    await expect(unsavedDot).toHaveCount(1);
     await expect(
-      saveButton,
-      'Save button should be enabled after config change when authenticated'
+      authenticatedPage.getByRole('button', { name: /save/i })
     ).toBeEnabled();
   });
 });
