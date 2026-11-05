@@ -28,6 +28,7 @@ import { useEmailHash } from '$components/auth/user-info';
 import { useIsAuthDisabled } from '$components/auth/disabled-auth-provider';
 import { LogoComposition, NameComposition } from '$components/layout/brand';
 import SmartLink from '$components/common/smart-link';
+import { returnPath } from '$utils/return-path';
 import { Tip } from '$components/tooltip';
 import { useColorMode } from '$contexts/color-mode';
 
@@ -259,7 +260,7 @@ function UserInfo(props: { compact?: boolean }) {
     if (isLoading) return;
 
     signinRedirect({
-      state: { returnTo: location.pathname }
+      state: { returnTo: returnPath(location) }
     });
   };
 
