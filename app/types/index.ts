@@ -5,6 +5,20 @@ import type {
 } from './openeo-process';
 
 /**
+ * What the editor is hydrated with when a project is opened, whichever
+ * catalogue loader produced it.
+ */
+export interface EditorSeed {
+  name: string;
+  collectionId: string;
+  temporalRange: [string, string];
+  cloudCover: number;
+  defaultBands: string[];
+  boundingBox?: [number, number, number, number];
+  suggestedAlgorithm?: string;
+}
+
+/**
  * Sample configuration for quick-starting analysis.
  */
 export interface SampleScene {
