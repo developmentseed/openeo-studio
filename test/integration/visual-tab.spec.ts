@@ -1,5 +1,5 @@
 import { expect, type Route } from '@playwright/test';
-import { test } from './__fixtures__';
+import { openSample, test } from './__fixtures__';
 
 const MAP_GRAPHS = [
   {
@@ -135,7 +135,7 @@ test.describe('Visual tab', () => {
   test('renders the graph and drills into a nested subgraph', async ({
     authenticatedPage
   }) => {
-    await authenticatedPage.goto('/editor/sentinel-2-apa');
+    await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
     // Sample scenes auto-execute once Pyodide is ready; wait for the stubbed
     // layer instead of going through Save (which opens a claim dialog and

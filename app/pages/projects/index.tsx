@@ -1,4 +1,5 @@
 import { Box, Button, Flex, SimpleGrid, Stack } from '@chakra-ui/react';
+import { LuFolder, LuFolderX, LuLibrary, LuPlus } from 'react-icons/lu';
 
 import { ProjectsHeader } from './header';
 import { useProjects } from '$stores/projects-store';
@@ -6,12 +7,13 @@ import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton'
 import { ProjectCard } from '$components/projects/project-card';
 import SmartLink from '$components/common/smart-link';
 import { EmptyState } from '$components/common/empty-state';
-import { LuAward, LuFolder, LuFolderX, LuPlus } from 'react-icons/lu';
+import { useNewProject } from '$components/catalogue/use-open-entry';
 
 const SKELETON_COUNT = 6;
 
 export function ProjectsPage() {
   const { projects, isLoading, error } = useProjects();
+  const { newProject, dialog } = useNewProject();
 
   return (
     <Box flex={1}>
@@ -43,17 +45,15 @@ export function ProjectsPage() {
               <EmptyState
                 icon={<LuFolder size='4rem' />}
                 title='You have no projects'
-                description='Create a new project or browse the samples'
+                description='Create a new project or browse the catalogue'
                 actions={
                   <>
-                    <Button size='sm' variant='subtle' asChild>
-                      <SmartLink to='/editor'>
-                        <LuPlus /> Create
-                      </SmartLink>
+                    <Button size='sm' variant='subtle' onClick={newProject}>
+                      <LuPlus /> Create
                     </Button>
                     <Button size='sm' variant='subtle' asChild>
-                      <SmartLink to='/projects/samples'>
-                        <LuAward /> Samples
+                      <SmartLink to='/projects/catalogue'>
+                        <LuLibrary /> Catalogue
                       </SmartLink>
                     </Button>
                   </>
@@ -74,6 +74,7 @@ export function ProjectsPage() {
           )}
         </Flex>
       </Stack>
+      {dialog}
     </Box>
   );
 }

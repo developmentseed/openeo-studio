@@ -5,7 +5,7 @@ import {
   createInitialConfig,
   type EditorConfigValues
 } from '$config/default-editor-config';
-import type { ServiceInfo } from '$types';
+import type { EditorSeed, ServiceInfo } from '$types';
 
 type BoundingBox = [number, number, number, number];
 
@@ -20,6 +20,10 @@ type EditorState = {
   services: ServiceInfo[];
   sceneId: string | null;
   sceneName: string;
+  // Whether the current content runs on its own when the editor is ready.
+  autoRun: boolean;
+  // Bumped whenever the content is replaced, so the editor can remount.
+  contentVersion: number;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
@@ -28,6 +32,8 @@ type EditorActions = {
   setCode: (code: string) => void;
   setCollectionId: (id: string) => void;
   setTemporalRange: (range: [string, string]) => void;
+  // Fills in a default range; not a user edit, so it doesn't mark dirty.
+  setDefaultTemporalRange: (range: [string, string]) => void;
   setCloudCover: (cover: number) => void;
   setSelectedBands: (bands: string[]) => void;
   setBoundingBox: (bbox: BoundingBox | undefined) => void;
@@ -39,16 +45,9 @@ type EditorActions = {
   resetToDefaults: (defaults: ResetDefaults) => void;
   clearEditor: () => void;
   hydrateFromScene: (
-    sceneId: string,
-    scene: {
-      name: string;
-      collectionId: string;
-      temporalRange: [string, string];
-      cloudCover: number;
-      defaultBands: string[];
-      boundingBox?: BoundingBox;
-      suggestedAlgorithm?: string;
-    }
+    sceneId: string | null,
+    scene: EditorSeed,
+    autoRun: boolean
   ) => void;
 };
 
@@ -56,13 +55,15 @@ type EditorStore = EditorState & EditorActions;
 
 export const useEditorStore = create<EditorStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       code: '',
       isDirty: false,
       selectedConfig: createInitialConfig(),
       services: [],
       sceneId: null,
       sceneName: DEFAULT_SCENE_NAME,
+      autoRun: false,
+      contentVersion: 0,
       setCode: (code) => set({ code, isDirty: true }),
       setCollectionId: (collectionId) =>
         set((state) => ({
@@ -75,6 +76,10 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: { ...state.selectedConfig, temporalRange },
           services: [],
           isDirty: true
+        })),
+      setDefaultTemporalRange: (temporalRange) =>
+        set((state) => ({
+          selectedConfig: { ...state.selectedConfig, temporalRange }
         })),
       setCloudCover: (cloudCover) =>
         set((state) => ({
@@ -122,10 +127,12 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: initialConfig,
           services: [],
           sceneId: null,
-          sceneName: DEFAULT_SCENE_NAME
+          sceneName: DEFAULT_SCENE_NAME,
+          autoRun: false,
+          contentVersion: get().contentVersion + 1
         });
       },
-      hydrateFromScene: (sceneId, scene) => {
+      hydrateFromScene: (sceneId, scene, autoRun) => {
         const sceneConfig = createInitialConfig({
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
@@ -139,7 +146,9 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
           isDirty: false,
-          services: []
+          services: [],
+          autoRun,
+          contentVersion: get().contentVersion + 1
         });
       }
     }),
@@ -151,7 +160,8 @@ export const useEditorStore = create<EditorStore>()(
         selectedConfig: state.selectedConfig,
         sceneId: state.sceneId,
         sceneName: state.sceneName,
-        isDirty: state.isDirty
+        isDirty: state.isDirty,
+        autoRun: state.autoRun
       })
     }
   )

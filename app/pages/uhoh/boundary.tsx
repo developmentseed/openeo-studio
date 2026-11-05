@@ -1,4 +1,4 @@
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode, useEffect } from 'react';
 import { Flex } from '@chakra-ui/react';
 import { useLocation } from 'react-router';
 
@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       return (
         <ErrorWrapper resetError={this.resetError.bind(this)}>
           {this.state.error instanceof NotFound ? (
-            <UhOh404 />
+            <UhOh404 message={this.state.error.message} />
           ) : (
             <UhOh500 error={this.state.error} />
           )}
@@ -58,10 +58,21 @@ interface ErrorWrapperProps {
 function ErrorWrapper(props: ErrorWrapperProps) {
   const { children, resetError } = props;
 
-  const loc = useLocation().pathname;
+  // Every navigation gets a new key, so navigating to the same path (e.g.
+  // "New project" from a failed /editor) still clears the error.
+  const loc = useLocation().key;
 
   useEffectAfterMount(() => {
     resetError();
+  }, [loc]);
+
+  // A not-found message travels in history state, which survives a reload;
+  // drop it once shown so a reload opens the editor again.
+  useEffect(() => {
+    const state = window.history.state;
+    if (state?.usr?.notFound) {
+      window.history.replaceState({ ...state, usr: null }, '');
+    }
   }, [loc]);
 
   return (
