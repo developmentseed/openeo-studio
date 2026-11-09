@@ -6,10 +6,7 @@ import { useNavigate } from 'react-router';
 import { useConfirmDialog } from '$components/common/use-confirm-dialog';
 import { catalogue } from '$config/catalogue';
 import { useEditorStore } from '$stores/editor-store';
-import {
-  IncompatibleProjectError,
-  isNotFound
-} from '$utils/catalogue/catalogue';
+import { isNotFound } from '$utils/catalogue/catalogue';
 import type { LoadRef } from '$utils/catalogue/types';
 import { toaster } from '$utils/toaster';
 
@@ -100,10 +97,7 @@ export function useOpenEntry() {
         }
       } catch (error) {
         if (controller.signal.aborted) return;
-        if (
-          error instanceof IncompatibleProjectError ||
-          (options.fromLink && isNotFound(error))
-        ) {
+        if (options.fromLink && isNotFound(error)) {
           navigate('/editor', {
             replace,
             state: { notFound: (error as Error).message }
