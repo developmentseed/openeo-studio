@@ -6,6 +6,7 @@ import {
   type EditorConfigValues
 } from '$config/default-editor-config';
 import type { EditorSeed, PropertyFilter, ServiceInfo } from '$types';
+import type { LoadResult } from '$utils/catalogue/types';
 import { resolvePropertyFilters } from '$utils/property-filters';
 
 type BoundingBox = [number, number, number, number];
@@ -25,6 +26,8 @@ type EditorState = {
   autoRun: boolean;
   // Bumped whenever the content is replaced, so the editor can remount.
   contentVersion: number;
+  // What the user must check in the loaded content, until they dismiss it.
+  loadNotice: { external: boolean; incompatibilities: string[] } | null;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
@@ -48,8 +51,10 @@ type EditorActions = {
   hydrateFromScene: (
     sceneId: string | null,
     scene: EditorSeed,
-    autoRun: boolean
+    autoRun: boolean,
+    notice?: Pick<LoadResult, 'external' | 'incompatibilities'>
   ) => void;
+  dismissLoadNotice: () => void;
 };
 
 type EditorStore = EditorState & EditorActions;
@@ -65,6 +70,7 @@ export const useEditorStore = create<EditorStore>()(
       sceneName: DEFAULT_SCENE_NAME,
       autoRun: false,
       contentVersion: 0,
+      loadNotice: null,
       setCode: (code) => set({ code, isDirty: true }),
       setCollectionId: (collectionId) =>
         set((state) => ({
@@ -117,7 +123,8 @@ export const useEditorStore = create<EditorStore>()(
           isDirty: false,
           selectedConfig: newConfig,
           services: [],
-          sceneName: DEFAULT_SCENE_NAME
+          sceneName: DEFAULT_SCENE_NAME,
+          loadNotice: null
         });
       },
       clearEditor: () => {
@@ -130,10 +137,12 @@ export const useEditorStore = create<EditorStore>()(
           sceneId: null,
           sceneName: DEFAULT_SCENE_NAME,
           autoRun: false,
-          contentVersion: get().contentVersion + 1
+          contentVersion: get().contentVersion + 1,
+          loadNotice: null
         });
       },
-      hydrateFromScene: (sceneId, scene, autoRun) => {
+      hydrateFromScene: (sceneId, scene, autoRun, notice = {}) => {
+        const { external = false, incompatibilities = [] } = notice;
         const sceneConfig = createInitialConfig({
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
@@ -146,12 +155,18 @@ export const useEditorStore = create<EditorStore>()(
           sceneName: scene.name,
           selectedConfig: sceneConfig,
           code: scene.suggestedAlgorithm || '',
-          isDirty: false,
+          // Code from a link exists nowhere else, so leaving it must prompt.
+          isDirty: external,
           services: [],
           autoRun,
-          contentVersion: get().contentVersion + 1
+          contentVersion: get().contentVersion + 1,
+          loadNotice:
+            external || incompatibilities.length > 0
+              ? { external, incompatibilities }
+              : null
         });
-      }
+      },
+      dismissLoadNotice: () => set({ loadNotice: null })
     }),
     {
       name: 'openeo-editor-storage',
@@ -176,7 +191,8 @@ export const useEditorStore = create<EditorStore>()(
         sceneId: state.sceneId,
         sceneName: state.sceneName,
         isDirty: state.isDirty,
-        autoRun: state.autoRun
+        autoRun: state.autoRun,
+        loadNotice: state.loadNotice
       })
     }
   )
