@@ -1,13 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Flex,
-  Input,
-  SimpleGrid,
-  Stack
-} from '@chakra-ui/react';
+import { Alert, Box, Button, Flex, SimpleGrid, Stack } from '@chakra-ui/react';
 
 import { catalogue } from '$config/catalogue';
 import { useCatalogue } from '$components/catalogue/use-catalogue';
@@ -17,6 +9,7 @@ import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton'
 import { ProjectsHeader } from './header';
 import { SceneCard } from './scene-card';
 import { BlankCard } from './blank-card';
+import { CatalogueSearch } from './catalogue-search';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_COUNT = 6;
@@ -42,34 +35,25 @@ export function ProjectsCataloguePage() {
   return (
     <Box flex={1}>
       <Stack gap={4}>
-        <ProjectsHeader />
-        <Stack px={4} gap={4}>
-          <Flex gap={2} wrap='wrap' alignItems='center'>
-            <Input
-              size='sm'
-              maxW='20rem'
-              placeholder='Search the catalogue'
-              aria-label='Search the catalogue'
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Flex gap={1} role='group' aria-label='Filter by source'>
-              {[{ id: null, label: 'All' }, ...catalogue.sources].map(
-                (source) => (
-                  <Button
-                    key={source.id ?? 'all'}
-                    size='sm'
-                    variant={sourceId === source.id ? 'subtle' : 'ghost'}
-                    aria-pressed={sourceId === source.id}
-                    onClick={() => setSourceId(source.id)}
-                  >
-                    {source.label}
-                  </Button>
-                )
-              )}
-            </Flex>
+        <ProjectsHeader>
+          <Flex gap={1} role='group' aria-label='Filter by source'>
+            {[{ id: null, label: 'All' }, ...catalogue.sources].map(
+              (source) => (
+                <Button
+                  key={source.id ?? 'all'}
+                  size='sm'
+                  variant={sourceId === source.id ? 'subtle' : 'ghost'}
+                  aria-pressed={sourceId === source.id}
+                  onClick={() => setSourceId(source.id)}
+                >
+                  {source.label}
+                </Button>
+              )
+            )}
           </Flex>
-
+          <CatalogueSearch value={search} onChange={setSearch} />
+        </ProjectsHeader>
+        <Stack px={4} gap={4}>
           {errors.map(({ sourceId: failed }) => (
             <Alert.Root key={failed} status='warning' size='sm'>
               <Alert.Indicator />
