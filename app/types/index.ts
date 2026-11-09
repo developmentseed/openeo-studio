@@ -58,6 +58,19 @@ export interface BandVariable {
   wavelength?: string;
 }
 
+/** Comparison operators available for a `load_collection` property filter. */
+export type PropertyFilterOperator = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
+
+/**
+ * A `load_collection` property filter on a collection queryable, e.g.
+ * `{ property: 'eo:cloud_cover', operator: 'lt', value: 20 }`.
+ */
+export interface PropertyFilter {
+  property: string;
+  operator: PropertyFilterOperator;
+  value: number | string | boolean;
+}
+
 /**
  * Runtime execution configuration for Python script parameter injection.
  * Derived from Scene configuration, STAC metadata, and user selections.
