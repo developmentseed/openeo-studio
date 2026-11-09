@@ -5,12 +5,17 @@
 jest.mock('$config/runtime', () => ({
   appConfig: { openeoApiUrl: 'https://example.test/openeo' }
 }));
+jest.mock('$utils/openeo/queryables', () => ({
+  getCollectionQueryables: jest.fn()
+}));
 
 import { APIError } from '$utils/api';
 import {
   checkCompatibility,
-  clearCompatibilityCache
+  clearCompatibilityCache,
+  reconcileSeed
 } from '$utils/catalogue/compatibility';
+import { getCollectionQueryables } from '$utils/openeo/queryables';
 
 const API = 'https://example.test/openeo';
 
@@ -158,5 +163,78 @@ describe('checkCompatibility', () => {
         bands: ['reflectance|bands=b04', 'b04', 'red']
       })
     ).resolves.toEqual({ compatible: true });
+  });
+});
+
+describe('reconcileSeed', () => {
+  const queryables = getCollectionQueryables as jest.Mock;
+  const cloud = {
+    property: 'eo:cloud_cover',
+    operator: 'lt' as const,
+    value: 20
+  };
+  const orbit = {
+    property: 'sat:orbit_state',
+    operator: 'eq' as const,
+    value: 'ascending'
+  };
+  const seed = {
+    name: 'S',
+    collectionId: 'sentinel-2-l2a',
+    temporalRange: ['2025-01-01', '2025-01-02'] as [string, string],
+    propertyFilters: [cloud, orbit],
+    bands: ['B04', 'B99'],
+    suggestedAlgorithm: 'code'
+  };
+
+  beforeEach(() => {
+    queryables.mockReset();
+    queryables.mockResolvedValue({ 'eo:cloud_cover': {} });
+  });
+
+  it('keeps the supported values and names the others', async () => {
+    await expect(reconcileSeed(seed)).resolves.toEqual({
+      seed: { ...seed, bands: ['B04'], propertyFilters: [cloud] },
+      incompatibilities: [
+        'Band "B99" is not available in "sentinel-2-l2a".',
+        'Property "sat:orbit_state" can\'t be filtered on in "sentinel-2-l2a".'
+      ]
+    });
+  });
+
+  it('names every missing band', async () => {
+    const { incompatibilities } = await reconcileSeed({
+      ...seed,
+      bands: ['B98', 'B99']
+    });
+    expect(incompatibilities[0]).toBe(
+      'Bands "B98", "B99" are not available in "sentinel-2-l2a".'
+    );
+  });
+
+  it('falls back to the default collection and keeps the code', async () => {
+    const result = await reconcileSeed({
+      ...seed,
+      collectionId: 'missing-col'
+    });
+    expect(result.seed.collectionId).toBe('sentinel-2-l2a');
+    expect(result.seed.bands).toEqual(['B04']);
+    expect(result.seed.suggestedAlgorithm).toBe('code');
+    expect(result.incompatibilities[0]).toBe(
+      'Collection "missing-col" is not available. Using "sentinel-2-l2a" instead.'
+    );
+    expect(queryables).toHaveBeenCalledWith('sentinel-2-l2a');
+  });
+
+  it('keeps every filter when the queryables are unknown', async () => {
+    queryables.mockResolvedValue(null);
+    const result = await reconcileSeed(seed);
+    expect(result.seed.propertyFilters).toEqual([cloud, orbit]);
+  });
+
+  it('rejects when the backend fails', async () => {
+    await expect(
+      reconcileSeed({ ...seed, collectionId: 'broken' })
+    ).rejects.toBeInstanceOf(APIError);
   });
 });

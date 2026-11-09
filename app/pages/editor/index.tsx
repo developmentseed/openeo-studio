@@ -11,10 +11,7 @@ import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
 import { useOpenEntry } from '$components/catalogue/use-open-entry';
 import { useEditorStore } from '$stores/editor-store';
-import {
-  IncompatibleProjectError,
-  isNotFound
-} from '$utils/catalogue/catalogue';
+import { isNotFound } from '$utils/catalogue/catalogue';
 import { linkFromParams } from '$utils/catalogue/links';
 import { NotFound } from '$utils/errors';
 
@@ -91,10 +88,6 @@ export function EditorPage() {
 
   if (notFoundMessage) {
     throw new NotFound(notFoundMessage);
-  }
-
-  if (loadError instanceof IncompatibleProjectError) {
-    throw loadError;
   }
 
   if (isNotFound(loadError)) {

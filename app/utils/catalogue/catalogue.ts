@@ -4,7 +4,7 @@
  */
 import { APIError } from '$utils/api';
 import { NotFound } from '$utils/errors';
-import { checkCompatibility } from './compatibility';
+import { checkCompatibility, reconcileSeed } from './compatibility';
 import type {
   CatalogueContext,
   CatalogueEntry,
@@ -16,18 +16,6 @@ import type {
   ProjectLoader,
   SourcePage
 } from './types';
-
-export class IncompatibleProjectError extends NotFound {
-  reason: string;
-
-  constructor(reason: string) {
-    super(
-      `This project isn't compatible with the connected backend: ${reason}`
-    );
-    this.name = 'IncompatibleProjectError';
-    this.reason = reason;
-  }
-}
 
 /**
  * Whether an error means the thing doesn't exist, as opposed to a failure
@@ -156,15 +144,15 @@ export function createCatalogue(config: {
       if (!loader) throw new Error(`Unknown loader: ${open.loader}`);
 
       const result = await loader.load(open.ref, ctx);
-      const check = await checkCompatibility(
-        {
-          collectionId: result.seed.collectionId,
-          bands: result.seed.bands
-        },
+      const { seed, incompatibilities } = await reconcileSeed(
+        result.seed,
         ctx.authToken
       );
-      if (!check.compatible) throw new IncompatibleProjectError(check.reason);
-      return result;
+      const all = [...(result.incompatibilities ?? []), ...incompatibilities];
+      if (all.length === 0) return result;
+      // The code was written for the values left out, so it may not work:
+      // it must not run on its own.
+      return { ...result, seed, autoRun: false, incompatibilities: all };
     }
   };
 }
