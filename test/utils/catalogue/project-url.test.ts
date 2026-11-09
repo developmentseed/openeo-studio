@@ -93,6 +93,14 @@ describe('projectUrlLoader', () => {
     ]);
   });
 
+  it('uses inline code without fetching a code file', async () => {
+    const { algorithm: _, ...inline } = project;
+    serve({ [URL_]: { ...inline, code: 'print("inline")' } });
+    const { seed } = await projectUrlLoader.load(URL_, {});
+    expect(seed.suggestedAlgorithm).toBe('print("inline")');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves out and names a malformed bounding box', async () => {
     serve({
       [URL_]: { ...project, boundingBox: [1, 'x'] },

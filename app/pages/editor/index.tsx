@@ -35,8 +35,8 @@ export function EditorPage() {
   // Actions don't cause re-renders
   const { setDefaultTemporalRange } = useEditorStore();
 
-  // A link (?sample_id=, ?project_url=) loads once, then the URL becomes
-  // /editor.
+  // A link (?sample_id=, ?project_url=, ?prefill=) loads once, then the URL
+  // becomes /editor.
   const { openEntry, dialog: openEntryDialog } = useOpenEntry();
   const [isOpeningLink, setIsOpeningLink] = useState(!!link);
   const openedLinkRef = useRef<string | null>(null);
