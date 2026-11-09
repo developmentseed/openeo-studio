@@ -18,15 +18,16 @@ loader.
 
 ## Files
 
-| File               | What it does                                                                                                |
-| ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `types.ts`         | The contracts: `CatalogueSource`, `ProjectLoader`, `CatalogueEntry`, `LoadRef`, `LoadResult`                |
-| `catalogue.ts`     | `createCatalogue`: sends listings to sources and opens to loaders, and runs the compatibility check on both |
-| `compatibility.ts` | Checks a collection and its bands against the connected openEO backend                                      |
-| `links.ts`         | Maps query params (`?sample_id=`, `?project_url=`) to loaders, in both directions                           |
-| `paginate.ts`      | `paginate` and `matchesQuery` for sources that hold their whole list in memory                              |
-| `sources/`         | `samples` (also exports its loader) and `apex`                                                              |
-| `loaders/`         | `project-url` (any URL to a `project.json`) and `saved-project` (the user's UDPs)                           |
+| File               | What it does                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `types.ts`         | The contracts: `CatalogueSource`, `ProjectLoader`, `CatalogueEntry`, `LoadRef`, `LoadResult`                   |
+| `catalogue.ts`     | `createCatalogue`: sends listings to sources and opens to loaders, and runs the compatibility check on both    |
+| `compatibility.ts` | Checks a collection and its bands against the connected openEO backend                                         |
+| `links.ts`         | Maps query params (`?sample_id=`, `?project_url=`, `?prefill=`) to loaders, in both directions                 |
+| `paginate.ts`      | `paginate` and `matchesQuery` for sources that hold their whole list in memory                                 |
+| `project-file.ts`  | `parseProjectFile`: validates a project document and builds its seed                                           |
+| `sources/`         | `samples` (also exports its loader) and `apex`                                                                 |
+| `loaders/`         | `project-url` (any URL to a `project.json`), `encoded-url` (`?prefill=`) and `saved-project` (the user's UDPs) |
 
 The active sources and loaders are registered in
 [`app/config/catalogue.ts`](../../config/catalogue.ts). That file is the only
@@ -90,6 +91,16 @@ entries never downloads 30 code files.
    store is then filled and the app navigates to `/editor`, or to
    `/editor/<projectId>` for a saved project. The editor shows the
    incompatibilities in a warning.
+
+### Prefill links
+
+`/editor?prefill=<base64url JSON>` carries a whole project in the link. The
+JSON has the fields of a project file, with the code in `code`. `name` is
+optional. Studio opens it unsaved, never runs it on its own, and warns that
+the code comes from a link.
+
+For code that is too long for a URL, host the same JSON and link to it with
+`?project_url=`.
 
 A newer `openEntry` call aborts the older one through `ctx.signal`. Pass the
 signal to any `fetch` your loader makes.

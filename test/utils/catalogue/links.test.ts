@@ -31,6 +31,10 @@ describe('linkFromParams', () => {
       loader: 'project-url',
       ref: RAW
     });
+    expect(linkFromParams(new URLSearchParams('prefill=abc'))).toEqual({
+      loader: 'encoded-url',
+      ref: 'abc'
+    });
   });
 
   it('round-trips with entryHref', () => {

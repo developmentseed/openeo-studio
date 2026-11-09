@@ -1,7 +1,7 @@
 /**
- * Loads a studio project file (`project.json` plus the code file it points
- * to) from any URL, without openEO credentials. The code is only loaded,
- * never run.
+ * Loads a studio project file (`project.json`, with inline `code` or an
+ * `algorithm` path to its code file) from any URL, without openEO
+ * credentials. The code is only loaded, never run.
  */
 import { fetchPublic } from '$utils/api';
 import { NotFound } from '$utils/errors';
@@ -23,11 +23,14 @@ export const projectUrlLoader: ProjectLoader = {
     const label = `project file at ${url}`;
     const { seed, incompatibilities } = parseProjectFile(json, label);
 
-    if (typeof json.algorithm !== 'string') {
-      throw new NotFound(`Invalid ${label}: missing \`algorithm\``);
+    let code = json.code;
+    if (typeof code !== 'string') {
+      if (typeof json.algorithm !== 'string') {
+        throw new NotFound(`Invalid ${label}: missing \`algorithm\``);
+      }
+      const codeUrl = new URL(json.algorithm, url).href;
+      code = await (await fetchPublic(codeUrl, signal)).text();
     }
-    const codeUrl = new URL(json.algorithm, url).href;
-    const code = await (await fetchPublic(codeUrl, signal)).text();
 
     return {
       seed: { ...seed, suggestedAlgorithm: code },
