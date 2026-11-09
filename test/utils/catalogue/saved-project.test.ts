@@ -26,7 +26,23 @@ const fullProject = {
   process_graph: {
     load1: {
       process_id: 'load_collection',
-      arguments: { id: 'sentinel-2-l2a' }
+      arguments: {
+        id: 'sentinel-2-l2a',
+        properties: {
+          'eo:cloud_cover': {
+            process_graph: {
+              cc: {
+                process_id: 'lt',
+                arguments: {
+                  x: { from_parameter: 'value' },
+                  y: { from_parameter: 'cloud_cover_max' }
+                },
+                result: true
+              }
+            }
+          }
+        }
+      }
     }
   },
   parameters: [
@@ -56,7 +72,9 @@ describe('savedProjectLoader', () => {
       name: 'My NDVI',
       collectionId: 'sentinel-2-l2a',
       temporalRange: ['2025-01-01', '2025-02-01'],
-      cloudCover: 30,
+      propertyFilters: [
+        { property: 'eo:cloud_cover', operator: 'lt', value: 30 }
+      ],
       bands: ['B04', 'B08'],
       boundingBox: undefined,
       suggestedAlgorithm: 'print("hi")'
@@ -68,7 +86,7 @@ describe('savedProjectLoader', () => {
       name: 'bare',
       collectionId: 'sentinel-2-l2a',
       temporalRange: ['', ''],
-      cloudCover: 50,
+      propertyFilters: [],
       bands: [],
       boundingBox: undefined,
       suggestedAlgorithm: ''

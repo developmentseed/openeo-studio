@@ -167,7 +167,7 @@ Things to keep in mind:
            name: file.name,
            collectionId: file.collectionId,
            temporalRange: file.temporalRange,
-           cloudCover: file.cloudCover ?? 100,
+           propertyFilters: file.propertyFilters ?? [],
            bands: file.bands,
            suggestedAlgorithm: file.code
          },

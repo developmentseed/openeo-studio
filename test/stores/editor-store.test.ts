@@ -20,7 +20,11 @@ describe('editor-store dirty tracking', () => {
   });
 
   it('marks dirty when a config value changes', () => {
-    useEditorStore.getState().setCloudCover(10);
+    useEditorStore
+      .getState()
+      .setPropertyFilters([
+        { property: 'eo:cloud_cover', operator: 'lt', value: 10 }
+      ]);
     expect(useEditorStore.getState().isDirty).toBe(true);
   });
 
@@ -56,7 +60,7 @@ const seed = {
   name: 'S',
   collectionId: 'sentinel-2-l2a',
   temporalRange: ['', ''] as [string, string],
-  cloudCover: 10,
+  propertyFilters: [],
   bands: [],
   boundingBox: undefined
 };
@@ -110,5 +114,57 @@ describe('editor-store default temporal range', () => {
       '2025-02-01'
     ]);
     expect(useEditorStore.getState().isDirty).toBe(false);
+  });
+});
+
+describe('editor-store property filters', () => {
+  beforeEach(() => reset());
+
+  it('starts with the default cloud cover filter', () => {
+    expect(useEditorStore.getState().selectedConfig.propertyFilters).toEqual([
+      { property: 'eo:cloud_cover', operator: 'lt', value: 50 }
+    ]);
+  });
+
+  it('hydrateFromScene sets the filters of the scene', () => {
+    const filters = [
+      { property: 'sat:orbit_state', operator: 'eq' as const, value: 'asc' }
+    ];
+    useEditorStore
+      .getState()
+      .hydrateFromScene('p1', { ...seed, propertyFilters: filters }, false);
+    expect(useEditorStore.getState().selectedConfig.propertyFilters).toEqual(
+      filters
+    );
+  });
+
+  it('migrates a stored cloudCover to a cloud cover filter', async () => {
+    sessionStorage.setItem(
+      'openeo-editor-storage',
+      JSON.stringify({
+        version: 0,
+        state: {
+          code: '',
+          sceneId: null,
+          sceneName: 'Old',
+          isDirty: false,
+          selectedConfig: {
+            collectionId: 'sentinel-2-l2a',
+            temporalRange: ['', ''],
+            cloudCover: 30,
+            selectedBands: []
+          }
+        }
+      })
+    );
+
+    await useEditorStore.persist.rehydrate();
+
+    const config = useEditorStore.getState().selectedConfig;
+    expect(config).not.toHaveProperty('cloudCover');
+    expect(config.propertyFilters).toEqual([
+      { property: 'eo:cloud_cover', operator: 'lt', value: 30 }
+    ]);
+    sessionStorage.clear();
   });
 });

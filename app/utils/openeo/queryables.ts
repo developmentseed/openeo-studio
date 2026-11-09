@@ -96,7 +96,7 @@ function fetchQueryables(collectionId: string): Promise<CollectionQueryables> {
   let queryables = queryablesCache.get(collectionId);
 
   if (!queryables) {
-    const url = `${OPENEO_API_URL}/${QUERYABLES_PATH.replace('{collection_id}', encodeURIComponent(collectionId))}`;
+    const url = `${OPENEO_API_URL}${QUERYABLES_PATH.replace('{collection_id}', encodeURIComponent(collectionId))}`;
     queryables = fetchJson<QueryablesResponse>(url).then(
       (payload) => payload?.properties ?? {}
     );
@@ -115,7 +115,7 @@ export async function getCollectionQueryables(
 ): Promise<CollectionQueryables | null> {
   try {
     if (!(await supportsQueryables())) return null;
-    return fetchQueryables(collectionId);
+    return await fetchQueryables(collectionId);
   } catch {
     return null;
   }
