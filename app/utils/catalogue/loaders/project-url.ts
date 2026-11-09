@@ -6,6 +6,7 @@
 import type { EditorSeed } from '$types';
 import { fetchPublic } from '$utils/api';
 import { NotFound } from '$utils/errors';
+import { resolvePropertyFilters } from '$utils/property-filters';
 import type { ProjectLoader } from '../types';
 
 const isString = (v: unknown): v is string => typeof v === 'string';
@@ -50,7 +51,7 @@ export const projectUrlLoader: ProjectLoader = {
       name: json.name,
       collectionId: json.collectionId,
       temporalRange: json.temporalRange,
-      cloudCover: typeof json.cloudCover === 'number' ? json.cloudCover : 100,
+      propertyFilters: resolvePropertyFilters(json),
       bands: json.bands,
       boundingBox: isBoundingBox(json.boundingBox)
         ? json.boundingBox
