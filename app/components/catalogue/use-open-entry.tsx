@@ -79,15 +79,19 @@ export function useOpenEntry() {
       inflight.current = controller;
       setPendingRef(open.ref);
       try {
-        const { seed, projectId, autoRun } = await catalogue.load(open, {
-          authToken: user?.access_token,
-          signal: controller.signal
-        });
+        const { seed, projectId, autoRun, external, incompatibilities } =
+          await catalogue.load(open, {
+            authToken: user?.access_token,
+            signal: controller.signal
+          });
         if (controller.signal.aborted) return;
         const replaced = await replaceEditorContents(() =>
           useEditorStore
             .getState()
-            .hydrateFromScene(projectId ?? null, seed, autoRun)
+            .hydrateFromScene(projectId ?? null, seed, autoRun, {
+              external,
+              incompatibilities
+            })
         );
         if (replaced) {
           navigate(projectId ? `/editor/${projectId}` : '/editor', {

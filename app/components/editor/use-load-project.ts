@@ -47,14 +47,14 @@ export function useLoadProject(
       setError(null);
 
       try {
-        const { seed, autoRun } = await catalogue.load(
+        const { seed, autoRun, incompatibilities } = await catalogue.load(
           { loader: 'saved-project', ref: projectId! },
           { authToken: user?.access_token }
         );
 
         if (cancelled) return;
         const replaced = await replaceEditorContents(() =>
-          hydrateFromScene(projectId!, seed, autoRun)
+          hydrateFromScene(projectId!, seed, autoRun, { incompatibilities })
         );
 
         if (!replaced && !cancelled) {

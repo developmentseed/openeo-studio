@@ -12,6 +12,7 @@ import { CodeTab } from './code-tab';
 import { AssistantTab } from './assistant-tab';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
+import { LoadNoticeAlert } from './load-notice-alert';
 import { useDeleteProject } from './use-delete-project';
 import { useCollectionQueryables } from './use-collection-queryables';
 
@@ -158,6 +159,7 @@ export function EditorWorkspace({
             p={4}
             bg='bg'
           >
+            <LoadNoticeAlert mb={4} />
             <ConfigurationTab />
           </Tabs.Content>
 
@@ -170,6 +172,7 @@ export function EditorWorkspace({
             minHeight={0}
             overflow='hidden'
           >
+            <LoadNoticeAlert m={4} w='auto' />
             <CodeTab />
           </Tabs.Content>
 

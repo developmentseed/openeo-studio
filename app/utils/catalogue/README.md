@@ -55,6 +55,8 @@ interface LoadResult {
   seed: EditorSeed; // what the editor is filled with, including the code
   projectId?: string; // only for saved projects, which open at /editor/<id>
   autoRun: boolean; // run the code as soon as the editor is ready
+  external?: boolean; // code that exists only in a link
+  incompatibilities?: string[]; // values left out of the seed
 }
 ```
 
