@@ -52,6 +52,10 @@ export interface LoadResult {
   seed: EditorSeed;
   projectId?: string; // set only for saved projects
   autoRun: boolean;
+  // Code that exists only in a link: unsaved, and written by someone else.
+  external?: boolean;
+  // The values left out of the seed, for the user to read.
+  incompatibilities?: string[];
 }
 
 export interface ProjectLoader {
