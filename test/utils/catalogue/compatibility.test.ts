@@ -46,6 +46,16 @@ beforeEach(() => {
     if (url === `${API}/collections/eopf-s2`) {
       return new Response(JSON.stringify(eopfS2), { status: 200 });
     }
+    if (url === `${API}/collections/wrapped-missing`) {
+      return new Response(
+        JSON.stringify({
+          code: 'Internal',
+          message:
+            'Server error: {"code": "NotFoundError", "description": "Collection wrapped-missing does not exist."}'
+        }),
+        { status: 500, statusText: 'Internal Server Error' }
+      );
+    }
     if (url === `${API}/collections/broken`) {
       return new Response('boom', {
         status: 500,
@@ -100,6 +110,15 @@ describe('checkCompatibility', () => {
     ).resolves.toEqual({
       compatible: false,
       reason: 'collection `missing-col` is not available'
+    });
+  });
+
+  it('reports a missing collection wrapped in a 500', async () => {
+    await expect(
+      checkCompatibility({ collectionId: 'wrapped-missing', bands: [] })
+    ).resolves.toEqual({
+      compatible: false,
+      reason: 'collection `wrapped-missing` is not available'
     });
   });
 

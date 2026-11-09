@@ -12,12 +12,18 @@ import { collectionBandIdentifiers } from '$utils/stac-band-parser';
 export type Compatibility =
   { compatible: true } | { compatible: false; reason: string };
 
-// null means the backend answered 404 for that collection.
+// null means the backend doesn't have that collection.
 const collections = new Map<string, Promise<StacCollection | null>>();
+
+// The EOPF and MPC backends answer 500 with a wrapped `NotFoundError`.
+const isMissingCollection = (error: unknown) =>
+  error instanceof APIError &&
+  (error.code === 404 ||
+    (JSON.stringify(error.detail) ?? '').includes('NotFoundError'));
 
 /**
  * Fetches a collection from the backend, caching the result. Returns null if
- * the backend answered 404.
+ * the backend doesn't have it.
  */
 function fetchCollection(
   collectionId: string,
@@ -29,7 +35,7 @@ function fetchCollection(
       `${appConfig.openeoApiUrl}/collections/${encodeURIComponent(collectionId)}`,
       authToken
     ).catch((error) => {
-      if (error instanceof APIError && error.code === 404) return null;
+      if (isMissingCollection(error)) return null;
       collections.delete(collectionId);
       throw error;
     });
