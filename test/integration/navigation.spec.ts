@@ -110,10 +110,9 @@ test.describe('Navigation', () => {
     }) => {
       await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
-      // Samples open on the Python tab
       await expect(
         authenticatedPage.getByRole('tab', {
-          name: /python/i,
+          name: /configuration/i,
           selected: true
         })
       ).toBeVisible();

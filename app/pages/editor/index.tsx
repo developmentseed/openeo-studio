@@ -80,12 +80,6 @@ export function EditorPage() {
     }
   }, [collection, temporalRange, setDefaultTemporalRange]);
 
-  // Picked when the content is replaced, so it doesn't flip while typing.
-  const defaultTab = useMemo(
-    () => (code.trim() ? 'code' : 'configuration'),
-    [contentVersion]
-  );
-
   const {
     isLoading: isLoadingProject,
     error: loadError,
@@ -142,10 +136,7 @@ export function EditorPage() {
           {/* Remounts whenever the content is replaced, so the initial doc
               and the one-shot auto-run follow the new content. */}
           <CodeEditor.Root key={contentVersion} initialCode=''>
-            <EditorWorkspace
-              defaultTab={defaultTab}
-              autoExecuteOnReady={autoRun && !!code.trim()}
-            />
+            <EditorWorkspace autoExecuteOnReady={autoRun && !!code.trim()} />
           </CodeEditor.Root>
         </Splitter.Panel>
 
