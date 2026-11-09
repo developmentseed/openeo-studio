@@ -82,11 +82,14 @@ entries never downloads 30 code files.
    in `useOpenEntry`.
 2. `catalogue.load` finds the loader by `open.loader` and calls
    `loader.load(open.ref, ctx)`.
-3. The catalogue checks the seed's collection and bands. If they don't
-   match the backend, it throws `IncompatibleProjectError`.
+3. The catalogue checks the seed's collection, bands and property filters
+   against the backend. It keeps the supported values and names the others
+   in `incompatibilities`. An unavailable collection falls back to the
+   default one. The code is always kept, but no longer runs on its own.
 4. If the user has unsaved work, they are asked before it is replaced. The
    store is then filled and the app navigates to `/editor`, or to
-   `/editor/<projectId>` for a saved project.
+   `/editor/<projectId>` for a saved project. The editor shows the
+   incompatibilities in a warning.
 
 A newer `openEntry` call aborts the older one through `ctx.signal`. Pass the
 signal to any `fetch` your loader makes.
@@ -98,6 +101,8 @@ signal to any `fetch` your loader makes.
   with your message. A card click shows a toast instead.
 - A response with HTTP status 404 (`APIError` with `code === 404`) is
   treated the same way as `NotFound`.
+- A usable project that doesn't match the backend is not an error. See
+  step 3 above.
 - Any other error shows the "Couldn't open project" toast.
 
 ## Adding a source
