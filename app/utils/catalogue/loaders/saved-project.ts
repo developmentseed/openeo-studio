@@ -18,7 +18,7 @@ export function projectToSeed(project: UserDefinedProcess): EditorSeed {
     collectionId: derived.collectionId ?? DEFAULT_EDITOR_CONFIG.collectionId,
     temporalRange: derived.temporalRange ?? DEFAULT_EDITOR_CONFIG.temporalRange,
     cloudCover: derived.cloudCover ?? DEFAULT_EDITOR_CONFIG.cloudCover,
-    defaultBands: derived.selectedBands ?? DEFAULT_EDITOR_CONFIG.selectedBands,
+    bands: derived.selectedBands ?? DEFAULT_EDITOR_CONFIG.selectedBands,
     boundingBox: derived.boundingBox,
     suggestedAlgorithm: extractCodeFromDescription(project.description) ?? ''
   };

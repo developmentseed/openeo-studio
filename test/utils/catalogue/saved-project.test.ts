@@ -57,7 +57,7 @@ describe('savedProjectLoader', () => {
       collectionId: 'sentinel-2-l2a',
       temporalRange: ['2025-01-01', '2025-02-01'],
       cloudCover: 30,
-      defaultBands: ['B04', 'B08'],
+      bands: ['B04', 'B08'],
       boundingBox: undefined,
       suggestedAlgorithm: 'print("hi")'
     });
@@ -69,7 +69,7 @@ describe('savedProjectLoader', () => {
       collectionId: 'sentinel-2-l2a',
       temporalRange: ['', ''],
       cloudCover: 50,
-      defaultBands: [],
+      bands: [],
       boundingBox: undefined,
       suggestedAlgorithm: ''
     });

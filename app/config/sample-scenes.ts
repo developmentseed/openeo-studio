@@ -19,7 +19,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     description: 'Sentinel-2 coverage with nice cloud-free scenes',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: trueColorAlgorithm,
-    defaultBands: [
+    bands: [
       'reflectance|bands=b04',
       'reflectance|bands=b03',
       'reflectance|bands=b02'
@@ -36,7 +36,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'Sentinel-2 derived data for monitoring aquatic plants and algae in Venice.',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: apaAlgorithm,
-    defaultBands: [
+    bands: [
       'reflectance|bands=b02',
       'reflectance|bands=b03',
       'reflectance|bands=b04',
@@ -56,7 +56,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'Sentinel-2 workflow for detecting cyanobacteria in water bodies using the NDCI algorithm.',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: ndciAlgorithm,
-    defaultBands: [
+    bands: [
       'reflectance|bands=b02',
       'reflectance|bands=b03',
       'reflectance|bands=b04',
@@ -79,7 +79,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'Sentinel-2 SWIR-based lava flow mapping during the 2021 Cumbre Vieja eruption on La Palma, Canary Islands, Spain (GDACS VO-1000031).',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: lavaAlgorithm,
-    defaultBands: [
+    bands: [
       'reflectance|bands=b02',
       'reflectance|bands=b03',
       'reflectance|bands=b04',
@@ -99,7 +99,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'Sentinel-2 burned area mapping using BAIS2 over the 2025 Portugal wildfires in the Beiras e Serra da Estrela region.',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: bais2Algorithm,
-    defaultBands: [
+    bands: [
       'reflectance|bands=b04',
       'reflectance|bands=b06',
       'reflectance|bands=b07',
@@ -118,7 +118,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
       'Braaten-Cohen-Yang cloud detector highlighting thick and thin clouds using SWIR and green band thresholds over London, UK.',
     collectionId: 'sentinel-2-l2a',
     suggestedAlgorithm: cloudDetectionAlgorithm,
-    defaultBands: [
+    bands: [
       'reflectance|bands=b02',
       'reflectance|bands=b03',
       'reflectance|bands=b04',

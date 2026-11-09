@@ -14,7 +14,7 @@ const project = {
   description: 'Fraction of absorbed radiation',
   collectionId: 'sentinel-2-l2a',
   algorithm: './fapar.py',
-  defaultBands: ['B03', 'B04'],
+  bands: ['B03', 'B04'],
   temporalRange: ['2025-05-10', '2025-05-12'],
   boundingBox: [14.09, 45.174, 14.27, 45.25]
 };
@@ -47,7 +47,7 @@ describe('projectUrlLoader', () => {
         collectionId: 'sentinel-2-l2a',
         temporalRange: ['2025-05-10', '2025-05-12'],
         cloudCover: 100,
-        defaultBands: ['B03', 'B04'],
+        bands: ['B03', 'B04'],
         boundingBox: [14.09, 45.174, 14.27, 45.25],
         suggestedAlgorithm: 'print("fapar")'
       }
@@ -104,22 +104,19 @@ describe('projectUrlLoader', () => {
     expect(fetchMock).toHaveBeenLastCalledWith(other, expect.anything());
   });
 
-  it.each([
-    'name',
-    'collectionId',
-    'temporalRange',
-    'defaultBands',
-    'algorithm'
-  ])('rejects a project file missing %s', async (field) => {
-    const broken: Record<string, unknown> = { ...project };
-    delete broken[field];
-    serve({ [URL_]: broken });
-    const error = await projectUrlLoader.load(URL_, {}).catch((e) => e);
-    expect(error).toBeInstanceOf(NotFound);
-    expect(error.message).toBe(
-      `Invalid project file at ${URL_}: missing \`${field}\``
-    );
-  });
+  it.each(['name', 'collectionId', 'temporalRange', 'bands', 'algorithm'])(
+    'rejects a project file missing %s',
+    async (field) => {
+      const broken: Record<string, unknown> = { ...project };
+      delete broken[field];
+      serve({ [URL_]: broken });
+      const error = await projectUrlLoader.load(URL_, {}).catch((e) => e);
+      expect(error).toBeInstanceOf(NotFound);
+      expect(error.message).toBe(
+        `Invalid project file at ${URL_}: missing \`${field}\``
+      );
+    }
+  );
 
   it('rejects a malformed temporal range', async () => {
     serve({ [URL_]: { ...project, temporalRange: ['2025-05-10'] } });

@@ -6,7 +6,7 @@ jest.mock('$config/sample-scenes', () => ({
       description: 'True color',
       collectionId: 'sentinel-2-l2a',
       suggestedAlgorithm: 'print("rgb")',
-      defaultBands: ['b04'],
+      bands: ['b04'],
       temporalRange: ['2025-11-01', '2026-02-28'],
       thumbnail: 'rgb.png'
     },
@@ -16,7 +16,7 @@ jest.mock('$config/sample-scenes', () => ({
       description: 'Etna',
       collectionId: 'sentinel-2-l2a',
       suggestedAlgorithm: 'print("lava")',
-      defaultBands: ['b12'],
+      bands: ['b12'],
       temporalRange: ['2025-01-01', '2025-01-31'],
       cloudCover: 30
     }
@@ -66,7 +66,7 @@ describe('samplesLoader', () => {
         collectionId: 'sentinel-2-l2a',
         temporalRange: ['2025-01-01', '2025-01-31'],
         cloudCover: 30,
-        defaultBands: ['b12'],
+        bands: ['b12'],
         boundingBox: undefined,
         suggestedAlgorithm: 'print("lava")'
       }
@@ -95,7 +95,7 @@ describe('sampleToEntry', () => {
         description: 'True color',
         collectionId: 'sentinel-2-l2a',
         suggestedAlgorithm: '',
-        defaultBands: ['b04'],
+        bands: ['b04'],
         temporalRange: ['2025-11-01', '2026-02-28'],
         thumbnail: 'rgb.png'
       })

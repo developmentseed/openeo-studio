@@ -57,7 +57,7 @@ const seed = {
   collectionId: 'sentinel-2-l2a',
   temporalRange: ['', ''] as [string, string],
   cloudCover: 10,
-  defaultBands: [],
+  bands: [],
   boundingBox: undefined
 };
 

@@ -13,7 +13,7 @@ export interface EditorSeed {
   collectionId: string;
   temporalRange: [string, string];
   cloudCover: number;
-  defaultBands: string[];
+  bands: string[];
   boundingBox?: [number, number, number, number];
   suggestedAlgorithm?: string;
 }
@@ -36,7 +36,7 @@ export interface SampleScene {
 
   /** Algorithm defaults (feed editor) */
   suggestedAlgorithm: string;
-  defaultBands: string[];
+  bands: string[];
 
   /** Optional algorithm-specific parameters */
   algorithmParams?: Record<string, unknown>;

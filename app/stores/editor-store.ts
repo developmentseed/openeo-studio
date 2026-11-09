@@ -137,7 +137,7 @@ export const useEditorStore = create<EditorStore>()(
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
           cloudCover: scene.cloudCover,
-          selectedBands: scene.defaultBands,
+          selectedBands: scene.bands,
           boundingBox: scene.boundingBox
         });
         set({
