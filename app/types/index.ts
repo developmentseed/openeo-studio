@@ -12,7 +12,8 @@ export interface EditorSeed {
   name: string;
   collectionId: string;
   temporalRange: [string, string];
-  cloudCover: number;
+  /** Property filters on collection queryables (e.g. cloud cover) */
+  propertyFilters: PropertyFilter[];
   bands: string[];
   boundingBox?: [number, number, number, number];
   suggestedAlgorithm?: string;
@@ -32,7 +33,8 @@ export interface SampleScene {
   collectionId: string;
   temporalRange: [string, string];
   boundingBox?: [number, number, number, number];
-  cloudCover?: number;
+  /** Property filters on collection queryables (e.g. cloud cover) */
+  propertyFilters?: PropertyFilter[];
 
   /** Algorithm defaults (feed editor) */
   suggestedAlgorithm: string;
@@ -82,8 +84,8 @@ export interface ExecutionConfig {
   temporalRange: [string, string];
   /** Spatial extent */
   boundingBox?: [number, number, number, number];
-  /** Cloud cover percentage */
-  cloudCover?: number;
+  /** Property filters on collection queryables (e.g. cloud cover) */
+  propertyFilters?: PropertyFilter[];
   /** User-selected bands in order for data[] array */
   selectedBands?: string[];
   /** Optional algorithm-specific parameters */

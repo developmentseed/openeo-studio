@@ -27,7 +27,7 @@ Set your input data first in the `Configuration` tab:
 
 - Collection: [Sentinel-2](https://documentation.dataspace.copernicus.eu/Data/SentinelMissions/Sentinel2.html)
 - Temporal range: choose the period you want to visualize
-- Cloud cover: set a threshold for filtering
+- Property filters: keep only the items that match their properties, e.g. a cloud cover limit or an orbit direction
 - Bands: select `red`, `green`, `blue` for true color (mind the order!)
 
 openEO Studio’s base loader uses this configuration to create the input datacube and applies a generic bounding box for map exploration.

@@ -21,7 +21,7 @@ const seed = {
   name: 'Saved',
   collectionId: 'sentinel-2-l2a',
   temporalRange: ['2025-01-01', '2025-01-02'] as [string, string],
-  cloudCover: 10,
+  propertyFilters: [],
   bands: [],
   suggestedAlgorithm: 'print("saved")'
 };
