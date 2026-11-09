@@ -6,7 +6,8 @@ import type { LoadRef } from './types';
 
 const LINK_PARAMS: Record<string, string> = {
   project_url: 'project-url',
-  sample_id: 'samples'
+  sample_id: 'samples',
+  prefill: 'encoded-url'
 };
 
 /**
