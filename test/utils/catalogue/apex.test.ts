@@ -25,7 +25,7 @@ const projectFile = (name: string) => ({
   name,
   description: `${name} description`,
   collectionId: 'sentinel-2-l2a',
-  defaultBands: ['B04'],
+  bands: ['B04'],
   temporalRange: ['2025-01-01', '2025-01-02'],
   algorithm: './x.py'
 });

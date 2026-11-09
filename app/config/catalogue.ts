@@ -11,7 +11,7 @@ import { savedProjectLoader } from '$utils/catalogue/loaders/saved-project';
 export const APEX_CONFIG = {
   owner: 'ESA-APEx',
   repo: 'apex_algorithms',
-  ref: 'daniel/openeo-studio-projects'
+  ref: 'daniel/openeo-studio-projects-2'
 };
 
 export const catalogue = createCatalogue({

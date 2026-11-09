@@ -14,7 +14,7 @@ export function sampleToEntry(scene: SampleScene): CatalogueEntry {
     description: scene.description,
     thumbnail: scene.thumbnail,
     collectionId: scene.collectionId,
-    bands: scene.defaultBands,
+    bands: scene.bands,
     open: { loader: 'samples', ref: scene.id }
   };
 }
@@ -25,7 +25,7 @@ export function sampleToSeed(scene: SampleScene): EditorSeed {
     collectionId: scene.collectionId,
     temporalRange: scene.temporalRange,
     cloudCover: scene.cloudCover ?? 100,
-    defaultBands: scene.defaultBands ?? [],
+    bands: scene.bands ?? [],
     boundingBox: scene.boundingBox,
     suggestedAlgorithm: scene.suggestedAlgorithm
   };

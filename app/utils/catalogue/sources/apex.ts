@@ -89,7 +89,7 @@ export function createApexSource(config: ApexConfig): CatalogueSource {
           name: file.name,
           description: file.description ?? '',
           collectionId: file.collectionId,
-          bands: file.defaultBands,
+          bands: file.bands,
           thumbnail: p.thumbnailPath && `${raw}/${p.thumbnailPath}`,
           tags: [p.provider],
           open: { loader: 'project-url', ref: url }

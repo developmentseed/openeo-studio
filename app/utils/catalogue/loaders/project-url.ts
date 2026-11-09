@@ -19,7 +19,7 @@ const REQUIRED: Record<string, (v: unknown) => boolean> = {
   name: isString,
   collectionId: isString,
   temporalRange: (v) => isStringArray(v) && v.length === 2,
-  defaultBands: isStringArray,
+  bands: isStringArray,
   algorithm: isString
 };
 
@@ -51,7 +51,7 @@ export const projectUrlLoader: ProjectLoader = {
       collectionId: json.collectionId,
       temporalRange: json.temporalRange,
       cloudCover: typeof json.cloudCover === 'number' ? json.cloudCover : 100,
-      defaultBands: json.defaultBands,
+      bands: json.bands,
       boundingBox: isBoundingBox(json.boundingBox)
         ? json.boundingBox
         : undefined,

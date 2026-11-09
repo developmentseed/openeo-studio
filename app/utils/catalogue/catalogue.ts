@@ -159,7 +159,7 @@ export function createCatalogue(config: {
       const check = await checkCompatibility(
         {
           collectionId: result.seed.collectionId,
-          bands: result.seed.defaultBands
+          bands: result.seed.bands
         },
         ctx.authToken
       );

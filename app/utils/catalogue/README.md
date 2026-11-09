@@ -168,7 +168,7 @@ Things to keep in mind:
            collectionId: file.collectionId,
            temporalRange: file.temporalRange,
            cloudCover: file.cloudCover ?? 100,
-           defaultBands: file.bands,
+           bands: file.bands,
            suggestedAlgorithm: file.code
          },
          autoRun: false
