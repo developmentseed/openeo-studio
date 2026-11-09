@@ -18,12 +18,10 @@ import { useCollectionQueryables } from './use-collection-queryables';
 export type EditorTabId = 'configuration' | 'code' | 'assistant';
 
 interface EditorWorkspaceProps {
-  defaultTab: EditorTabId;
   autoExecuteOnReady?: boolean;
 }
 
 export function EditorWorkspace({
-  defaultTab,
   autoExecuteOnReady = false
 }: EditorWorkspaceProps) {
   const navigate = useNavigate();
@@ -59,7 +57,7 @@ export function EditorWorkspace({
   const editor = useCodeEditor();
   const { alert, dialog: alertDialog } = useAlertDialog();
 
-  const [activeTab, setActiveTab] = useState<EditorTabId>(defaultTab);
+  const [activeTab, setActiveTab] = useState<EditorTabId>('configuration');
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
   const {
     createServices,
@@ -86,10 +84,6 @@ export function EditorWorkspace({
     hasAutoExecutedRef.current = true;
     createServices();
   }, [autoExecuteOnReady, isExecutionReady, createServices]);
-
-  useEffect(() => {
-    setActiveTab(defaultTab);
-  }, [defaultTab]);
 
   useEffect(() => {
     if (errorMessage) {
