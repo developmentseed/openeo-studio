@@ -5,11 +5,13 @@ import lavaAlgorithm from '../algorithms/visualizations/lava.py?raw';
 import bais2Algorithm from '../algorithms/visualizations/bais2.py?raw';
 import dnbrAlgorithm from '../algorithms/visualizations/dnbr.py?raw';
 import cloudDetectionAlgorithm from '../algorithms/visualizations/cloud-detection.py?raw';
+import s1S2LavaFusionAlgorithm from '../algorithms/visualizations/s1-s2-lava-fusion.py?raw';
 
 import thumbS2RGB from '../media/scenes/sentinel-2-sunny-naples.png';
 import thumbS2Lava from '../media/scenes/lava.png';
 import thumbS2Bais2 from '../media/scenes/bais2.png';
 import thumbS2Cloud from '../media/scenes/cloud_detection_cby.png';
+import thumbS1S2LavaFusion from '../media/scenes/s1-s2-lava-fusion.png';
 
 import { SAMPLE_SCENES_META } from './sample-scenes-meta';
 import type { SampleScene } from '$types';
@@ -22,7 +24,8 @@ const ALGORITHMS: Record<string, string> = {
   'visualizations/lava.py': lavaAlgorithm,
   'visualizations/bais2.py': bais2Algorithm,
   'visualizations/dnbr.py': dnbrAlgorithm,
-  'visualizations/cloud-detection.py': cloudDetectionAlgorithm
+  'visualizations/cloud-detection.py': cloudDetectionAlgorithm,
+  'visualizations/s1-s2-lava-fusion.py': s1S2LavaFusionAlgorithm
 };
 
 const THUMBNAILS: Record<string, string> = {
@@ -31,7 +34,8 @@ const THUMBNAILS: Record<string, string> = {
     'https://github.com/EOPF-Explorer/eodash-assets/blob/main/narratives/NDCI/hero.png?raw=true',
   'sentinel-2-lava': thumbS2Lava,
   'sentinel-2-bais2': thumbS2Bais2,
-  'sentinel-2-cloud-detection': thumbS2Cloud
+  'sentinel-2-cloud-detection': thumbS2Cloud,
+  's1-s2-lava-fusion': thumbS1S2LavaFusion
 };
 
 export const SAMPLE_SCENES: SampleScene[] = SAMPLE_SCENES_META.map(
