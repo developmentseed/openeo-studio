@@ -149,5 +149,24 @@ export const SAMPLE_SCENES_META: SampleSceneMeta[] = [
     temporalRange: ['2026-02-16', '2026-02-21'],
     boundingBox: [-0.5, 51.27, 0.34, 51.7], // London, UK
     cloudCover: 100 // We want clouds for this scene
+  },
+  {
+    id: 's1-s2-lava-fusion',
+    name: 'Lava Flow Fusion with Sentinel-1 RTC and Sentinel-2 L2A',
+    description:
+      'Sentinel-1 radar and Sentinel-2 optical data fused over the 2021 Cumbre Vieja eruption on La Palma: the radar change maps the lava field through clouds, the SWIR shows the hot lava, and a quality check shows where the optical data fails. Change the dates to 2021-12-04 to see Sentinel-2 fail under the volcanic aerosols.',
+    collectionId: 'sentinel-2-l2a',
+    algorithm: 'visualizations/s1-s2-lava-fusion.py',
+    defaultBands: [
+      'reflectance|bands=b02',
+      'reflectance|bands=b03',
+      'reflectance|bands=b04',
+      'reflectance|bands=b08',
+      'reflectance|bands=b11',
+      'reflectance|bands=b12'
+    ], // Blue, Green, Red, NIR, SWIR 1, SWIR 2; the code loads Sentinel-1 VV and a Sentinel-2 reference
+    temporalRange: ['2021-12-14', '2021-12-15'], // Clear sky, the day after the end of the eruption
+    boundingBox: [-18.04, 28.51, -17.76, 28.76], // west, south, east, north for the west of La Palma
+    cloudCover: 20 // Max cloud cover percentage (Sentinel-2 only)
   }
 ];

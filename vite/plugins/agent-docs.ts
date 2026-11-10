@@ -253,6 +253,26 @@ image = image.linear_scale_range(input_min=-0.5, input_max=1, output_min=0, outp
 add_graph_to_map(image.save_result("PNG"), "dNBR")
 \`\`\`
 
+## Two collections
+
+Data fusion (for example Sentinel-1 radar with Sentinel-2 optical data) needs a scene of another collection. Run a second \`load_collection\` as for Two dates, and also change its \`id\` and its \`bands\`. Remove the project's property filters when the other collection does not have these properties: Sentinel-1 has no \`eo:cloud_cover\`, and a cloud cover filter gives no items. Read the band names of the other collection in [backend.md](backend.md). The two collections must be on the same grid, or close: \`merge_cubes\` puts the second cube on the tile of the first. The \`s1-s2-lava-fusion\` sample (see [samples.md](samples.md)) is a full example.
+
+\`\`\`python
+# bands: Sentinel-2 L2A (the project); Sentinel-1 RTC VV merged in after them
+DIM = metadata.band_dimension.name if metadata else "bands"
+s1_args = dict(load_collection_args)
+s1_args.pop("properties", None)  # Sentinel-1 has no eo:cloud_cover
+s1_args.update({
+    "id": "sentinel-1-grd-rtc-acquisitions-staging",
+    "temporal_extent": ["2021-12-03", "2021-12-04"],
+    "bands": ["gamma0-rtc-backscatter-desc|bands=vv"],
+})
+s1 = DataCube(graph=PGNode("load_collection", **s1_args))
+s1 = s1.process("apply_pixel_selection", pixel_selection="first", data=s1)
+s1 = s1.rename_labels(dimension=DIM, target=["vv"])
+fused = reduced.merge_cubes(s1)  # Sentinel-2 bands first, then vv
+\`\`\`
+
 ## loader.py
 
 This is the exact code that runs before your script.
