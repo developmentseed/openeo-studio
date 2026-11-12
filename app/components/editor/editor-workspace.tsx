@@ -12,18 +12,17 @@ import { CodeTab } from './code-tab';
 import { AssistantTab } from './assistant-tab';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
+import { LoadNoticeAlert } from './load-notice-alert';
 import { useDeleteProject } from './use-delete-project';
 import { useCollectionQueryables } from './use-collection-queryables';
 
 export type EditorTabId = 'configuration' | 'code' | 'assistant';
 
 interface EditorWorkspaceProps {
-  defaultTab: EditorTabId;
   autoExecuteOnReady?: boolean;
 }
 
 export function EditorWorkspace({
-  defaultTab,
   autoExecuteOnReady = false
 }: EditorWorkspaceProps) {
   const navigate = useNavigate();
@@ -59,7 +58,7 @@ export function EditorWorkspace({
   const editor = useCodeEditor();
   const { alert, dialog: alertDialog } = useAlertDialog();
 
-  const [activeTab, setActiveTab] = useState<EditorTabId>(defaultTab);
+  const [activeTab, setActiveTab] = useState<EditorTabId>('configuration');
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
   const {
     createServices,
@@ -86,10 +85,6 @@ export function EditorWorkspace({
     hasAutoExecutedRef.current = true;
     createServices();
   }, [autoExecuteOnReady, isExecutionReady, createServices]);
-
-  useEffect(() => {
-    setActiveTab(defaultTab);
-  }, [defaultTab]);
 
   useEffect(() => {
     if (errorMessage) {
@@ -164,6 +159,7 @@ export function EditorWorkspace({
             p={4}
             bg='bg'
           >
+            <LoadNoticeAlert mb={4} />
             <ConfigurationTab />
           </Tabs.Content>
 
@@ -176,6 +172,7 @@ export function EditorWorkspace({
             minHeight={0}
             overflow='hidden'
           >
+            <LoadNoticeAlert m={4} w='auto' />
             <CodeTab />
           </Tabs.Content>
 

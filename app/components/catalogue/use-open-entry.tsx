@@ -6,10 +6,7 @@ import { useNavigate } from 'react-router';
 import { useConfirmDialog } from '$components/common/use-confirm-dialog';
 import { catalogue } from '$config/catalogue';
 import { useEditorStore } from '$stores/editor-store';
-import {
-  IncompatibleProjectError,
-  isNotFound
-} from '$utils/catalogue/catalogue';
+import { isNotFound } from '$utils/catalogue/catalogue';
 import type { LoadRef } from '$utils/catalogue/types';
 import { toaster } from '$utils/toaster';
 
@@ -79,15 +76,19 @@ export function useOpenEntry() {
       inflight.current = controller;
       setPendingRef(open.ref);
       try {
-        const { seed, projectId, autoRun } = await catalogue.load(open, {
-          authToken: user?.access_token,
-          signal: controller.signal
-        });
+        const { seed, projectId, autoRun, external, incompatibilities } =
+          await catalogue.load(open, {
+            authToken: user?.access_token,
+            signal: controller.signal
+          });
         if (controller.signal.aborted) return;
         const replaced = await replaceEditorContents(() =>
           useEditorStore
             .getState()
-            .hydrateFromScene(projectId ?? null, seed, autoRun)
+            .hydrateFromScene(projectId ?? null, seed, autoRun, {
+              external,
+              incompatibilities
+            })
         );
         if (replaced) {
           navigate(projectId ? `/editor/${projectId}` : '/editor', {
@@ -96,10 +97,7 @@ export function useOpenEntry() {
         }
       } catch (error) {
         if (controller.signal.aborted) return;
-        if (
-          error instanceof IncompatibleProjectError ||
-          (options.fromLink && isNotFound(error))
-        ) {
+        if (options.fromLink && isNotFound(error)) {
           navigate('/editor', {
             replace,
             state: { notFound: (error as Error).message }

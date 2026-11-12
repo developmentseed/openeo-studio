@@ -42,6 +42,7 @@ describe('projectUrlLoader', () => {
 
     await expect(projectUrlLoader.load(URL_, {})).resolves.toEqual({
       autoRun: false,
+      incompatibilities: [],
       seed: {
         name: 'FAPAR',
         collectionId: 'sentinel-2-l2a',
@@ -92,13 +93,22 @@ describe('projectUrlLoader', () => {
     ]);
   });
 
-  it('drops a malformed bounding box', async () => {
+  it('uses inline code without fetching a code file', async () => {
+    const { algorithm: _, ...inline } = project;
+    serve({ [URL_]: { ...inline, code: 'print("inline")' } });
+    const { seed } = await projectUrlLoader.load(URL_, {});
+    expect(seed.suggestedAlgorithm).toBe('print("inline")');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves out and names a malformed bounding box', async () => {
     serve({
       [URL_]: { ...project, boundingBox: [1, 'x'] },
       [`${BASE}/fapar.py`]: ''
     });
-    const { seed } = await projectUrlLoader.load(URL_, {});
+    const { seed, incompatibilities } = await projectUrlLoader.load(URL_, {});
     expect(seed.boundingBox).toBeUndefined();
+    expect(incompatibilities).toEqual(['Bounding box [1,"x"] is not valid.']);
   });
 
   it('resolves a parent-relative code path', async () => {

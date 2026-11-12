@@ -23,7 +23,6 @@ import {
   useOpenEntry
 } from '$components/catalogue/use-open-entry';
 import { useEditorStore } from '$stores/editor-store';
-import { IncompatibleProjectError } from '$utils/catalogue/catalogue';
 import { APIError } from '$utils/api';
 import { NotFound } from '$utils/errors';
 
@@ -146,23 +145,24 @@ describe('useOpenEntry', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/editor', { replace: false });
   });
 
-  it('shows the incompatible view without touching the editor', async () => {
-    mockLoad.mockRejectedValue(new IncompatibleProjectError('no B04'));
-    store().setCode('my work');
+  it('opens an incompatible project and keeps its notice', async () => {
+    mockLoad.mockResolvedValue({
+      seed,
+      autoRun: false,
+      incompatibilities: ['no B04']
+    });
     renderHost();
 
     await userEvent.click(screen.getByRole('button', { name: 'Open' }));
 
     await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith('/editor', {
-        replace: false,
-        state: {
-          notFound:
-            "This project isn't compatible with the connected backend: no B04"
-        }
-      })
+      expect(mockNavigate).toHaveBeenCalledWith('/editor', { replace: false })
     );
-    expect(store().code).toBe('my work');
+    expect(store().code).toBe('print("loaded")');
+    expect(store().loadNotice).toEqual({
+      external: false,
+      incompatibilities: ['no B04']
+    });
   });
 
   it('cancels an earlier load when another entry opens', async () => {

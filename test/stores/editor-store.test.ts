@@ -94,6 +94,27 @@ describe('editor-store content replacement', () => {
     expect(useEditorStore.getState().autoRun).toBe(false);
   });
 
+  it('marks code from a link as unsaved and keeps its notice', () => {
+    useEditorStore.getState().hydrateFromScene(null, seed, false, {
+      external: true,
+      incompatibilities: ['Band "x" is not available in "c".']
+    });
+    expect(useEditorStore.getState().isDirty).toBe(true);
+    expect(useEditorStore.getState().loadNotice).toEqual({
+      external: true,
+      incompatibilities: ['Band "x" is not available in "c".']
+    });
+  });
+
+  it('has no notice for content without anything to check', () => {
+    useEditorStore
+      .getState()
+      .hydrateFromScene(null, seed, false, { external: true });
+    useEditorStore.getState().hydrateFromScene(null, seed, false);
+    expect(useEditorStore.getState().isDirty).toBe(false);
+    expect(useEditorStore.getState().loadNotice).toBeNull();
+  });
+
   it('persists auto-run but not the content version', () => {
     const { partialize } = useEditorStore.persist.getOptions();
     const persisted = partialize!(useEditorStore.getState());
