@@ -1,5 +1,36 @@
 import { test as base, Page } from '@playwright/test';
 
+const SENTINEL_2_L2A = {
+  id: 'sentinel-2-l2a',
+  type: 'Collection',
+  summaries: {
+    bands: [
+      'b02',
+      'b03',
+      'b04',
+      'b05',
+      'b06',
+      'b07',
+      'b08',
+      'b8a',
+      'b11',
+      'b12'
+    ].map((band) => ({ name: `reflectance|bands=${band}`, description: band }))
+  }
+};
+
+/**
+ * Opens a bundled sample from the landing page. Samples load into /editor;
+ * only saved projects have their own URL.
+ */
+export async function openSample(page: Page, name: RegExp) {
+  await page.goto('/');
+  await page.getByRole('link').filter({ hasText: name }).first().click();
+  await page.waitForURL('/editor');
+  // Navigation commits in a transition, so wait for the editor itself.
+  await page.getByRole('tab', { name: /python/i }).waitFor();
+}
+
 // Extend base test with authentication fixtures
 export const test = base.extend<{
   authenticatedPage: Page;
@@ -42,6 +73,11 @@ export const test = base.extend<{
           ]
         }
       })
+    );
+    // The bundled samples use the EOPF backend's band names. Serve that
+    // collection so the catalogue compatibility check passes offline.
+    await page.route('**/collections/sentinel-2-l2a', (route) =>
+      route.fulfill({ json: SENTINEL_2_L2A })
     );
     // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(page);
