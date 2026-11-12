@@ -46,7 +46,7 @@ describe('projectUrlLoader', () => {
         name: 'FAPAR',
         collectionId: 'sentinel-2-l2a',
         temporalRange: ['2025-05-10', '2025-05-12'],
-        cloudCover: 100,
+        propertyFilters: [],
         bands: ['B03', 'B04'],
         boundingBox: [14.09, 45.174, 14.27, 45.25],
         suggestedAlgorithm: 'print("fapar")'
@@ -69,13 +69,27 @@ describe('projectUrlLoader', () => {
     expect(error.message).toBe(`Invalid project file at ${URL_}: not JSON`);
   });
 
-  it('keeps a cloud cover from the project file', async () => {
+  it('reads the property filters of the project file', async () => {
+    const filters = [
+      { property: 'sat:orbit_state', operator: 'eq', value: 'ascending' }
+    ];
+    serve({
+      [URL_]: { ...project, propertyFilters: filters },
+      [`${BASE}/fapar.py`]: ''
+    });
+    const { seed } = await projectUrlLoader.load(URL_, {});
+    expect(seed.propertyFilters).toEqual(filters);
+  });
+
+  it('converts a cloud cover from the project file to a filter', async () => {
     serve({
       [URL_]: { ...project, cloudCover: 30 },
       [`${BASE}/fapar.py`]: ''
     });
     const { seed } = await projectUrlLoader.load(URL_, {});
-    expect(seed.cloudCover).toBe(30);
+    expect(seed.propertyFilters).toEqual([
+      { property: 'eo:cloud_cover', operator: 'lt', value: 30 }
+    ]);
   });
 
   it('drops a malformed bounding box', async () => {

@@ -12,7 +12,8 @@ export interface EditorSeed {
   name: string;
   collectionId: string;
   temporalRange: [string, string];
-  cloudCover: number;
+  /** Property filters on collection queryables (e.g. cloud cover) */
+  propertyFilters: PropertyFilter[];
   bands: string[];
   boundingBox?: [number, number, number, number];
   suggestedAlgorithm?: string;
@@ -32,7 +33,8 @@ export interface SampleScene {
   collectionId: string;
   temporalRange: [string, string];
   boundingBox?: [number, number, number, number];
-  cloudCover?: number;
+  /** Property filters on collection queryables (e.g. cloud cover) */
+  propertyFilters?: PropertyFilter[];
 
   /** Algorithm defaults (feed editor) */
   suggestedAlgorithm: string;
@@ -58,6 +60,19 @@ export interface BandVariable {
   wavelength?: string;
 }
 
+/** Comparison operators available for a `load_collection` property filter. */
+export type PropertyFilterOperator = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
+
+/**
+ * A `load_collection` property filter on a collection queryable, e.g.
+ * `{ property: 'eo:cloud_cover', operator: 'lt', value: 20 }`.
+ */
+export interface PropertyFilter {
+  property: string;
+  operator: PropertyFilterOperator;
+  value: number | string | boolean;
+}
+
 /**
  * Runtime execution configuration for Python script parameter injection.
  * Derived from Scene configuration, STAC metadata, and user selections.
@@ -69,8 +84,8 @@ export interface ExecutionConfig {
   temporalRange: [string, string];
   /** Spatial extent */
   boundingBox?: [number, number, number, number];
-  /** Cloud cover percentage */
-  cloudCover?: number;
+  /** Property filters on collection queryables (e.g. cloud cover) */
+  propertyFilters?: PropertyFilter[];
   /** User-selected bands in order for data[] array */
   selectedBands?: string[];
   /** Optional algorithm-specific parameters */

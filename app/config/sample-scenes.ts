@@ -11,6 +11,7 @@ import thumbS2Bais2 from '../media/scenes/bais2.png';
 import thumbS2Cloud from '../media/scenes/cloud_detection_cby.png';
 
 import type { SampleScene } from '$types';
+import { cloudCoverFilter } from '$utils/property-filters';
 
 export const SAMPLE_SCENES: SampleScene[] = [
   {
@@ -26,7 +27,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     ], // Red, Green, Blue for true color
     temporalRange: ['2025-11-01', '2026-02-28'],
     boundingBox: [14.11, 40.75, 14.34, 40.85], // west, south, east, north for Naples area
-    cloudCover: 20, // Max cloud cover percentage
+    propertyFilters: [cloudCoverFilter(20)],
     thumbnail: thumbS2RGB
   },
   {
@@ -47,7 +48,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     ], // Bands useful for APA
     temporalRange: ['2025-05-12', '2025-05-13'],
     boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
-    cloudCover: 20 // Max cloud cover percentage
+    propertyFilters: [cloudCoverFilter(20)]
   },
   {
     id: 'sentinel-2-ndci',
@@ -68,7 +69,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     ], // Bands useful for NDCI
     temporalRange: ['2025-05-12', '2025-05-13'],
     boundingBox: [12.0, 44.5, 14.0, 46.0], // west, south, east, north for Venice area
-    cloudCover: 20, // Max cloud cover percentage
+    propertyFilters: [cloudCoverFilter(20)],
     thumbnail:
       'https://github.com/EOPF-Explorer/eodash-assets/blob/main/narratives/NDCI/hero.png?raw=true'
   },
@@ -89,7 +90,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     ], // Blue, Green, Red, NIR, SWIR-1, SWIR-2 for lava visualization
     temporalRange: ['2021-10-10', '2021-10-11'],
     boundingBox: [-17.94, 28.58, -17.86, 28.64], // west, south, east, north for Cumbre Vieja, La Palma
-    cloudCover: 20, // Max cloud cover percentage
+    propertyFilters: [cloudCoverFilter(20)],
     thumbnail: thumbS2Lava
   },
   {
@@ -108,7 +109,7 @@ export const SAMPLE_SCENES: SampleScene[] = [
     ], // Red, Red Edge, Red Edge, Narrow NIR, SWIR for BAIS2
     temporalRange: ['2025-09-25', '2025-09-26'], // Post-fire pass, 0% cloud; the Aug 2025 fire dates have no EOPF data
     boundingBox: [-7.8, 40.1, -7.0, 40.9], // west, south, east, north for Beiras e Serra da Estrela, Portugal
-    cloudCover: 20, // Max cloud cover percentage
+    propertyFilters: [cloudCoverFilter(20)],
     thumbnail: thumbS2Bais2
   },
   {
@@ -126,7 +127,6 @@ export const SAMPLE_SCENES: SampleScene[] = [
     ],
     temporalRange: ['2026-02-16', '2026-02-21'],
     boundingBox: [-0.5, 51.27, 0.34, 51.7], // London, UK
-    cloudCover: 100, // We want clouds for this scene
     thumbnail: thumbS2Cloud
   }
 ];

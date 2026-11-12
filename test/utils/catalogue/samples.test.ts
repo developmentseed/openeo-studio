@@ -18,7 +18,9 @@ jest.mock('$config/sample-scenes', () => ({
       suggestedAlgorithm: 'print("lava")',
       bands: ['b12'],
       temporalRange: ['2025-01-01', '2025-01-31'],
-      cloudCover: 30
+      propertyFilters: [
+        { property: 'eo:cloud_cover', operator: 'lt', value: 30 }
+      ]
     }
   ]
 }));
@@ -65,7 +67,9 @@ describe('samplesLoader', () => {
         name: 'Lava flows',
         collectionId: 'sentinel-2-l2a',
         temporalRange: ['2025-01-01', '2025-01-31'],
-        cloudCover: 30,
+        propertyFilters: [
+          { property: 'eo:cloud_cover', operator: 'lt', value: 30 }
+        ],
         bands: ['b12'],
         boundingBox: undefined,
         suggestedAlgorithm: 'print("lava")'
@@ -73,9 +77,9 @@ describe('samplesLoader', () => {
     });
   });
 
-  it('defaults cloud cover to 100', async () => {
+  it('defaults to no property filter', async () => {
     const result = await samplesLoader.load('rgb', {});
-    expect(result.seed.cloudCover).toBe(100);
+    expect(result.seed.propertyFilters).toEqual([]);
   });
 
   it('rejects an unknown sample', async () => {
