@@ -24,6 +24,9 @@ async function initRuff() {
           'RUN_CONFIG', // defined in code-runner.ts
           'datacube', // defined in loader.py
           'reduced', // defined in loader.py
+          'bounding_box', // defined in loader.py
+          'time', // defined in loader.py
+          'bands', // defined in loader.py
           'add_graph_to_map' // defined in loader.py
         ],
         'target-version': 'py310',
@@ -47,6 +50,19 @@ async function initRuff() {
   })();
 
   return initPromise;
+}
+
+/**
+ * Formats Python code with Ruff. Returns the code as it is when Ruff can't
+ * load or can't parse it.
+ */
+export async function formatPython(code: string): Promise<string> {
+  try {
+    await initRuff();
+    return ruffWorkspace!.format(code);
+  } catch {
+    return code;
+  }
 }
 
 export function ruffLinter(options?: { ignoreCodes?: string[] }) {

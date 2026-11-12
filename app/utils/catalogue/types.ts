@@ -54,6 +54,8 @@ export interface LoadResult {
   autoRun: boolean;
   // Code that exists only in a link: unsaved, and written by someone else.
   external?: boolean;
+  // Code that studio wrote from a UDP: it may not work as it is.
+  generated?: boolean;
   // The values left out of the seed, for the user to read.
   incompatibilities?: string[];
 }

@@ -11,15 +11,22 @@ import { useEditorStore } from '$stores/editor-store';
 
 /**
  * Tells the user what to check in the content that was just loaded: code
- * from a link runs in their session, and values the backend doesn't support
- * were left out.
+ * from a link runs in their session, code generated from a UDP may not work,
+ * and values the backend doesn't support were left out.
  */
 export function LoadNoticeAlert(props: AlertRootProps) {
   const notice = useEditorStore((state) => state.loadNotice);
   const dismiss = useEditorStore((state) => state.dismissLoadNotice);
 
   if (!notice) return null;
-  const { external, incompatibilities } = notice;
+  const { external, generated, incompatibilities } = notice;
+  const list = incompatibilities.length > 0 && (
+    <List.Root ps={4}>
+      {incompatibilities.map((message) => (
+        <List.Item key={message}>{message}</List.Item>
+      ))}
+    </List.Root>
+  );
 
   return (
     <Alert.Root status='warning' size='sm' {...props}>
@@ -34,17 +41,25 @@ export function LoadNoticeAlert(props: AlertRootProps) {
             </Alert.Description>
           </Box>
         )}
-        {incompatibilities.length > 0 && (
+        {generated && (
+          <Box>
+            <Alert.Title>This code was generated from a UDP</Alert.Title>
+            <Alert.Description>
+              <Text mb={1}>
+                Studio wrote this code from the process graph of the UDP. Read
+                it before you run it: it may not work.
+              </Text>
+              {list}
+            </Alert.Description>
+          </Box>
+        )}
+        {!generated && list && (
           <Box>
             <Alert.Title>
               This project doesn&apos;t fully match the connected backend
             </Alert.Title>
             <Alert.Description>
-              <List.Root ps={4}>
-                {incompatibilities.map((message) => (
-                  <List.Item key={message}>{message}</List.Item>
-                ))}
-              </List.Root>
+              {list}
               <Text mt={1}>The code is loaded unchanged and may not work.</Text>
             </Alert.Description>
           </Box>
