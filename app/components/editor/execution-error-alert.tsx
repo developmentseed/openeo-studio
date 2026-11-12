@@ -2,6 +2,7 @@ import {
   Accordion,
   Alert,
   Box,
+  Button,
   IconButton,
   Span,
   Text
@@ -10,11 +11,14 @@ import {
 interface ExecutionErrorAlertProps {
   message: string;
   onDismiss: () => void;
+  /** Absent when no assistant is configured. */
+  onAsk?: () => void;
 }
 
 export function ExecutionErrorAlert({
   message,
-  onDismiss
+  onDismiss,
+  onAsk
 }: ExecutionErrorAlertProps) {
   const hasDetails = message.trim().length > 0;
 
@@ -63,6 +67,11 @@ export function ExecutionErrorAlert({
             </Accordion.Root>
           ) : (
             <Alert.Title>Execution failed</Alert.Title>
+          )}
+          {onAsk && (
+            <Button size='xs' variant='outline' mt={2} onClick={onAsk}>
+              Ask the assistant
+            </Button>
           )}
         </Alert.Content>
       </Alert.Root>

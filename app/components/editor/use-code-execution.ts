@@ -14,7 +14,7 @@ import {
 } from '$utils/openeo/user-defined-processes';
 import { shouldNavigateAfterSave } from '$config/sample-scenes';
 import type { ExecutionConfig, GraphResult, ServiceInfo } from '$types';
-import { useEditorStore } from '$stores/editor-store';
+import { useEditorStore, type LastRun } from '$stores/editor-store';
 import { useProjectsStore } from '$stores/projects-store';
 
 type RunResult = {
@@ -27,6 +27,13 @@ export type SaveProjectResult =
   | { status: 'saved'; id: string }
   | { status: 'no-graph' }
   | { status: 'error' };
+
+/** What a run tells the assistant, unless another project opened since the
+ * run started (`opened`): it is about that project. */
+const recordRun = (opened: number, lastRun: LastRun) => {
+  const state = useEditorStore.getState();
+  if (state.opened === opened) state.setLastRun(lastRun);
+};
 
 export function useCodeExecution(
   setServices: (services: ServiceInfo[]) => void,
@@ -49,10 +56,32 @@ export function useCodeExecution(
 
     const content = editor.state.doc.toString();
     const token = user?.access_token ?? '';
-    const graphs = await runAndValidateScript(pyodide, token, content, config);
-    const services = await createServicesFromGraphs(graphs, token);
-    setServices(services);
-    return { content, graphs, services };
+    const { opened } = useEditorStore.getState();
+    let graphs: GraphResult[] = [];
+    // Which step failed tells the assistant where to look: the code, the
+    // graph it built, or the map services built from a valid graph.
+    let step = 'Running the code';
+    try {
+      await runAndValidateScript(
+        pyodide,
+        token,
+        content,
+        config,
+        (produced) => {
+          graphs = produced;
+          step = 'Validating the graph with the backend';
+        }
+      );
+      step = 'Creating the map services (the backend validated the graph)';
+      const services = await createServicesFromGraphs(graphs, token);
+      recordRun(opened, { graphs, error: null });
+      setServices(services);
+      return { content, graphs, services };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      recordRun(opened, { graphs, error: `${step} failed: ${message}` });
+      throw error;
+    }
   }, [pyodide, editor, user?.access_token, config, setServices]);
 
   /** Auto-execute: run code and create map services. Never persists. */
@@ -79,6 +108,7 @@ export function useCodeExecution(
 
       setIsExecuting(true);
       setErrorMessage(null);
+      const { opened } = useEditorStore.getState();
       try {
         const { content, graphs, services } = await runAndCreateServices();
 
@@ -90,17 +120,28 @@ export function useCodeExecution(
           !shouldNavigateAfterSave(sceneId) && sceneId
             ? sceneId
             : kebabCase(sceneName);
-        await saveProject(user?.access_token ?? '', {
-          id,
-          summary: sceneName,
-          code: content,
-          processGraph: mergeProcessGraphs(
-            graphs.map((graph) => graph.process_graph)
-          ),
-          parameters: resolveSharedParameters(
-            graphs.map((graph) => graph.parameters)
-          )
-        });
+        try {
+          await saveProject(user?.access_token ?? '', {
+            id,
+            summary: sceneName,
+            code: content,
+            processGraph: mergeProcessGraphs(
+              graphs.map((graph) => graph.process_graph)
+            ),
+            parameters: resolveSharedParameters(
+              graphs.map((graph) => graph.parameters)
+            )
+          });
+        } catch (error) {
+          // The code ran and the map rendered; only storing the project failed.
+          const message =
+            error instanceof Error ? error.message : String(error);
+          recordRun(opened, {
+            graphs,
+            error: `Saving the project as "${id}" failed (the code ran and the map rendered): ${message}`
+          });
+          throw error;
+        }
 
         markClean();
         return { status: 'saved', id };
