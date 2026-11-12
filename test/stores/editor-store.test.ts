@@ -106,6 +106,18 @@ describe('editor-store content replacement', () => {
     });
   });
 
+  it('keeps a notice for generated code, which stays clean', () => {
+    useEditorStore
+      .getState()
+      .hydrateFromScene(null, seed, false, { generated: true });
+    expect(useEditorStore.getState().isDirty).toBe(false);
+    expect(useEditorStore.getState().loadNotice).toEqual({
+      external: false,
+      generated: true,
+      incompatibilities: []
+    });
+  });
+
   it('has no notice for content without anything to check', () => {
     useEditorStore
       .getState()

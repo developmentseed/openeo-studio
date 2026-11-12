@@ -27,7 +27,11 @@ type EditorState = {
   // Bumped whenever the content is replaced, so the editor can remount.
   contentVersion: number;
   // What the user must check in the loaded content, until they dismiss it.
-  loadNotice: { external: boolean; incompatibilities: string[] } | null;
+  loadNotice: {
+    external: boolean;
+    generated?: boolean;
+    incompatibilities: string[];
+  } | null;
 };
 
 type ResetDefaults = Partial<ConfigValues>;
@@ -52,7 +56,7 @@ type EditorActions = {
     sceneId: string | null,
     scene: EditorSeed,
     autoRun: boolean,
-    notice?: Pick<LoadResult, 'external' | 'incompatibilities'>
+    notice?: Pick<LoadResult, 'external' | 'generated' | 'incompatibilities'>
   ) => void;
   dismissLoadNotice: () => void;
 };
@@ -142,7 +146,11 @@ export const useEditorStore = create<EditorStore>()(
         });
       },
       hydrateFromScene: (sceneId, scene, autoRun, notice = {}) => {
-        const { external = false, incompatibilities = [] } = notice;
+        const {
+          external = false,
+          generated = false,
+          incompatibilities = []
+        } = notice;
         const sceneConfig = createInitialConfig({
           collectionId: scene.collectionId,
           temporalRange: scene.temporalRange,
@@ -161,8 +169,8 @@ export const useEditorStore = create<EditorStore>()(
           autoRun,
           contentVersion: get().contentVersion + 1,
           loadNotice:
-            external || incompatibilities.length > 0
-              ? { external, incompatibilities }
+            external || generated || incompatibilities.length > 0
+              ? { external, ...(generated && { generated }), incompatibilities }
               : null
         });
       },
