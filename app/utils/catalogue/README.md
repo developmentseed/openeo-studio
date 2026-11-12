@@ -18,16 +18,17 @@ loader.
 
 ## Files
 
-| File               | What it does                                                                                                   |
-| ------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `types.ts`         | The contracts: `CatalogueSource`, `ProjectLoader`, `CatalogueEntry`, `LoadRef`, `LoadResult`                   |
-| `catalogue.ts`     | `createCatalogue`: sends listings to sources and opens to loaders, and runs the compatibility check on both    |
-| `compatibility.ts` | Checks a collection and its bands against the connected openEO backend                                         |
-| `links.ts`         | Maps query params (`?sample_id=`, `?project_url=`, `?prefill=`) to loaders, in both directions                 |
-| `paginate.ts`      | `paginate` and `matchesQuery` for sources that hold their whole list in memory                                 |
-| `project-file.ts`  | `parseProjectFile`: validates a project document and builds its seed                                           |
-| `sources/`         | `samples` (also exports its loader) and `apex`                                                                 |
-| `loaders/`         | `project-url` (any URL to a `project.json`), `encoded-url` (`?prefill=`) and `saved-project` (the user's UDPs) |
+| File               | What it does                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `types.ts`         | The contracts: `CatalogueSource`, `ProjectLoader`, `CatalogueEntry`, `LoadRef`, `LoadResult`                 |
+| `catalogue.ts`     | `createCatalogue`: sends listings to sources and opens to loaders, and runs the compatibility check on both  |
+| `compatibility.ts` | Checks a collection and its bands against the connected openEO backend                                       |
+| `links.ts`         | Maps query params (`?sample_id=`, `?project_url=`, `?prefill=`, `?apex_udp=`) to loaders, in both directions |
+| `paginate.ts`      | `paginate` and `matchesQuery` for sources that hold their whole list in memory                               |
+| `project-file.ts`  | `parseProjectFile`: validates a project document and builds its seed                                         |
+| `sources/`         | `samples` (also exports its loader), `apex` (APEx studio projects) and `apex-udp` (APEx UDPs)                |
+| `loaders/`         | `project-url` (any URL to a `project.json`), `encoded-url` (`?prefill=`), `saved-project` and `apex-udp`     |
+| `apex/`            | What the APEx sources and loader share: `repo` (the GitHub repo and its cached listing) and `record`         |
 
 The active sources and loaders are registered in
 [`app/config/catalogue.ts`](../../config/catalogue.ts). That file is the only
@@ -105,6 +106,34 @@ For code that is too long for a URL, host the same JSON and link to it with
 
 A newer `openEntry` call aborts the older one through `ctx.signal`. Pass the
 signal to any `fetch` your loader makes.
+
+### APEx UDPs
+
+The `apex-udp` source lists the APEx algorithms that have a UDP but no studio
+project. The `apex-udp` loader fetches the UDP and writes the Python code from the
+process graph with `udpToPython` (`$utils/openeo/udp-to-python`). The code
+holds only what the loader script doesn't already provide:
+
+- The collection that the UDP loads for its time range becomes `datacube`.
+  Its collection, bands and property filters go to the configuration.
+- The spatial and the temporal parameter become `bounding_box` and `time`.
+  The other parameters become constants at the top of the code. Their values
+  come from the first benchmark scenario of the algorithm, then from the
+  defaults of the UDP.
+- The `save_result` of the UDP is replaced by a PNG layer on the map.
+- Any other collection is loaded in the code. Studio selects one collection,
+  through the configuration, so the user gets a notice that more than one is
+  not supported natively.
+
+A collection the backend has under the UDP's name is used as it is.
+Otherwise the catalogue falls back to the default collection, as for any
+other project, and a collection the code loads itself stays as the UDP has
+it. Both are named for the user.
+
+The result has `generated: true`, so the editor always warns that the code
+may not work. `incompatibilities` names every replaced or missing collection,
+every process the backend doesn't have, and every parameter that needs a
+value.
 
 ### Errors
 
