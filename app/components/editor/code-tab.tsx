@@ -23,7 +23,7 @@ export function CodeTab() {
   );
 
   return (
-    <Flex flexDirection='column' height='100%' position='relative'>
+    <Flex flexDirection='column' flex={1} minH={0} position='relative'>
       <Box position='absolute' top={4} right={4} zIndex={10}>
         <CodeInfoMenu
           codeType={codeType}
