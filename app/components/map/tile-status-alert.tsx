@@ -5,15 +5,47 @@ interface TileStatusAlertProps {
   status: TileLoadStatus;
 }
 
+function getAlertContent(status: TileLoadStatus) {
+  switch (status.status) {
+    case 'loading':
+      return { alertStatus: 'info' as const, title: 'Loading...' };
+    case 'warning':
+      return {
+        alertStatus: 'warning' as const,
+        title: 'No tiles returned for this view'
+      };
+    case 'error':
+      return status.reason === 'no-data'
+        ? {
+            alertStatus: 'error' as const,
+            title: 'No data available for this area and time range',
+            description:
+              'Change the spatial or temporal extent of load_collection, or move the map to an area that has data.'
+          }
+        : {
+            alertStatus: 'error' as const,
+            title: 'Tiles failed to load',
+            description: status.message
+          };
+    default:
+      return null;
+  }
+}
+
 export function TileStatusAlert({ status }: TileStatusAlertProps) {
-  if (status.status === 'idle') return null;
+  const content = getAlertContent(status);
+  if (!content) return null;
 
   const isLoading = status.status === 'loading';
-  const alertStatus = isLoading ? 'info' : 'warning';
 
   return (
-    <Box position='absolute' left={4} bottom={4} zIndex={10}>
-      <Alert.Root status={alertStatus} variant='solid' size='sm' gap={3}>
+    <Box position='absolute' left={4} bottom={4} zIndex={10} maxW='md'>
+      <Alert.Root
+        status={content.alertStatus}
+        variant='solid'
+        size='sm'
+        gap={3}
+      >
         <Alert.Indicator>
           {isLoading && (
             <ProgressCircle.Root value={null} size='xs'>
@@ -25,9 +57,10 @@ export function TileStatusAlert({ status }: TileStatusAlertProps) {
           )}
         </Alert.Indicator>
         <Alert.Content>
-          <Alert.Title>
-            {isLoading ? 'Loading...' : 'No tiles returned for this view'}
-          </Alert.Title>
+          <Alert.Title>{content.title}</Alert.Title>
+          {content.description && (
+            <Alert.Description>{content.description}</Alert.Description>
+          )}
         </Alert.Content>
       </Alert.Root>
     </Box>
