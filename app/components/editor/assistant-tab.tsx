@@ -19,6 +19,7 @@ import type { PropertyFilter } from '$types';
 import type { AgentEvent } from '$types/agent';
 import {
   applyEdits,
+  manifestUrl,
   readState,
   replaceAll,
   runAgent,
@@ -182,7 +183,8 @@ export function AssistantTab({
         isSample: !!state.sceneId && !!getSceneById(state.sceneId),
         config: state.selectedConfig,
         code: currentCode(),
-        openeoApiUrl: appConfig.openeoApiUrl
+        openeoApiUrl: appConfig.openeoApiUrl,
+        manifestUrl: manifestUrl(window.location.origin, appConfig.pathPrefix)
       })
     };
   };
