@@ -158,8 +158,8 @@ Things to keep in mind:
 - If your backend pages results itself, return its own cursor as
   `nextCursor` instead of using `paginate`. The catalogue passes the cursor
   back unchanged.
-- Cache what is expensive or rate-limited. See `sources/apex.ts`, which
-  caches the GitHub tree in `sessionStorage` for an hour.
+- Cache what is expensive or rate-limited. See `apex/repo.ts`, which caches
+  the entries listed from the GitHub tree in `sessionStorage` for an hour.
 - `ctx.authToken` is the user's openEO token. Only send it to the openEO
   backend. Use `fetchPublic` from `$utils/api` for anything else.
 
