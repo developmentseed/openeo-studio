@@ -20,6 +20,16 @@ export type LastRun = {
   at?: string;
 };
 
+/** The last tile error of the map view, for the assistant. Not persisted. */
+export type TileError = {
+  code: string;
+  message: string;
+  /** The number of tiles that failed in the view. */
+  failed: number;
+  /** When it was seen, as ISO 8601; stamped by setTileError. */
+  at?: string;
+};
+
 type ConfigValues = EditorConfigValues;
 
 const DEFAULT_SCENE_NAME = 'New Project';
@@ -34,6 +44,7 @@ type EditorState = {
   sceneId: string | null;
   sceneName: string;
   lastRun: LastRun | null;
+  tileError: TileError | null;
   /** Counts the projects opened: a run of an earlier one must not set
    * `lastRun`. Not persisted. */
   opened: number;
@@ -44,6 +55,7 @@ type ResetDefaults = Partial<ConfigValues>;
 type EditorActions = {
   setCode: (code: string) => void;
   setLastRun: (lastRun: LastRun | null) => void;
+  setTileError: (tileError: TileError | null) => void;
   setCollectionId: (id: string) => void;
   setTemporalRange: (range: [string, string]) => void;
   setPropertyFilters: (filters: PropertyFilter[]) => void;
@@ -89,8 +101,16 @@ export const useEditorStore = create<EditorStore>()(
       sceneId: null,
       sceneName: DEFAULT_SCENE_NAME,
       lastRun: null,
+      tileError: null,
       opened: 0,
       setCode: (code) => set((state) => ({ code, ...changed(state) })),
+      setTileError: (tileError) =>
+        set({
+          tileError: tileError && {
+            ...tileError,
+            at: new Date().toISOString()
+          }
+        }),
       setLastRun: (lastRun) =>
         set({
           lastRun: lastRun && { ...lastRun, at: new Date().toISOString() }
@@ -150,6 +170,7 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: newConfig,
           services: [],
           lastRun: null,
+          tileError: null,
           opened: state.opened + 1,
           sceneName: DEFAULT_SCENE_NAME
         }));
@@ -163,6 +184,7 @@ export const useEditorStore = create<EditorStore>()(
           selectedConfig: initialConfig,
           services: [],
           lastRun: null,
+          tileError: null,
           opened: state.opened + 1,
           sceneId: null,
           sceneName: DEFAULT_SCENE_NAME
@@ -185,6 +207,7 @@ export const useEditorStore = create<EditorStore>()(
           isDirty: false,
           services: [],
           lastRun: null,
+          tileError: null,
           opened: state.opened + 1
         }));
       }

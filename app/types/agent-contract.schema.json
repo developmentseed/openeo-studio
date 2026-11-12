@@ -86,6 +86,24 @@
       "additionalProperties": false,
       "description": "One error from the openEO `/validation` endpoint."
     },
+    "TileDiagnostic": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The openEO error code, for example `NoDataAvailable`."
+        },
+        "message": { "type": "string" },
+        "failed": {
+          "type": "number",
+          "description": "The number of tiles that failed in the view."
+        },
+        "at": { "type": "string" }
+      },
+      "required": ["code", "message", "failed", "at"],
+      "additionalProperties": false,
+      "description": "The last tile error of the current map view, as the backend sent it: the run built a valid graph, but the backend could not compute a tile. Since contract 1.1."
+    },
     "StudioDiagnostics": {
       "type": "object",
       "properties": {
@@ -102,6 +120,13 @@
         "lint": {
           "type": "array",
           "items": { "$ref": "#/definitions/LintDiagnostic" }
+        },
+        "tiles": {
+          "anyOf": [
+            { "$ref": "#/definitions/TileDiagnostic" },
+            { "type": "null" }
+          ],
+          "description": "Since contract 1.1."
         }
       },
       "required": ["execution", "validation", "lint"],
@@ -348,6 +373,7 @@
         "editor.executionError",
         "editor.validationError",
         "editor.lintDiagnostic",
+        "map.tileError",
         "home.kickstart"
       ]
     },

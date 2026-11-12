@@ -1,11 +1,13 @@
-import { Alert, ProgressCircle, Box, Text } from '@chakra-ui/react';
+import { Alert, ProgressCircle, Box, Button, Text } from '@chakra-ui/react';
 import type { TileLoadStatus } from './use-map-tile-status';
 
 interface TileStatusAlertProps {
   status: TileLoadStatus;
+  /** Asks the assistant about the tile error. Absent when no assistant is configured. */
+  onAsk?: () => void;
 }
 
-export function TileStatusAlert({ status }: TileStatusAlertProps) {
+export function TileStatusAlert({ status, onAsk }: TileStatusAlertProps) {
   if (status.status === 'idle') return null;
 
   if (status.status === 'error' && status.error) {
@@ -25,6 +27,11 @@ export function TileStatusAlert({ status }: TileStatusAlertProps) {
                 {error.message}
               </Text>
             </Alert.Description>
+            {onAsk && (
+              <Button size='xs' variant='outline' mt={2} onClick={onAsk}>
+                Ask the assistant
+              </Button>
+            )}
           </Alert.Content>
         </Alert.Root>
       </Box>

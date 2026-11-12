@@ -182,6 +182,13 @@ interface ProjectSnapshot {
   code: string;
   services: ServiceInfo[];
   lastRun: { graphs: GraphResult[]; error: string | null; at?: string } | null;
+  /** The last tile error of the map view. */
+  tileError?: {
+    code: string;
+    message: string;
+    failed: number;
+    at?: string;
+  } | null;
   openeoApiUrl: string;
   /** The deployment's manifest for agents: see `manifestUrl`. */
   manifestUrl: string;
@@ -220,7 +227,15 @@ export function studioDocument(project: ProjectSnapshot): StudioState {
         ? { message: lastRun.error, at: lastRun.at ?? new Date().toISOString() }
         : null,
       validation: [],
-      lint: []
+      lint: [],
+      tiles: project.tileError
+        ? {
+            code: project.tileError.code,
+            message: project.tileError.message,
+            failed: project.tileError.failed,
+            at: project.tileError.at ?? new Date().toISOString()
+          }
+        : null
     },
     backend: { openeoApiUrl: project.openeoApiUrl },
     docs: { manifestUrl: project.manifestUrl },
