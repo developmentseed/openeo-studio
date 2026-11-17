@@ -458,6 +458,7 @@ function manifestJson(v: AgentDocsValues): string {
       samples: SAMPLE_SCENES_META.map((sample) => ({
         id: sample.id,
         name: sample.name,
+        description: sample.description,
         collectionId: sample.collectionId,
         url: `${u}/editor/${sample.id}`,
         prefill: `${u}/agents/samples/${sample.id}.json`
