@@ -191,6 +191,9 @@ Things to keep in mind:
   bundled samples and the user's own projects run on open.
 - Set `projectId` only for content that is already saved as a UDP.
   Everything else opens at `/editor` and gets an id when it is first saved.
+- The code in `suggestedAlgorithm` must follow the code contract (the names
+  it can use, `op.<name>`, `add_graph_to_map`). See
+  [`app/algorithms/README.md`](../../algorithms/README.md#the-code-contract).
 
 ## Tests
 

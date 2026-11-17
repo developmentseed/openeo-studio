@@ -41,6 +41,8 @@ In the `Code` tab, write only the visualization logic. The loader already provid
 - `datacube`: collection loaded from Configuration values
 - `reduced`: datacube with first-pixel temporal selection already applied
 
+The section "Python environment (code contract)" below lists all the names that your code can use.
+
 Use this code:
 
 ```python
@@ -57,6 +59,54 @@ Related processes: [`linear_scale_range`](https://processes.openeo.org/#linear_s
 ### 4) Hit `Apply` and explore the result live on the map
 
 Pan and zoom to inspect local detail. This is a very very simple workflow that loads the first time step of the datacube (`reduced`), applies a linear scaling for visualization enhancement, and outputs the result as PNG tiles.
+
+
+# Python environment (code contract)
+
+Your code in the `Code` tab is not a standalone script. openEO Studio runs it in the browser after other code that prepares the environment. It runs these parts in this order, in one Python namespace:
+
+1. `RUN_CONFIG`: the values of the `Configuration` tab.
+2. `processes.py`: the openEO process functions.
+3. `loader.py`: the parameters and the input datacube.
+4. Your code.
+
+To see parts 2 and 3, open the info menu of the `Code` tab and select `Boilerplate (read-only)`.
+
+### Names that your code can use
+
+You can use these names without an import:
+
+| Name | Type | Description |
+|---|---|---|
+| `reduced` | `DataCube` | The datacube with the first pixel in time selected. Start from here for a map. |
+| `datacube` | `DataCube` | The collection loaded with the `Configuration` values. |
+| `add_graph_to_map(graph, name)` | function | Adds a result to the map as a layer. |
+| `op` | module | All the openEO processes (`openeo.processes`). |
+| `bounding_box`, `time`, `bands`, `cloud_cover_max` | `Parameter` | The parameters of the project. Their defaults are the `Configuration` values. |
+
+### openEO processes
+
+Write the openEO processes as `op.<name>`. All the processes of the [openEO processes catalog](https://processes.openeo.org/) are available:
+
+```python
+def visualize(data):
+    red, nir = data[0], data[1]
+    ndvi = (nir - red) / (nir + red)
+    return op.if_(op.gt(ndvi, 0.3), op.clip(ndvi, 0, 1), 0)
+```
+
+- A process name that is a Python keyword has a trailing underscore: `op.if_`, `op.and_`, `op.or_`, `op.not_`.
+- The method form also works on a datacube or on the values in a callback: `data.max()`, `ndvi.round()`.
+- **Do not use the Python built-in functions `max()`, `min()`, `sum()`, `round()`, `int()`, `all()` or `any()` on openEO values.** They do not make openEO processes. `round(x)` and `int(x)` cause an error. `max(a, b)` gives a wrong result with no error. Use `op.max(...)`, `op.round(...)`, and so on.
+
+For compatibility, the bare names also work: `if_`, `clip`, `sqrt`. A bare name that is also a Python built-in has a trailing underscore: `max_`, `sum_`. We recommend `op.<name>`.
+
+### Rules
+
+- Start from `reduced` (one time step, for a map) or from `datacube` (all the time steps).
+- Call `add_graph_to_map(graph, name)` at least once. If you do not call it, there is no map layer.
+- Do not connect to a backend: do not use `openeo.connect()`, `.execute()` or `.download()`. openEO Studio sends the process graph to the backend.
+- Write a process graph that the backend can show as map tiles within seconds. openEO Studio does not run batch jobs.
 
 
 # Example applications

@@ -5,6 +5,11 @@ import ruffInit, {
   PositionEncoding
 } from '@astral-sh/ruff-wasm-web';
 
+import {
+  LOADER_GLOBALS,
+  OPENEO_PROCESS_NAMES
+} from '../algorithms/base/environment';
+
 let ruffWorkspace: Workspace | null = null;
 let initPromise: Promise<void> | null = null;
 
@@ -16,16 +21,9 @@ async function initRuff() {
     await ruffInit();
     ruffWorkspace = new Workspace(
       {
-        builtins: [
-          'array_create', // from openeo.processes
-          'absolute', // from openeo.processes
-          'and_', // from openeo.processes
-          'if_', // from openeo.processes
-          'RUN_CONFIG', // defined in code-runner.ts
-          'datacube', // defined in loader.py
-          'reduced', // defined in loader.py
-          'add_graph_to_map' // defined in loader.py
-        ],
+        // The names that code-runner.ts, processes.py and loader.py define
+        // before the user code runs.
+        builtins: [...LOADER_GLOBALS, ...OPENEO_PROCESS_NAMES],
         'target-version': 'py310',
         'line-length': 88,
         'indent-width': 4,
