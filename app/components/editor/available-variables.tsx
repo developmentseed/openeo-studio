@@ -1,6 +1,7 @@
 import { Flex, Text, Code, List, Stack, Separator } from '@chakra-ui/react';
 
 import { PUBLIC_GLOBALS } from '../../algorithms/base/environment';
+import SmartLink from '$components/common/smart-link';
 
 function VariableDefinition({ name, type }: { name: string; type: string }) {
   return (
@@ -50,7 +51,14 @@ export function AvailableVariables({
           ))}
         </List.Root>
         <Text fontSize='xs' color='fg.muted'>
-          More detail: Documentation, section &quot;Python environment&quot;.
+          More detail available in the{' '}
+          <SmartLink
+            fontWeight={700}
+            to='/docs/docs#python-environment-code-contract'
+          >
+            documentation
+          </SmartLink>
+          .
         </Text>
       </Stack>
 
