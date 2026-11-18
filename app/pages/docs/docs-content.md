@@ -92,6 +92,11 @@ Pan and zoom to inspect local detail. This is a very very simple workflow that l
 - Verify the temporal range has data availability
 - Confirm that the area of interest overlaps the collection footprint
 - Check band names against the collection metadata
+- Read the error on the map. For each tile, the backend searches the images that touch the tile, are in the dates, and pass the cloud filter:
+  - `NoDataAvailable`: no image. Use a longer date range or a higher cloud cover limit.
+  - `ItemsLimitExceeded`: too many images (the limit is 20 by default). Use a shorter date range or a lower cloud cover limit, or zoom in.
+- Start with 1 to 2 weeks and a cloud cover limit of 20 % or less. Do not use more than 1 month.
+- The map shows no result below zoom level 6. Zoom in on a large area.
 
 ### Processing fails
 
@@ -115,6 +120,14 @@ Pan and zoom to inspect local detail. This is a very very simple workflow that l
 | SCL | Scene Classification | 20m | Cloud masking |
 
 Full reference: [Sentinel-2 MSI technical guide](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi).
+
+### Data values
+
+The backend gives physical values, not raw digital numbers. Sentinel-2 L2A reflectance is from 0 to 1 (a value can be a little below 0 or above 1). The backend already applied the scale and the offset of each product ([titiler-openeo ADR 0009](https://github.com/sentinel-hub/titiler-openeo/blob/main/docs/adr/0009-scale-offset-sources.md)).
+
+- Do not multiply by `0.0001`, and do not subtract an offset.
+- For true color, scale the reflectance from 0 to 0.3 (or 0.4) to 0 to 255.
+- An index such as NDVI is a ratio, from -1 to 1.
 
 ### Datacubes
 

@@ -26,6 +26,7 @@
     "ts-check": "npx tsc --noEmit --skipLibCheck",
     "theme": "npx @chakra-ui/cli typegen app/styles/theme.ts",
     "schema:agent": "node scripts/generate-agent-schema.mjs",
+    "schema:sample": "node scripts/generate-sample-schema.mjs",
     "test": "jest",
     "test:integration": "playwright test",
     "test:integration:ui": "playwright test --ui",

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Code, Stack, Tabs, Text } from '@chakra-ui/react';
 import { useShallow } from 'zustand/shallow';
 import { useNavigate } from 'react-router';
@@ -15,6 +15,7 @@ import { AssistantTab } from './assistant-tab';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
 import { useDeleteProject } from './use-delete-project';
+import { useCollectionQueryables } from './use-collection-queryables';
 
 export type EditorTabId = 'configuration' | 'code' | 'assistant';
 
@@ -31,7 +32,29 @@ export function EditorWorkspace({
   const selectedConfig = useEditorStore(
     useShallow((state) => state.selectedConfig)
   );
-  const { setSceneId, sceneId, isDirty, setServices } = useEditorStore();
+  const { setSceneId, sceneId, isDirty, setServices, setPropertyFilters } =
+    useEditorStore();
+
+  // Drop the filters on properties that are not queryables of the
+  // collection: the STAC API would remove every item. Execution uses the
+  // valid filters directly, so it does not depend on the store update.
+  const { queryables, isLoading: isQueryablesLoading } =
+    useCollectionQueryables(selectedConfig.collectionId);
+  const executionConfig = useMemo(() => {
+    const propertyFilters = selectedConfig.propertyFilters ?? [];
+    if (!queryables) return selectedConfig;
+    const validFilters = propertyFilters.filter(
+      (filter) => filter.property in queryables
+    );
+    return validFilters.length === propertyFilters.length
+      ? selectedConfig
+      : { ...selectedConfig, propertyFilters: validFilters };
+  }, [queryables, selectedConfig]);
+  useEffect(() => {
+    if (executionConfig !== selectedConfig) {
+      setPropertyFilters(executionConfig.propertyFilters);
+    }
+  }, [executionConfig, selectedConfig, setPropertyFilters]);
 
   const editor = useCodeEditor();
   const { confirm, dialog: confirmDialog } = useConfirmDialog();
@@ -43,9 +66,11 @@ export function EditorWorkspace({
     createServices,
     saveProjectAndServices,
     isExecuting,
-    isReady: isExecutionReady,
+    isReady: isRuntimeReady,
     errorMessage
-  } = useCodeExecution(setServices, editor, selectedConfig);
+  } = useCodeExecution(setServices, editor, executionConfig);
+  // Wait for the queryables: a run must not use unsupported filters.
+  const isExecutionReady = isRuntimeReady && !isQueryablesLoading;
 
   const {
     onDeleteClick,

@@ -259,7 +259,7 @@ function UserInfo(props: { compact?: boolean }) {
     if (isLoading) return;
 
     signinRedirect({
-      state: { returnTo: location.pathname }
+      state: { returnTo: location.pathname + location.search }
     });
   };
 

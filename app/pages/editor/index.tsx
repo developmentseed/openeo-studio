@@ -8,11 +8,14 @@ import { useShallow } from 'zustand/shallow';
 import { ResultsPanel } from '$components/editor/results-panel';
 import { EditorWorkspace } from '$components/editor/editor-workspace';
 import { useLoadProject } from '$components/editor/use-load-project';
+import { usePrefillSample } from '$components/editor/use-prefill-sample';
+import { PrefillSampleAlert } from '$components/editor/prefill-sample-alert';
 import { CodeEditor } from '$components/editor/code-editor';
 import { DEFAULT_EDITOR_CONFIG } from '$config/default-editor-config';
 import { getSceneById } from '$config/sample-scenes';
 import { useEditorStore } from '$stores/editor-store';
 import { NotFound } from '$utils/errors';
+import { resolvePropertyFilters } from '$utils/property-filters';
 
 export function EditorPage() {
   const { sceneId } = useParams<{ sceneId: string }>();
@@ -50,7 +53,7 @@ export function EditorPage() {
         name: scene.name,
         collectionId: scene.collectionId,
         temporalRange: scene.temporalRange,
-        cloudCover: scene.cloudCover ?? 100,
+        propertyFilters: resolvePropertyFilters(scene),
         defaultBands: scene.defaultBands ?? [],
         boundingBox: scene.boundingBox,
         suggestedAlgorithm: scene.suggestedAlgorithm
@@ -98,8 +101,13 @@ export function EditorPage() {
     isBlankScene
   );
 
+  // `/editor?sample=…` or `/editor?sampleUrl=…`: a sample from a link.
+  const { state: prefill, dismiss: dismissPrefill } =
+    usePrefillSample(isBlankScene);
+  const isPrefilled = prefill.status === 'loaded';
+
   // Early return
-  if (isLoadingProject) {
+  if (isLoadingProject || prefill.status === 'loading') {
     return (
       <Flex flex={1} alignItems='center' justifyContent='center'>
         <Spinner size='lg' />
@@ -113,6 +121,7 @@ export function EditorPage() {
 
   return (
     <Flex flexDirection='column' flex={1} maxH='calc(100vh - 1rem)' minW={0}>
+      <PrefillSampleAlert state={prefill} onDismiss={dismissPrefill} />
       <Splitter.Root
         defaultSize={[50, 50]}
         panels={[
@@ -130,13 +139,16 @@ export function EditorPage() {
         >
           <CodeEditor.Root initialCode={scene?.suggestedAlgorithm || ''}>
             <EditorWorkspace
-              defaultTab={isBlankScene ? 'configuration' : 'code'}
+              defaultTab={
+                isBlankScene && !isPrefilled ? 'configuration' : 'code'
+              }
               // Auto-execute only if not a blank scene. store.code covers
               // both static sample scenes (hydrated synchronously enough
               // before pyodide finishes loading) and loaded projects
               // (hydrated async by useLoadProject) - by the time
               // isExecutionReady flips true, code always reflects
-              // whichever source hydrated this session.
+              // whichever source hydrated this session. A sample from a
+              // link is a blank scene, so it never runs on its own.
               autoExecuteOnReady={!isBlankScene && !!code.trim()}
             />
           </CodeEditor.Root>

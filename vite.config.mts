@@ -5,6 +5,7 @@ import * as path from 'path';
 
 import pkg from './package.json';
 import { parseBaseUrl } from './app/config/base-url';
+import { agentDocs, resolveAgentDocsValues } from './vite/plugins/agent-docs';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +40,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: resolveBase(env.VITE_BASE_URL),
-    plugins: [react()],
+    plugins: [
+      react(),
+      agentDocs({
+        rootDir,
+        values: resolveAgentDocsValues(env, pkg.version)
+      })
+    ],
     define: {
       APP_VERSION: JSON.stringify(pkg.version)
     },
