@@ -11,6 +11,7 @@ algorithms/
 │   ├── processes.py           # Exposes the openEO process functions (op.<name>)
 │   ├── loader.py              # Parameters and input datacube (deployments can replace it)
 │   ├── openeo-processes.json  # Generated: process names for the linter (pnpm processes:generate)
+│   ├── openeo-process-docs.json  # Generated: process docs for the editor autocomplete and hover
 │   └── environment.ts         # The code contract for the linter and the Code tab panel
 ├── visualizations/            # Sample algorithms (see app/config/sample-scenes.ts)
 └── indices/
