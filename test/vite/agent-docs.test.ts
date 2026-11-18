@@ -137,7 +137,15 @@ describe('agent docs', () => {
   it('describes the loader as it is', () => {
     const contract = docs['agents/script-contract.md'];
     expect(contract).toContain('datacube.band("<name>")');
-    expect(contract).not.toContain('algorithm(');
+    expect(contract).not.toMatch(/\balgorithm\(/);
+  });
+
+  it('explains the dimensions and how to load a second date', () => {
+    const contract = docs['agents/script-contract.md'];
+    expect(contract).toContain('## Dimensions');
+    expect(contract).toContain('## Two dates');
+    expect(contract).toContain('reduce_dimension(dimension=..., reducer=f)');
+    expect(docs['agents/samples.md']).toContain('sentinel-2-dnbr');
   });
 });
 

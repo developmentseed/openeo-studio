@@ -176,6 +176,7 @@ Studio does not run your script alone. It runs this program in the browser (Pyod
 | \`add_graph_to_map(graph, name)\` | Adds a result to the map as a layer. Call it one time for each layer. |
 | \`parameters\` | The openEO \`Parameter\` objects \`time\`, \`bounding_box\`, \`bands\`, and one \`filter_<property>\` for each property filter (for example \`filter_eo_cloud_cover\`). |
 | \`array_create\`, \`absolute\`, \`and_\`, \`clip\`, \`if_\`, \`linear_scale_range\`, \`process\`, \`sqrt\` | Imported from \`openeo.processes\`. |
+| \`load_collection_args\`, \`default_bands\`, \`metadata\`, \`DataCube\`, \`PGNode\` | What the loader builds \`datacube\` from: the arguments of its \`load_collection\`, the configured bands, the collection's metadata (or \`None\`), and the client classes. Use them to load a second scene (see Two dates). |
 
 ## Rules
 
@@ -186,6 +187,9 @@ Studio does not run your script alone. It runs this program in the browser (Pyod
 - The bands are in the order of the \`bands\` configuration. Apply a band function with \`apply_dimension(dimension="<band dimension>", process=f)\`. In \`f\`, \`data[0]\` is the first configured band.
 - \`datacube.band("<name>")\` and \`filter_bands\` know the configured bands and the band dimension of the backend. In a band function, \`data\` is an array of the bands: use \`data[0]\`, never \`data.band()\`.
 - Studio computes the result tile by tile, for the map. Keep the processing small: no batch jobs, no long time series.
+- Call the client methods with keywords: \`reduce_dimension(dimension=..., reducer=f)\`, \`apply_dimension(dimension=..., process=f)\`. With a positional function, the client takes it as the dimension.
+- The loader imports only the processes above. Import any other one from \`openeo.processes\`, for example \`from openeo.processes import array_element\`.
+- In a function that the client turns into a graph (a band function, a reducer), use \`data[0]\`, operators and processes only. A slice such as \`data[:, 0]\` cannot become a graph.
 - The backend can have processes that are not in the openEO standard (for example \`color_formula\` and \`apply_pixel_selection\`). Read \`${v.openeoApiUrl}/processes\`.
 
 ## Data values
@@ -213,6 +217,40 @@ def ndvi(data):
 index = reduced.apply_dimension(dimension="bands", process=ndvi)
 grey = index.linear_scale_range(input_min=-1, input_max=1, output_min=0, output_max=255)
 add_graph_to_map(grey.save_result("PNG"), "NDVI")
+\`\`\`
+
+## Dimensions
+
+- \`datacube\` is a stack of the scenes in the project dates, with the dimensions x, y, t (time) and the band dimension.
+- \`reduced\` is one image: the first valid pixel of the stack. It has no time dimension.
+- A band function, \`apply_dimension(dimension="<band dimension>", process=f)\`, gets the bands of one pixel: \`data[0]\` is the first configured band.
+- A reducer over time, \`reduce_dimension(dimension="t", reducer=f)\`, gets the dates of one band of one pixel: \`data[0]\` is the first date, not a band. Reduce over time on \`datacube\` only. \`reduced\` has no time dimension.
+- \`filter_temporal\` keeps only dates in the project dates. For other dates, load them (see Two dates).
+
+## Two dates
+
+A change between two dates (burn severity, flooding, a new building) needs two scenes. \`reduced\` is the scene of the project dates. For the other scene, run a second \`load_collection\`: the loader's \`load_collection_args\` with other dates and bands, so that it keeps the project's collection, area and property filters. Take its first valid pixel, give its bands new names, and merge it into \`reduced\`. The band function then reads the bands of both scenes by index. The \`sentinel-2-dnbr\` sample (see [samples.md](samples.md)) is a full example.
+
+\`\`\`python
+# bands: blue, green, red, narrow NIR, SWIR 2 (the project dates, after the event)
+DIM = metadata.band_dimension.name if metadata else "bands"
+pre = DataCube(graph=PGNode(
+    "load_collection",
+    **{**load_collection_args, "temporal_extent": ["2026-07-01", "2026-07-21"], "bands": default_bands[3:5]},
+))
+pre = pre.process("apply_pixel_selection", pixel_selection="first", data=pre)
+pre = pre.rename_labels(dimension=DIM, target=["pre_nir", "pre_swir"])
+both = reduced.merge_cubes(pre)  # bands 0-4 after, 5-6 before
+
+def dnbr(data):
+    nbr_after = (data[3] - data[4]) / (data[3] + data[4])
+    nbr_before = (data[5] - data[6]) / (data[5] + data[6])
+    value = nbr_before - nbr_after
+    return array_create([value, value, value])
+
+image = both.apply_dimension(dimension=DIM, process=dnbr)
+image = image.linear_scale_range(input_min=-0.5, input_max=1, output_min=0, output_max=255)
+add_graph_to_map(image.save_result("PNG"), "dNBR")
 \`\`\`
 
 ## loader.py

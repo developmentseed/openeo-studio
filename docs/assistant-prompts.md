@@ -147,6 +147,14 @@ Should give a configuration card and a code card.
 - Switch to Landsat and keep the same area and dates.
 - Add a second layer showing the cloud mask.
 
+Not tried yet: "Map the burn severity (dNBR) of the 22 July 2026 wildfire at
+Saumos and Le Porge, near Bordeaux." It should find the `sentinel-2-dnbr`
+sample, or write code like it: a second `load_collection` for the dates
+before the fire, merged into `reduced` (see "Two dates" in
+`agents/script-contract.md`). The area should be under 1°, and the dates in
+2026. Without the place and the date of the fire, the assistant should ask
+for them. Each code card says if its code runs before you accept it.
+
 Switching to Landsat may first be refused for keeping Sentinel-2 band names;
 the assistant then proposes Landsat's (`red`, `nir08`) with code that reads the
 bands by name. The cloud mask adds the `SCL` band and a second layer.

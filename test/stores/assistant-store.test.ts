@@ -102,3 +102,24 @@ it('keeps a question from elsewhere for the conversation it was asked in', () =>
   useAssistantStore.getState().reset();
   expect(useAssistantStore.getState().question).toBeNull();
 });
+
+it('does not save a check that a reload would cut off', () => {
+  const card = (id: string, status: 'checking' | 'failed'): Item => ({
+    kind: 'proposal',
+    id,
+    rationale: 'r',
+    status: 'pending',
+    held: false,
+    change: { kind: 'code', edits: [], base: '' },
+    check: { status, message: 'm' }
+  });
+  useAssistantStore
+    .getState()
+    .setItems(() => [card('a', 'checking'), card('b', 'failed')]);
+  const saved = JSON.parse(sessionStorage.getItem('openeo-assistant-storage')!);
+  expect(saved.state.items[0].check).toBeUndefined();
+  expect(saved.state.items[1].check).toEqual({
+    status: 'failed',
+    message: 'm'
+  });
+});

@@ -12,7 +12,7 @@ import { HttpAgent } from '@ag-ui/client';
 
 import type { EditorConfigValues } from '$config/default-editor-config';
 import { authHeader } from '$utils/api';
-import { cloudCoverOf } from '$utils/property-filters';
+import { cloudCoverOf, withCloudCover } from '$utils/property-filters';
 import type { GraphResult, ServiceInfo } from '$types';
 import {
   AGENT_CONTRACT_VERSION,
@@ -243,6 +243,32 @@ export function studioDocument(project: ProjectSnapshot): StudioState {
     applyMode: 'ask',
     graphs: lastRun?.graphs ?? []
   };
+}
+
+/**
+ * The configuration once `changes` are accepted, in order. A change to the
+ * filters is a cloud cover (the contract knows no other filter), so it goes
+ * into the filters as they are, and the other filters do not change.
+ */
+export function configuredBy(
+  config: EditorConfigValues,
+  changes: Partial<EditorConfigValues>[]
+): EditorConfigValues {
+  return changes.reduce<EditorConfigValues>((current, change) => {
+    const max = change.propertyFilters
+      ? cloudCoverOf(change.propertyFilters)
+      : undefined;
+    return {
+      ...current,
+      ...change,
+      ...(change.propertyFilters && {
+        propertyFilters:
+          max === undefined
+            ? change.propertyFilters
+            : withCloudCover(current.propertyFilters, max)
+      })
+    };
+  }, config);
 }
 
 /** An edit replacing every line of `code` with `replace`. */

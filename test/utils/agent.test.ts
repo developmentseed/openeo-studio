@@ -3,6 +3,7 @@ jest.mock('$config/runtime', () => ({ appConfig: {} }));
 
 import {
   applyEdits,
+  configuredBy,
   manifestUrl,
   projectParameters,
   replaceAll,
@@ -147,5 +148,35 @@ describe('the docs of the deployment', () => {
       at: '2026-11-02T10:00:00Z'
     });
     expect(document.contractVersion).toBe('1.1');
+  });
+});
+
+describe('configuredBy', () => {
+  const config = {
+    collectionId: 'sentinel-2-l2a',
+    selectedBands: ['B04'],
+    temporalRange: ['2026-08-01', '2026-08-31'] as [string, string],
+    boundingBox: undefined,
+    propertyFilters: [
+      { property: 'eo:cloud_cover', operator: 'lt' as const, value: 50 },
+      { property: 's2:mgrs_tile', operator: 'eq' as const, value: '30TXQ' }
+    ]
+  };
+
+  it('applies the changes in order, and merges the cloud cover', () => {
+    const after = configuredBy(config, [
+      { selectedBands: ['B8A', 'B12'] },
+      {
+        propertyFilters: [
+          { property: 'eo:cloud_cover', operator: 'lt', value: 20 }
+        ]
+      }
+    ]);
+    expect(after.selectedBands).toEqual(['B8A', 'B12']);
+    expect(after.propertyFilters).toEqual([
+      { property: 'eo:cloud_cover', operator: 'lt', value: 20 },
+      { property: 's2:mgrs_tile', operator: 'eq', value: '30TXQ' }
+    ]);
+    expect(configuredBy(config, [])).toBe(config);
   });
 });
