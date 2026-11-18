@@ -52,6 +52,8 @@ export function CodeInfoMenu({
         <Menu.Positioner>
           <Menu.Content
             minW='18rem'
+            maxH='var(--available-height)'
+            overflowY='auto'
             onClick={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
             p={0}
