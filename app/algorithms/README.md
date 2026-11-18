@@ -39,7 +39,7 @@ The user code can use these names without an import:
 | `bands` | `Parameter`, default `list[str]` of band names. |
 | `cloud_cover_max` | `Parameter`, default `number` (percent). |
 
-The user documentation is in `app/pages/docs/docs-content.md`, section "Python environment (code contract)".
+The user documentation is in `app/pages/docs/content/docs.md`, section "Python environment (code contract)".
 
 ### Process names
 
