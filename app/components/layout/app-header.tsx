@@ -27,7 +27,8 @@ import {
 import { useEmailHash } from '$components/auth/user-info';
 import { useIsAuthDisabled } from '$components/auth/disabled-auth-provider';
 import { LogoComposition, NameComposition } from '$components/layout/brand';
-import SmartLink from '$components/common/smart-link';
+import { returnPath } from '$utils/return-path';
+import { useNewProject } from '$components/catalogue/use-open-entry';
 import { Tip } from '$components/tooltip';
 import { useColorMode } from '$contexts/color-mode';
 
@@ -50,6 +51,7 @@ export function AppHeader() {
   const [barOpen, setBarOpen] = useState(false);
 
   const BtnCmp = barOpen ? Button : IconButton;
+  const { newProject, dialog: newProjectDialog } = useNewProject();
 
   const noop: ButtonProps = isAuthenticated
     ? {}
@@ -203,11 +205,15 @@ export function AppHeader() {
             }
             disabled={barOpen && isAuthenticated}
           >
-            <BtnCmp variant='ghost' size='sm' {...noop} asChild>
-              <SmartLink to='/editor' aria-label='New project'>
-                <LuPlus />
-                {barOpen && 'New project'}
-              </SmartLink>
+            <BtnCmp
+              variant='ghost'
+              size='sm'
+              aria-label='New project'
+              onClick={newProject}
+              {...noop}
+            >
+              <LuPlus />
+              {barOpen && 'New project'}
             </BtnCmp>
           </Tip>
         </Stack>
@@ -239,6 +245,7 @@ export function AppHeader() {
           <UserInfo compact={!barOpen} />
         </Stack>
       </Stack>
+      {newProjectDialog}
     </Stack>
   );
 }
@@ -259,7 +266,7 @@ function UserInfo(props: { compact?: boolean }) {
     if (isLoading) return;
 
     signinRedirect({
-      state: { returnTo: location.pathname }
+      state: { returnTo: returnPath(location) }
     });
   };
 

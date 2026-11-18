@@ -27,14 +27,20 @@ export function EditorHeader({
   isDeleteDisabled
 }: EditorHeaderProps) {
   const sceneName = useEditorStore((state) => state.sceneName);
+  const sceneId = useEditorStore((state) => state.sceneId);
+  const hasCode = useEditorStore((state) => !!state.code.trim());
   const { isAuthenticated } = useAuth();
+
+  // Loaded code that was never saved can be saved as is.
+  const canSaveAsLoaded = !sceneId && hasCode;
+  const hasNothingToSave = !hasPendingChanges && !canSaveAsLoaded;
 
   const isExecuteDisabled =
     !isReady ||
     isExecuting ||
     !isAuthenticated ||
     !sceneName.trim() ||
-    !hasPendingChanges;
+    hasNothingToSave;
 
   return (
     <Flex

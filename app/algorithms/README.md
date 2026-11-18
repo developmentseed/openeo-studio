@@ -1,105 +1,79 @@
-# Algorithms Directory
+# Algorithms
 
-This directory contains Python scripts for processing Sentinel-2 satellite imagery using OpenEO.
+This directory holds the Python code that openEO Studio runs in the browser with Pyodide, and the sample
+algorithms.
 
 ## Structure
 
-```
+```text
 algorithms/
 ├── base/
-│   └── loader.py          # Base data loader for Sentinel-2 L2A imagery
-├── visualizations/
-│   ├── true-color.py      # Natural RGB color visualization
-│   └── false-color.py     # Infrared false color (vegetation emphasis)
-├── indices/
-│   └── ndvi.py            # Normalized Difference Vegetation Index
-└── README.md
+│   ├── processes.py           # Exposes the openEO process functions (op.<name>)
+│   ├── loader.py              # Parameters and input datacube (deployments can replace it)
+│   ├── openeo-processes.json  # Generated: process names for the linter (pnpm processes:generate)
+│   ├── openeo-process-docs.json  # Generated: process docs for the editor autocomplete and hover
+│   └── environment.ts         # The code contract for the linter and the Code tab panel
+├── visualizations/            # Sample algorithms (see app/config/sample-scenes.ts)
+└── indices/
 ```
 
-## How It Works
+## The code contract
 
-The Python scripts are modular and composed at runtime:
+`app/utils/code-runner.ts` runs these parts in this order, in one Python namespace:
 
-1. **Base Loader** (`base/loader.py`):
-   - Loads Sentinel-2 data from S3/Zarr
-   - Defines spatial extent parameters
-   - Extracts all spectral bands (B02-B12)
-   - Creates the base `datacube` object
+1. `RUN_CONFIG = {...}`: the values of the `Configuration` tab.
+2. `base/processes.py`
+3. `base/loader.py`
+4. The user code.
+5. `json.dumps(map_graphs)`: the result that openEO Studio reads.
 
-2. **Algorithm Scripts**:
-   - Define visualization or analysis functions
-   - Process the `datacube` object from the loader
-   - Return processed results
+The user code can use these names without an import:
 
-3. **Composition**:
-   - The TypeScript code runner (`app/utils/code-runner.ts`) combines:
-     ```python
-     # loader.py content
-     # +
-     # algorithm.py content
-     ```
-   - This creates a complete executable Python program
+| Name | Description |
+| --- | --- |
+| `reduced` | The datacube with the first pixel in time selected. |
+| `datacube` | The collection loaded with the `Configuration` values. |
+| `add_graph_to_map(graph, name)` | Adds a result to the map. The user code must call it at least once. |
+| `op` | The module `openeo.processes`. Write processes as `op.<name>`. |
+| `bounding_box` | `Parameter`, default `dict` `{west, south, east, north}`. |
+| `time` | `Parameter`, default `list[str]` `[start, end]`. |
+| `bands` | `Parameter`, default `list[str]` of band names. |
+| `cloud_cover_max` | `Parameter`, default `number` (percent). |
 
-## Available Bands
+The user documentation is in `app/pages/docs/content/docs.md`, section "Python environment (code contract)".
 
-- `B02`: Blue (10m)
-- `B03`: Green (10m)
-- `B04`: Red (10m)
-- `B05`: Red Edge 1 (20m)
-- `B07`: Red Edge 3 (20m)
-- `B08`: NIR (10m)
-- `B8A`: Narrow NIR (20m)
-- `B11`: SWIR 1 (20m)
-- `B12`: SWIR 2 (20m)
+### Process names
 
-## Creating New Algorithms
+- Recommended: `op.<name>`, for example `op.if_`, `op.clip`, `op.max`.
+- For compatibility, `processes.py` also exposes every process as a bare name. A name that clashes with a Python
+  built-in gets a trailing underscore: `max_`, `min_`, `sum_`, `round_`, `int_`, `all_`, `any_`. The Python
+  built-ins do not work on openEO graph objects.
 
-To create a new algorithm:
+### Keep the contract in sync
 
-1. Create a new `.py` file in the appropriate subdirectory:
-   - `visualizations/` for color composites
-   - `indices/` for vegetation/water/other indices
-   - Create new subdirectories as needed
+The Python files are the source. `base/environment.ts` describes them for the linter (`app/utils/ruff-linter.ts`)
+and the Code tab panel. `test/algorithms/environment.test.ts` fails when they drift apart.
 
-2. Your script has access to:
-   - `datacube`: The OpenEO DataCube object
-   - All band variables (`B02`, `B03`, etc.)
-   - OpenEO functions: `array_create`, `if_`, `absolute`, `and_`
+- When you add a top-level name to `processes.py` or `loader.py`, add it to `LOADER_GLOBALS`.
+- When you change the `openeo` version pin in `app/stores/pyodide-store.ts`, run `pnpm processes:generate` with the
+  same client version.
 
-3. Your script should:
-   - Define a processing function (optional)
-   - Apply transformations to `datacube`
-   - Call `save_result()` with desired format
-   - End with `to_json()` to return the graph
+## Adding a sample algorithm
 
-4. Example template:
+1. Add a `.py` file in `visualizations/`. Start from `reduced` and end with `add_graph_to_map(...)`:
 
    ```python
-   """
-   My Custom Algorithm
-   Description of what it does.
-   """
+   def visualize(data):
+       red, nir = data[0], data[1]
+       ndvi = (nir - red) / (nir + red)
+       return op.array_create([ndvi, ndvi, ndvi])
 
-   def my_process(data):
-       # Your processing logic
-       return result
-
-   map_viz = datacube.apply_dimension(dimension="spectral", process=my_process)
-   map_viz = map_viz.linear_scale_range(
-       input_min=0, input_max=1, output_min=0, output_max=255
-   )
-   map_viz = map_viz.save_result("PNG")
-   map_viz.to_json()
+   result = reduced.apply_dimension(dimension="bands", process=visualize)
+   result = result.linear_scale_range(input_min=-1, input_max=1, output_min=0, output_max=255)
+   add_graph_to_map(result.save_result("PNG"), "NDVI")
    ```
 
-5. Import in TypeScript:
-   ```typescript
-   import myAlgorithm from '../algorithms/category/my-algorithm.py?raw';
-   ```
+2. Add the scene to `app/config/sample-scenes.ts`, with the bands in the order that the code reads them.
 
-## Notes
-
-- All `.py` files are loaded as raw text using Vite's `?raw` import suffix
-- The loader script is automatically prepended to algorithm scripts
-- Python code is executed in the browser using Pyodide
-- The final output is an OpenEO process graph in JSON format
+Note: `visualizations/false-color.py` and `indices/ndvi.py` are not samples. They still use an old contract
+(`dimension="spectral"`, `to_json()`).

@@ -12,6 +12,10 @@ import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
 import { useEditorStore } from '$stores/editor-store';
 import { usePyodide } from '$stores/pyodide-store';
 import loaderPy from '../../algorithms/base/loader.py?raw';
+import processesPy from '../../algorithms/base/processes.py?raw';
+
+// The code that runs before the user code, in the same order as code-runner.ts.
+const boilerplatePy = `${processesPy}\n\n${loaderPy}`;
 
 export function CodeTab() {
   const { pyodide } = usePyodide();
@@ -37,7 +41,7 @@ export function CodeTab() {
       ) : (
         <Box flex={1} minHeight={0}>
           {codeType === 'boilerplate' ? (
-            <ReadOnlyCodeEditor code={loaderPy} />
+            <ReadOnlyCodeEditor code={boilerplatePy} />
           ) : (
             <CodeEditor.View />
           )}

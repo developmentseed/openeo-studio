@@ -4,7 +4,7 @@ def bais2_visualization(data):
     Apply BAIS2 burned area visualization with color mapping.
     Input data array: [B04, B06, B07, B8A, B12]
 
-    BAIS2 = (1 - sqrt((B06 * B07 * B8A) / B04)) * ((B12 - B8A) / sqrt(B12 + B8A) + 1)
+    BAIS2 = (1 - op.sqrt((B06 * B07 * B8A) / B04)) * ((B12 - B8A) / op.sqrt(B12 + B8A) + 1)
 
     Color mapping:
     - White: below minimum (no burn)
@@ -31,35 +31,35 @@ def bais2_visualization(data):
     spatial_ones = bais * 0 + 1
 
     # White: below minimum (no burn)
-    underflow = array_create([
+    underflow = op.array_create([
         spatial_ones * 1.0,
         spatial_ones * 1.0,
         spatial_ones * 1.0,
     ])
 
     # Blue: low burn severity
-    low_color = array_create([
+    low_color = op.array_create([
         spatial_ones * 0.0,
         spatial_ones * 0.0,
         spatial_ones * 1.0,
     ])
 
     # Red: high burn severity
-    high_color = array_create([
+    high_color = op.array_create([
         spatial_ones * (255 / 255),
         spatial_ones * (20 / 255),
         spatial_ones * (20 / 255),
     ])
 
     # Yellow: moderate burn severity
-    zero_color = array_create([
+    zero_color = op.array_create([
         spatial_ones * (250 / 255),
         spatial_ones * (255 / 255),
         spatial_ones * (10 / 255),
     ])
 
     # Magenta: overflow (active fire)
-    overflow = array_create([
+    overflow = op.array_create([
         spatial_ones * (255 / 255),
         spatial_ones * (0 / 255),
         spatial_ones * (255 / 255),
@@ -70,15 +70,15 @@ def bais2_visualization(data):
         r = color_a[0] + (color_b[0] - color_a[0]) * t
         g = color_a[1] + (color_b[1] - color_a[1]) * t
         b = color_a[2] + (color_b[2] - color_a[2]) * t
-        return array_create([r, g, b])
+        return op.array_create([r, g, b])
 
-    result = if_(
+    result = op.if_(
         bais < min_val,
         underflow,
-        if_(
+        op.if_(
             bais < zero_threshold,
             linear_interpolation(low_color, zero_color, bais, min_val, zero_threshold),
-            if_(
+            op.if_(
                 bais <= max_val,
                 linear_interpolation(zero_color, high_color, bais, zero_threshold, max_val),
                 overflow,

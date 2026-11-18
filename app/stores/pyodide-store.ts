@@ -81,6 +81,8 @@ async function initializePyodide(): Promise<PyodideAPI> {
   // Pinned to <0.50 because openeo 0.50.0 added geopandas as a hard
   // runtime dependency, which currently fails to resolve in Pyodide.
   // See https://github.com/developmentseed/openeo-studio/issues/70
+  // When you change this pin, run `pnpm processes:generate` with the same
+  // client version, so the linter knows the processes of that version.
   await runStep('openeo', async () => {
     await pyodide.loadPackage('micropip');
     const micropip = pyodide.pyimport('micropip');

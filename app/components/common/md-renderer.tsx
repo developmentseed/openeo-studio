@@ -4,7 +4,6 @@ import {
   Box,
   Blockquote,
   Heading,
-  Link,
   List,
   Table,
   Text,
@@ -13,6 +12,7 @@ import {
   Clipboard
 } from '@chakra-ui/react';
 
+import SmartLink from '$components/common/smart-link';
 import {
   EditorLanguage,
   ReadOnlyCodeEditor
@@ -31,8 +31,9 @@ const mdComponents: Components = {
   ul: (props) => <List.Root pl={6} mb={4} {...props} />,
   ol: (props) => <List.Root as='ol' pl={6} mb={4} {...props} />,
   li: List.Item,
-  a: (props) => (
-    <Link
+  a: ({ node: _node, href = '', ...props }) => (
+    <SmartLink
+      to={href}
       color={{
         _light: 'primary.600',
         _dark: 'primary.400'
@@ -113,12 +114,15 @@ const mdComponents: Components = {
   )
 };
 
-export function MarkdownRenderer(props: React.ComponentProps<typeof Markdown>) {
+export function MarkdownRenderer({
+  components,
+  ...props
+}: React.ComponentProps<typeof Markdown>) {
   return (
     <Box width='100%' fontSize='md' color='foreground.700'>
       <Markdown
         remarkPlugins={mdPlugins}
-        components={mdComponents}
+        components={{ ...mdComponents, ...components }}
         {...props}
       />
     </Box>

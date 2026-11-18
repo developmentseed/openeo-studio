@@ -4,6 +4,7 @@ import { useLocation } from 'react-router';
 import { LuLogIn } from 'react-icons/lu';
 
 import { useIsAuthDisabled } from '$components/auth/disabled-auth-provider';
+import { returnPath } from '$utils/return-path';
 
 export interface LoginButtonProps extends ButtonProps {
   compact?: boolean;
@@ -27,7 +28,7 @@ export function LoginButton(props: LoginButtonProps) {
     if (isLoading) return;
 
     signinRedirect({
-      state: { returnTo: location.pathname }
+      state: { returnTo: returnPath(location) }
     });
   };
 

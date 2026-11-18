@@ -6,9 +6,16 @@ jest.mock('$utils/instance-id', () => ({
   getInstanceId: () => 'test-instance-id'
 }));
 
-jest.mock('../../app/algorithms/base/loader.py?raw', () => 'LOADER', {
-  virtual: true
-});
+jest.mock(
+  '../../app/algorithms/base/loader.py?raw',
+  () => ({ __esModule: true, default: 'LOADER' }),
+  { virtual: true }
+);
+jest.mock(
+  '../../app/algorithms/base/processes.py?raw',
+  () => ({ __esModule: true, default: 'PROCESSES' }),
+  { virtual: true }
+);
 jest.mock(
   '../../app/algorithms/visualizations/true-color.py?raw',
   () => 'TRUE_COLOR',
@@ -69,6 +76,14 @@ describe('runAndValidateScript', () => {
 
     expect(graphs).toEqual([graph]);
     expect(fetchHeaderLocation).not.toHaveBeenCalled();
+
+    // RUN_CONFIG, then processes.py, then loader.py, then the user code.
+    const program: string = pyodide.runPythonAsync.mock.calls[0][0];
+    const order = ['RUN_CONFIG', 'PROCESSES', 'LOADER', 'print("hi")'].map(
+      (part) => program.indexOf(part)
+    );
+    expect(order.every((index) => index >= 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 });
 
