@@ -38,24 +38,24 @@ def cyanobacteria_chl_a_visualization(data):
         # WII = (B8A**2) / B04
         # WRI = (B03 + B04) / (B8A + B11)
         # PUWI = 5.83 * B03 - 6.57 * B04 - 30.32 * B8A + 2.25
-        # UWI = (B03 - 1.1 * B04 - 5.2 * B8A + 0.4) / absolute(B03 - 1.1 * B04 - 5.2 * B8A)
+        # UWI = (B03 - 1.1 * B04 - 5.2 * B8A + 0.4) / op.absolute(B03 - 1.1 * B04 - 5.2 * B8A)
         # USI = 0.25 * (B03 / B04) - 0.57 * (B8A / B03) - 0.83 * (B02 / B03) + 1
 
         # if (mndwi>MNDWI_threshold||ndwi>NDWI_threshold||aweinsh>0.1879||aweish>0.1112||ndvi<-0.2||ndwi_leaves>1) {ws=1;}
 
-        water = if_(
+        water = op.if_(
             MNDWI_val > MNDWI_threshold,
             1,
-            if_(
+            op.if_(
                 NDWI_val > NDWI_threshold,
                 1,
-                if_(
+                op.if_(
                     AWEINSH > 0.1879,
                     1,
-                    if_(
+                    op.if_(
                         AWEISH > 0.1112,
                         1,
-                        if_(NDVI_val < -0.2, 1, if_(NDWI_leaves > 1, 1, 0)),
+                        op.if_(NDVI_val < -0.2, 1, op.if_(NDWI_leaves > 1, 1, 0)),
                     ),
                 ),
             ),
@@ -65,9 +65,9 @@ def cyanobacteria_chl_a_visualization(data):
         # if (filter_UABS && ws==1) {
         #     if ((aweinsh<=-0.03)||(dbsi>0)) {ws=0;}
         # }
-        water = if_(
-            and_(filter_UABS, (water == 1)),
-            if_(AWEINSH <= -0.03, 0, if_(DBSI > 0, 0, water)),
+        water = op.if_(
+            op.and_(filter_UABS, (water == 1)),
+            op.if_(AWEINSH <= -0.03, 0, op.if_(DBSI > 0, 0, water)),
             water,
         )
 
@@ -95,7 +95,7 @@ def cyanobacteria_chl_a_visualization(data):
 
     # Define color mapping based on chlorophyll-a concentration
     # Surface blooms (FAI > 0.08): red
-    red_bloom = array_create(
+    red_bloom = op.array_create(
         [
             spatial_ones * (233 / 255),
             spatial_ones * (72 / 255),
@@ -105,15 +105,15 @@ def cyanobacteria_chl_a_visualization(data):
 
     # Chlorophyll-a concentration color scale
     # < 0.5: deep blue
-    color_0_5 = array_create(
+    color_0_5 = op.array_create(
         [spatial_ones * 0.0, spatial_ones * 0.0, spatial_ones * 1.0]
     )
     # 0.5-2.5: blue
-    color_2_5 = array_create(
+    color_2_5 = op.array_create(
         [spatial_ones * 0.0, spatial_ones * (59 / 255), spatial_ones * 1.0]
     )
     # 2.5-5: blue-cyan
-    color_5 = array_create(
+    color_5 = op.array_create(
         [
             spatial_ones * (15 / 255),
             spatial_ones * (113 / 255),
@@ -121,7 +121,7 @@ def cyanobacteria_chl_a_visualization(data):
         ]
     )
     # 5-8: cyan-green
-    color_8 = array_create(
+    color_8 = op.array_create(
         [
             spatial_ones * (13 / 255),
             spatial_ones * (141 / 255),
@@ -129,7 +129,7 @@ def cyanobacteria_chl_a_visualization(data):
         ]
     )
     # 8-14: green
-    color_14 = array_create(
+    color_14 = op.array_create(
         [
             spatial_ones * (42 / 255),
             spatial_ones * (226 / 255),
@@ -137,15 +137,15 @@ def cyanobacteria_chl_a_visualization(data):
         ]
     )
     # 14-24: yellow-green
-    color_24 = array_create(
+    color_24 = op.array_create(
         [spatial_ones * (134 / 255), spatial_ones * (247 / 255), spatial_ones * 0.0]
     )
     # 24-38: yellow
-    color_38 = array_create(
+    color_38 = op.array_create(
         [spatial_ones * (208 / 255), spatial_ones * (240 / 255), spatial_ones * 0.0]
     )
     # 38-75: yellow-orange
-    color_75 = array_create(
+    color_75 = op.array_create(
         [
             spatial_ones * (248 / 255),
             spatial_ones * (207 / 255),
@@ -153,7 +153,7 @@ def cyanobacteria_chl_a_visualization(data):
         ]
     )
     # 75-150: orange
-    color_150 = array_create(
+    color_150 = op.array_create(
         [
             spatial_ones * (240 / 255),
             spatial_ones * (159 / 255),
@@ -161,7 +161,7 @@ def cyanobacteria_chl_a_visualization(data):
         ]
     )
     # 150-350: red-orange
-    color_350 = array_create(
+    color_350 = op.array_create(
         [
             spatial_ones * (239 / 255),
             spatial_ones * (101 / 255),
@@ -169,7 +169,7 @@ def cyanobacteria_chl_a_visualization(data):
         ]
     )
     # > 350: red
-    color_max = array_create(
+    color_max = op.array_create(
         [
             spatial_ones * (233 / 255),
             spatial_ones * (72 / 255),
@@ -178,47 +178,47 @@ def cyanobacteria_chl_a_visualization(data):
     )
 
     # True color for non-water
-    land_color = array_create([true_color_r, true_color_g, true_color_b])
+    land_color = op.array_create([true_color_r, true_color_g, true_color_b])
 
     # Apply conditional color mapping
     # Non-water pixels: true color
     # Water with FAI > 0.08: red (floating algae)
     # Water with various chl-a levels: color gradient
 
-    result = if_(
+    result = op.if_(
         water == 0,
         land_color,
-        if_(
+        op.if_(
             FAI_val > 0.08,
             red_bloom,
-            if_(
+            op.if_(
                 chl < 0.5,
                 color_0_5,
-                if_(
+                op.if_(
                     chl < 2.5,
                     color_2_5,
-                    if_(
+                    op.if_(
                         chl < 5,
                         color_5,
-                        if_(
+                        op.if_(
                             chl < 8,
                             color_8,
-                            if_(
+                            op.if_(
                                 chl < 14,
                                 color_14,
-                                if_(
+                                op.if_(
                                     chl < 24,
                                     color_24,
-                                    if_(
+                                    op.if_(
                                         chl < 38,
                                         color_38,
-                                        if_(
+                                        op.if_(
                                             chl < 75,
                                             color_75,
-                                            if_(
+                                            op.if_(
                                                 chl < 150,
                                                 color_150,
-                                                if_(chl < 350, color_350, color_max),
+                                                op.if_(chl < 350, color_350, color_max),
                                             ),
                                         ),
                                     ),

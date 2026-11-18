@@ -1,17 +1,7 @@
 import { Flex, Text, Code, List, Stack, Separator } from '@chakra-ui/react';
 
-const globalVariables = [
-  {
-    name: 'datacube',
-    type: 'DataCube',
-    description: 'Data object from openeo.rest.datacube'
-  },
-  {
-    name: 'reduced',
-    type: 'DataCube',
-    description: 'Datacube with pixel selection applied (first pixel in time)'
-  }
-];
+import { PUBLIC_GLOBALS } from '../../algorithms/base/environment';
+import SmartLink from '$components/common/smart-link';
 
 function VariableDefinition({ name, type }: { name: string; type: string }) {
   return (
@@ -46,7 +36,7 @@ export function AvailableVariables({
           Global Variables
         </Text>
         <List.Root unstyled display='flex' flexDirection='column' gap={2}>
-          {globalVariables.map((variable) => (
+          {PUBLIC_GLOBALS.map((variable) => (
             <List.Item
               key={variable.name}
               display='flex'
@@ -60,6 +50,16 @@ export function AvailableVariables({
             </List.Item>
           ))}
         </List.Root>
+        <Text fontSize='xs' color='fg.muted'>
+          More detail available in the{' '}
+          <SmartLink
+            fontWeight={700}
+            to='/docs/docs#python-environment-code-contract'
+          >
+            documentation
+          </SmartLink>
+          .
+        </Text>
       </Stack>
 
       <Separator />

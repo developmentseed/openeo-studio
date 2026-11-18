@@ -54,9 +54,9 @@ def lava_visualization(data):
     base_b = urban_b * 0.3 + tc_b * 0.7
 
     # Water highlighting (blue tint for water bodies)
-    water_detection = and_(and_(NDVI < -0.15, NDWI > 0.15), B04 < 0.2)
-    base_g = if_(water_detection, base_g * 1.2 + 0.1, base_g)
-    base_b = if_(water_detection, base_b * 1.5 + 0.2, base_b)
+    water_detection = op.and_(op.and_(NDVI < -0.15, NDWI > 0.15), B04 < 0.2)
+    base_g = op.if_(water_detection, base_g * 1.2 + 0.1, base_g)
+    base_b = op.if_(water_detection, base_b * 1.5 + 0.2, base_b)
 
     # --- Lava detection and intensity mapping ---
     lava_intensity = B12
@@ -64,17 +64,17 @@ def lava_visualization(data):
     # Intensity classes using B12 thresholds
     mask_0 = lava_intensity > (lava_threshold[0] / lava_sensitivity)  # Active molten
 
-    mask_1 = and_(
+    mask_1 = op.and_(
         lava_intensity > (lava_threshold[1] / lava_sensitivity),
         lava_intensity <= (lava_threshold[0] / lava_sensitivity),
     )  # Hot lava
 
-    mask_2 = and_(
+    mask_2 = op.and_(
         lava_intensity > (lava_threshold[2] / lava_sensitivity),
         lava_intensity <= (lava_threshold[1] / lava_sensitivity),
     )  # Cooling lava
 
-    mask_3 = and_(
+    mask_3 = op.and_(
         lava_intensity > (lava_threshold[3] / lava_sensitivity),
         lava_intensity <= (lava_threshold[2] / lava_sensitivity),
     )  # Cool crust
@@ -100,7 +100,7 @@ def lava_visualization(data):
     # Blue channel: unchanged (no blue in lava)
     b = base_b
 
-    return array_create([r, g, b])
+    return op.array_create([r, g, b])
 
 # Apply lava visualization on the data cube on the bands dimension
 lava_image = reduced.apply_dimension(dimension="bands", process=lava_visualization)

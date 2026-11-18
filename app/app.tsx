@@ -91,7 +91,7 @@ export default function App() {
       <AppHeader />
       <Routes>
         <Route path='/' element={<LandingPage />} />
-        <Route path='/docs' element={<DocsPage />} />
+        <Route path='/docs/:docId?' element={<DocsPage />} />
         {import.meta.env.DEV && (
           <Route
             path='/sandbox/visual-graph'

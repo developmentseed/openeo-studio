@@ -23,7 +23,7 @@ def apa_viridis_visualization(data):
     water_plants = (B05 - B04) / (B05 + B04)
     NIR2 = B04 + (B11 - B04) * ((832.8 - 664.6) / (1613.7 - 664.6))
     FAI = B08 - NIR2
-    viridis_color = array_create([FAI * 8.5, water_plants * 5.5, NDWI * 1])
+    viridis_color = op.array_create([FAI * 8.5, water_plants * 5.5, NDWI * 1])
 
     # Cloud detection
     bRatio = (B03 - 0.175) / (0.39 - 0.175)
@@ -33,17 +33,17 @@ def apa_viridis_visualization(data):
     true_color_r = B04 * 3
     true_color_g = B03 * 3
     true_color_b = B02 * 3
-    land_color = array_create([true_color_r, true_color_g, true_color_b])
+    land_color = op.array_create([true_color_r, true_color_g, true_color_b])
 
-    result = if_(
-        and_(B11 > 0.1, bRatio > 1),
+    result = op.if_(
+        op.and_(B11 > 0.1, bRatio > 1),
         land_color,
-        if_(
-            and_(B11 > 0.1, and_(bRatio > 0, NDGR > 0)),
+        op.if_(
+            op.and_(B11 > 0.1, op.and_(bRatio > 0, NDGR > 0)),
             land_color,
-            if_(
+            op.if_(
                 NDWI < 0,
-                if_(water_bodies > 0, land_color, viridis_color),
+                op.if_(water_bodies > 0, land_color, viridis_color),
                 viridis_color
             )
         )

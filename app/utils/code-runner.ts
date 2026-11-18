@@ -5,6 +5,7 @@
 
 import type { PyodideAPI } from 'pyodide';
 import loaderScript from '../algorithms/base/loader.py?raw';
+import processesScript from '../algorithms/base/processes.py?raw';
 import trueColorAlgorithm from '../algorithms/visualizations/true-color.py?raw';
 
 import type { ExecutionConfig, GraphResult, ServiceInfo } from '$types';
@@ -20,8 +21,11 @@ import { validateGraphs } from './openeo/validation';
 export const EXAMPLE_CODE = trueColorAlgorithm;
 
 /**
- * Combines the base loader script with an algorithm script to create
- * a complete Python program for execution.
+ * Combines the run configuration, the openEO processes, the base loader
+ * script and an algorithm script into a complete Python program.
+ *
+ * processes.py runs before loader.py so that the processes stay available
+ * when a deployment replaces loader.py.
  */
 function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
   // Inject the user-selected run configuration for parameter initialization
@@ -47,6 +51,8 @@ function getPythonCode(algorithmScript: string, config: ExecutionConfig) {
   const runConfigCode = `RUN_CONFIG = ${JSON.stringify(runConfig)}`;
 
   return `${runConfigCode}
+
+${processesScript}
 
 ${loaderScript}
 

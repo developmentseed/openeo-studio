@@ -17,43 +17,43 @@ def cloud_detection(data):
     gain = 2.5
 
     v_thick = 0.5 * (bRatio - 1)
-    v_thin = 5 * sqrt(bRatio * NDGR)
+    v_thin = 5 * op.sqrt(bRatio * NDGR)
 
-    thick = and_(B11 > 0.1, bRatio > 1)
-    thin = and_(B11 > 0.1, and_(bRatio > 0, NDGR > 0))
+    thick = op.and_(B11 > 0.1, bRatio > 1)
+    thin = op.and_(B11 > 0.1, op.and_(bRatio > 0, NDGR > 0))
 
-    red = if_(
+    red = op.if_(
         thick,
-        0.5 * clip(B04, 0, 1),
-        if_(
+        0.5 * op.clip(B04, 0, 1),
+        op.if_(
             thin,
-            0.5 * clip(B04, 0, 1) + v_thin,
+            0.5 * op.clip(B04, 0, 1) + v_thin,
             gain * B04
         ),
     )
-    green = if_(
+    green = op.if_(
         thick,
-        0.5 * clip(B03, 0, 1),
-        if_(
+        0.5 * op.clip(B03, 0, 1),
+        op.if_(
             thin,
-            0.5 * clip(B03, 0, 1),
+            0.5 * op.clip(B03, 0, 1),
             gain * B03
         )
     )
-    blue = if_(
+    blue = op.if_(
         thick,
-        0.5 * clip(B02, 0, 1) + v_thick,
-        if_(
+        0.5 * op.clip(B02, 0, 1) + v_thick,
+        op.if_(
             thin,
-            0.5 * clip(B02, 0, 1),
+            0.5 * op.clip(B02, 0, 1),
             gain * B02),
     )
 
-    red = clip(red, 0, 1)
-    green = clip(green, 0, 1)
-    blue = clip(blue, 0, 1)
+    red = op.clip(red, 0, 1)
+    green = op.clip(green, 0, 1)
+    blue = op.clip(blue, 0, 1)
 
-    result = array_create([
+    result = op.array_create([
         red, green, blue
     ])
 
