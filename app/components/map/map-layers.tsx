@@ -22,8 +22,10 @@ export function MapLayers({ services }: MapLayersProps) {
             type='raster'
             tiles={[decodeURIComponent(service.tileUrl)]}
             tileSize={256}
-            minzoom={6} // Prevent fetching tiles below zoom 6
-            maxzoom={15} // Prevent fetching tiles above zoom 15
+            // The backend's limits when set; otherwise no tiles below zoom 6
+            // and overzoomed tiles above 15.
+            minzoom={service.minZoom ?? 6}
+            maxzoom={service.maxZoom ?? 15}
           >
             <Layer
               id={`layer-${service.id}`}

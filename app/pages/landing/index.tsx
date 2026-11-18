@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   Box,
   Button,
@@ -9,30 +8,56 @@ import {
   Stack,
   Text
 } from '@chakra-ui/react';
-import { NavLink } from 'react-router';
+import { Navigate, NavLink, useSearchParams } from 'react-router';
 import { useAuth } from 'react-oidc-context';
 import { LuArrowRight } from 'react-icons/lu';
 
 import { APP_TITLE } from '$config/constants';
 import { SAMPLE_SCENES } from '$config/sample-scenes';
-import { useEditorStore } from '$stores/editor-store';
 import { LoginButton } from '$components/auth/login-button';
 import { SceneCard } from '$pages/projects/scene-card';
+import { useOpenEntry } from '$components/catalogue/use-open-entry';
+import { entryHref } from '$utils/catalogue/links';
+import { sampleToEntry } from '$utils/catalogue/sources/samples';
+import type { SampleScene } from '$types';
 
 import herolightImg from './heroillu-light.svg';
 import herodarkImg from './heroillu-dark.svg';
 import { useColorModeValue } from '$contexts/color-mode';
 
 export function LandingPage() {
-  const { clearEditor } = useEditorStore();
   const { isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
+  const projectUrl = searchParams.get('project_url');
+  const { openEntry, pendingRef, dialog } = useOpenEntry();
 
-  // Clear editor state when navigating to landing to ensure fresh scene loads
-  useEffect(() => {
-    clearEditor();
-  }, [clearEditor]);
+  const sampleCard = (scene: SampleScene, gridColumn: string) => {
+    const entry = sampleToEntry(scene);
+    return (
+      <SceneCard
+        name={entry.name}
+        description={entry.description}
+        thumbnail={entry.thumbnail}
+        collectionId={entry.collectionId}
+        gridColumn={gridColumn}
+        href={entryHref(entry.open)}
+        isBusy={pendingRef === entry.open.ref}
+        onOpen={() => openEntry(entry.open)}
+      />
+    );
+  };
 
   const heroImg = useColorModeValue(herolightImg, herodarkImg);
+
+  // APEx record links point here; the editor does the loading.
+  if (projectUrl) {
+    return (
+      <Navigate
+        replace
+        to={`/editor?project_url=${encodeURIComponent(projectUrl)}`}
+      />
+    );
+  }
 
   return (
     <Box flex={1}>
@@ -80,8 +105,8 @@ export function LandingPage() {
           </SimpleGrid>
 
           <SimpleGrid columns={12} gap={8} w='100%'>
-            <SceneCard scene={SAMPLE_SCENES[0]} gridColumn='2 / span 3' />
-            <SceneCard scene={SAMPLE_SCENES[1]} gridColumn='span 3' />
+            {sampleCard(SAMPLE_SCENES[0], '2 / span 3')}
+            {sampleCard(SAMPLE_SCENES[1], 'span 3')}
 
             <Stack
               gridColumn='8 / span 3'
@@ -114,10 +139,10 @@ export function LandingPage() {
               </Button>
             </Stack>
 
-            <SceneCard scene={SAMPLE_SCENES[2]} gridColumn='span 3' />
-            <SceneCard scene={SAMPLE_SCENES[3]} gridColumn='span 3' />
+            {sampleCard(SAMPLE_SCENES[2], 'span 3')}
+            {sampleCard(SAMPLE_SCENES[3], 'span 3')}
 
-            <SceneCard scene={SAMPLE_SCENES[4]} gridColumn='5 / span 3' />
+            {sampleCard(SAMPLE_SCENES[4], '5 / span 3')}
 
             {!isAuthenticated && (
               <Stack gridColumn='span 3' gap={4} align='start' justify='center'>
@@ -133,6 +158,7 @@ export function LandingPage() {
           </SimpleGrid>
         </Stack>
       </Stack>
+      {dialog}
     </Box>
   );
 }

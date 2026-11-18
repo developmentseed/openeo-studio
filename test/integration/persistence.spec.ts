@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { test } from './__fixtures__';
+import { openSample, test } from './__fixtures__';
 
 // The scene's code loads after the editor appears and replaces its contents,
 // so typing before it arrives gets overwritten.
@@ -22,7 +22,7 @@ test.describe('Persistence', () => {
     test('user-typed code persists across page reloads', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
       // Switch to Python tab
       await authenticatedPage.getByRole('tab', { name: /python/i }).click();
@@ -40,7 +40,7 @@ test.describe('Persistence', () => {
 
       // Reload page
       await authenticatedPage.reload();
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await authenticatedPage.waitForURL('/editor');
 
       // Switch back to Python tab after reload
       await authenticatedPage.getByRole('tab', { name: /python/i }).click();
@@ -52,7 +52,7 @@ test.describe('Persistence', () => {
     test('user-typed code persists when switching between tabs', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
       // Switch to Python tab and add marker
       await authenticatedPage.getByRole('tab', { name: /python/i }).click();
@@ -139,8 +139,7 @@ test.describe('Persistence', () => {
     test('scene selection persists across page reload', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
       // Verify scene title is visible
       const sceneTitle = authenticatedPage.getByText(
@@ -150,7 +149,7 @@ test.describe('Persistence', () => {
 
       // Reload
       await authenticatedPage.reload();
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await authenticatedPage.waitForURL('/editor');
 
       // Verify scene is still loaded (URL + title visible)
       await expect(sceneTitle).toBeVisible();
@@ -159,20 +158,20 @@ test.describe('Persistence', () => {
     test('switching scenes updates editor state', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-apa');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
       // Verify first scene is loaded
       await expect(
         authenticatedPage.getByText(/Monitoring Aquatic Plants and Algae/i)
       ).toBeVisible();
 
-      // Navigate to different scene
-      await authenticatedPage.goto('/editor/sentinel-2-ndci');
-      await authenticatedPage.waitForURL('/editor/sentinel-2-ndci');
-
-      // Verify different scene loaded (URL changed)
-      await expect(authenticatedPage).toHaveURL(/sentinel-2-ndci/);
+      // Open a different sample
+      await openSample(authenticatedPage, /Cyanobacteria Detection/i);
+      await expect(
+        authenticatedPage.getByRole('heading', {
+          name: /Cyanobacteria Detection/i
+        })
+      ).toBeVisible();
 
       // Switch to Python tab to verify algorithm changed
       await authenticatedPage.getByRole('tab', { name: /python/i }).click();
@@ -186,10 +185,10 @@ test.describe('Persistence', () => {
       expect(codeContent).toBeTruthy();
     });
 
-    test('navigating to landing clears editor state', async ({
+    test('opening a sample over unsaved work asks first', async ({
       authenticatedPage
     }) => {
-      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await openSample(authenticatedPage, /Aquatic Plants and Algae/i);
 
       // Switch to Python tab and add custom code
       await authenticatedPage.getByRole('tab', { name: /python/i }).click();
@@ -203,24 +202,53 @@ test.describe('Persistence', () => {
       await authenticatedPage.keyboard.type('\n# Custom code marker');
       await waitForStoredCode(authenticatedPage, '# Custom code marker');
 
-      // Navigate to landing
+      // Visiting the landing page keeps the work
       await authenticatedPage.goto('/');
-      await authenticatedPage.waitForURL('/');
-
-      // Select the same scene again
-      const sceneLink = authenticatedPage
+      const sampleCard = authenticatedPage
         .getByRole('link')
         .filter({ hasText: /Aquatic Plants and Algae/i })
         .first();
-      await sceneLink.click();
-      await authenticatedPage.waitForURL(/\/editor\/.+/);
 
-      // Switch to Python tab
+      // Cancel keeps the work and stays on the landing page
+      await sampleCard.click();
+      await authenticatedPage.getByRole('button', { name: 'Cancel' }).click();
+      await expect(authenticatedPage).toHaveURL('/');
+      await waitForStoredCode(authenticatedPage, '# Custom code marker');
+
+      // Discard replaces it with a fresh copy of the sample
+      await sampleCard.click();
+      await authenticatedPage.getByRole('button', { name: 'Discard' }).click();
+      await authenticatedPage.waitForURL('/editor');
       await authenticatedPage.getByRole('tab', { name: /python/i }).click();
       await expect(editor).toBeVisible({ timeout: 15000 });
-
-      // Verify custom code was cleared (fresh scene load)
       await expect(editor).not.toContainText('# Custom code marker');
+    });
+
+    test('an old sample URL shows not found', async ({ authenticatedPage }) => {
+      await authenticatedPage.route(
+        '**/process_graphs/sentinel-2-apa',
+        (route) =>
+          route.fulfill({ status: 404, json: { code: 'ProcessGraphNotFound' } })
+      );
+      await authenticatedPage.goto('/editor/sentinel-2-apa');
+      await expect(
+        authenticatedPage.getByRole('heading', { name: '404' })
+      ).toBeVisible();
+    });
+
+    test('a backend error loading a project is not a 404', async ({
+      authenticatedPage
+    }) => {
+      await authenticatedPage.route('**/process_graphs/my-project', (route) =>
+        route.fulfill({ status: 503, body: 'down' })
+      );
+      await authenticatedPage.goto('/editor/my-project');
+      await expect(
+        authenticatedPage.getByText('Something went wrong')
+      ).toBeVisible();
+      await expect(
+        authenticatedPage.getByRole('heading', { name: '404' })
+      ).toHaveCount(0);
     });
   });
 });
