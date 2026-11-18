@@ -1,13 +1,13 @@
 jest.mock('$utils/catalogue/compatibility', () => ({
-  checkCompatibility: jest.fn()
+  checkCompatibility: jest.fn(),
+  reconcileSeed: jest.fn()
 }));
 
-import { checkCompatibility } from '$utils/catalogue/compatibility';
 import {
-  createCatalogue,
-  IncompatibleProjectError,
-  isNotFound
-} from '$utils/catalogue/catalogue';
+  checkCompatibility,
+  reconcileSeed
+} from '$utils/catalogue/compatibility';
+import { createCatalogue, isNotFound } from '$utils/catalogue/catalogue';
 import { APIError } from '$utils/api';
 import type {
   CatalogueEntry,
@@ -18,6 +18,7 @@ import type {
 import { NotFound } from '$utils/errors';
 
 const check = checkCompatibility as jest.Mock;
+const reconcile = reconcileSeed as jest.Mock;
 
 const entry = (id: string, over: Partial<CatalogueEntry> = {}) => ({
   id,
@@ -48,6 +49,11 @@ const loader: ProjectLoader = { id: 'fake', load: jest.fn(async () => result) };
 beforeEach(() => {
   check.mockReset();
   check.mockResolvedValue({ compatible: true });
+  reconcile.mockReset();
+  reconcile.mockImplementation(async (seed) => ({
+    seed,
+    incompatibilities: []
+  }));
   jest.spyOn(console, 'warn').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -185,23 +191,33 @@ describe('createCatalogue', () => {
     ).rejects.toThrow('Unknown loader: nope');
   });
 
-  it('rejects an incompatible seed', async () => {
-    check.mockResolvedValue({ compatible: false, reason: 'no B04' });
-    const catalogue = createCatalogue({ sources: [], loaders: [loader] });
+  it('loads an incompatible seed, names the values, and stops auto-run', async () => {
+    const supported = { ...result.seed, bands: [] };
+    reconcile.mockResolvedValue({
+      seed: supported,
+      incompatibilities: ['no B04']
+    });
+    const autoRunLoader: ProjectLoader = {
+      id: 'fake',
+      load: jest.fn(async () => ({
+        ...result,
+        autoRun: true,
+        incompatibilities: ['bad box']
+      }))
+    };
+    const catalogue = createCatalogue({
+      sources: [],
+      loaders: [autoRunLoader]
+    });
 
-    const error = await catalogue
-      .load({ loader: 'fake', ref: 'x' }, {})
-      .catch((e) => e);
-    expect(error).toBeInstanceOf(IncompatibleProjectError);
-    expect(error).toBeInstanceOf(NotFound);
-    expect(error.reason).toBe('no B04');
-    expect(error.message).toBe(
-      "This project isn't compatible with the connected backend: no B04"
-    );
-    expect(check).toHaveBeenCalledWith(
-      { collectionId: 'col', bands: ['B04'] },
-      undefined
-    );
+    await expect(
+      catalogue.load({ loader: 'fake', ref: 'x' }, { authToken: 't' })
+    ).resolves.toEqual({
+      seed: supported,
+      autoRun: false,
+      incompatibilities: ['bad box', 'no B04']
+    });
+    expect(reconcile).toHaveBeenCalledWith(result.seed, 't');
   });
 
   it('returns a compatible load result unchanged', async () => {

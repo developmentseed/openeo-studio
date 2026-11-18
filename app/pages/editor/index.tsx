@@ -11,10 +11,7 @@ import { useLoadProject } from '$components/editor/use-load-project';
 import { CodeEditor } from '$components/editor/code-editor';
 import { useOpenEntry } from '$components/catalogue/use-open-entry';
 import { useEditorStore } from '$stores/editor-store';
-import {
-  IncompatibleProjectError,
-  isNotFound
-} from '$utils/catalogue/catalogue';
+import { isNotFound } from '$utils/catalogue/catalogue';
 import { linkFromParams } from '$utils/catalogue/links';
 import { NotFound } from '$utils/errors';
 
@@ -38,8 +35,8 @@ export function EditorPage() {
   // Actions don't cause re-renders
   const { setDefaultTemporalRange } = useEditorStore();
 
-  // A link (?sample_id=, ?project_url=) loads once, then the URL becomes
-  // /editor.
+  // A link (?sample_id=, ?project_url=, ?prefill=) loads once, then the URL
+  // becomes /editor.
   const { openEntry, dialog: openEntryDialog } = useOpenEntry();
   const [isOpeningLink, setIsOpeningLink] = useState(!!link);
   const openedLinkRef = useRef<string | null>(null);
@@ -80,12 +77,6 @@ export function EditorPage() {
     }
   }, [collection, temporalRange, setDefaultTemporalRange]);
 
-  // Picked when the content is replaced, so it doesn't flip while typing.
-  const defaultTab = useMemo(
-    () => (code.trim() ? 'code' : 'configuration'),
-    [contentVersion]
-  );
-
   const {
     isLoading: isLoadingProject,
     error: loadError,
@@ -97,10 +88,6 @@ export function EditorPage() {
 
   if (notFoundMessage) {
     throw new NotFound(notFoundMessage);
-  }
-
-  if (loadError instanceof IncompatibleProjectError) {
-    throw loadError;
   }
 
   if (isNotFound(loadError)) {
@@ -142,10 +129,7 @@ export function EditorPage() {
           {/* Remounts whenever the content is replaced, so the initial doc
               and the one-shot auto-run follow the new content. */}
           <CodeEditor.Root key={contentVersion} initialCode=''>
-            <EditorWorkspace
-              defaultTab={defaultTab}
-              autoExecuteOnReady={autoRun && !!code.trim()}
-            />
+            <EditorWorkspace autoExecuteOnReady={autoRun && !!code.trim()} />
           </CodeEditor.Root>
         </Splitter.Panel>
 
