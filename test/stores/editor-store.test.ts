@@ -139,6 +139,8 @@ describe('editor-store last run', () => {
   it('belongs to one project: opening another clears it', () => {
     const store = useEditorStore.getState();
     store.setLastRun({ graphs: [], error: 'Running the code failed: x' });
+    store.setTileError({ code: 'NoDataAvailable', message: 'm', failed: 2 });
+    expect(useEditorStore.getState().tileError?.at).toBeDefined();
     const { opened } = useEditorStore.getState();
     store.hydrateFromScene('other', {
       name: 'Other',
@@ -151,6 +153,7 @@ describe('editor-store last run', () => {
       boundingBox: [9, 45, 9.3, 45.5]
     });
     expect(useEditorStore.getState().lastRun).toBeNull();
+    expect(useEditorStore.getState().tileError).toBeNull();
     // A run of the first project can tell, and keeps its result to itself.
     expect(useEditorStore.getState().opened).toBe(opened + 1);
   });

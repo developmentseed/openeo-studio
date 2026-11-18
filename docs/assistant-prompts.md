@@ -76,6 +76,7 @@ question in the last column. Each should end in a code card that fixes it.
 | `bands[1], bands[2]` instead of `bands[0], bands[1]` | Runs, then renders nothing; ask "Nothing renders on the map, though the layer is in the layers list." The fix restores `bands[0], bands[1]` |
 | A line `extra = datacube.band(2)`, with two bands configured | Fails as it runs: `Invalid band name/index 2. Valid names: ['B04', 'B08']`. The fix deletes the line |
 | Drop `.save_result("PNG")` | Runs, then renders nothing; ask "Nothing renders on the map, though the layer is in the layers list." The fix puts it back |
+| Set the dates to one day with no image | Runs, then the map shows `NoDataAvailable` on its tiles. Press **Ask the assistant** on the tile error. The fix is a configuration card with a longer date range |
 | Drop `linear_scale_range` | Runs, then renders dark, as NDVI is −1 to 1, not 0–255; ask "Why is my map all black?" The fix is `linear_scale_range(-1, 1, 0, 255)` |
 
 Or ask directly:

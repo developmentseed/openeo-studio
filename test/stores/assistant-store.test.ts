@@ -88,3 +88,17 @@ it('supersedes the cards still waiting when the user asks again', () => {
     items.map((item) => (item.kind === 'proposal' ? item.status : item.kind))
   ).toEqual(['user', 'superseded', 'accepted']);
 });
+
+it('keeps a question from elsewhere for the conversation it was asked in', () => {
+  const store = useAssistantStore.getState();
+  store.ask('Why?');
+  const { question, threadId } = useAssistantStore.getState();
+  expect(question).toMatchObject({ text: 'Why?', thread: threadId });
+
+  expect(useAssistantStore.getState().takeQuestion()).toEqual(question);
+  expect(useAssistantStore.getState().question).toBeNull();
+
+  store.ask('Again?');
+  useAssistantStore.getState().reset();
+  expect(useAssistantStore.getState().question).toBeNull();
+});

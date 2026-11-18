@@ -131,9 +131,21 @@ describe('the docs of the deployment', () => {
       services: [],
       lastRun: null,
       openeoApiUrl: 'https://api.example.org',
-      manifestUrl: url
+      manifestUrl: url,
+      tileError: {
+        code: 'NoDataAvailable',
+        message: 'No image.',
+        failed: 3,
+        at: '2026-11-02T10:00:00Z'
+      }
     });
     expect(document.docs).toEqual({ manifestUrl: url });
+    expect(document.diagnostics?.tiles).toEqual({
+      code: 'NoDataAvailable',
+      message: 'No image.',
+      failed: 3,
+      at: '2026-11-02T10:00:00Z'
+    });
     expect(document.contractVersion).toBe('1.1');
   });
 });

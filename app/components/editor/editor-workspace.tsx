@@ -12,7 +12,7 @@ import { useCodeEditor } from './code-editor';
 import { useCodeExecution } from './use-code-execution';
 import { ConfigurationTab } from './configuration-tab';
 import { CodeTab } from './code-tab';
-import { AssistantTab, type AskAssistant } from './assistant-tab';
+import { AssistantTab } from './assistant-tab';
 import { appConfig } from '$config/runtime';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
@@ -64,7 +64,11 @@ export function EditorWorkspace({
 
   const [activeTab, setActiveTab] = useState<EditorTabId>(defaultTab);
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
-  const [ask, setAsk] = useState<AskAssistant>();
+  // A question from an error, here or on the map, opens the Assistant tab.
+  const question = useAssistantStore((state) => state.question);
+  useEffect(() => {
+    if (question) setActiveTab('assistant');
+  }, [question?.at]);
   // Set when the assistant's change is accepted; the save waits for the render that carries the
   // accepted configuration, which the execution hook reads from props.
   const [saveAfterAccept, setSaveAfterAccept] = useState(false);
@@ -219,10 +223,7 @@ export function EditorWorkspace({
             p={4}
             bg='bg'
           >
-            <AssistantTab
-              ask={ask}
-              onAccepted={() => setSaveAfterAccept(true)}
-            />
+            <AssistantTab onAccepted={() => setSaveAfterAccept(true)} />
           </Tabs.Content>
         </Stack>
 
@@ -233,12 +234,11 @@ export function EditorWorkspace({
             onAsk={
               appConfig.agentUrl
                 ? () => {
-                    setAsk({
-                      text: `My code failed to run. Why, and how do I fix it?\n\n${useEditorStore.getState().lastRun?.error ?? errorMessage}`,
-                      at: Date.now(),
-                      thread: useAssistantStore.getState().threadId
-                    });
-                    setActiveTab('assistant');
+                    useAssistantStore
+                      .getState()
+                      .ask(
+                        `My code failed to run. Why, and how do I fix it?\n\n${useEditorStore.getState().lastRun?.error ?? errorMessage}`
+                      );
                     setIsErrorDismissed(true);
                   }
                 : undefined

@@ -134,19 +134,9 @@ function CodeDiff({ change }: { change: CodeChange }) {
   });
 }
 
-/** A question for the assistant from elsewhere in the editor. */
-export interface AskAssistant {
-  text: string;
-  at: number;
-  /** The conversation it was asked in. */
-  thread: string;
-}
-
 export function AssistantTab({
-  ask,
   onAccepted
 }: {
-  ask?: AskAssistant;
   /** Once the last card is decided, if any was accepted: run and save, as the Save button does. */
   onAccepted?: () => void;
 }) {
@@ -160,8 +150,16 @@ export function AssistantTab({
     setBoundingBox,
     setPropertyFilters
   } = useEditorStore();
-  const { items, setItems, busy, setBusy, setUnsaved, reset } =
-    useAssistantStore();
+  const {
+    items,
+    setItems,
+    busy,
+    setBusy,
+    setUnsaved,
+    reset,
+    question,
+    takeQuestion
+  } = useAssistantStore();
   const [draft, setDraft] = useState('');
   const sentCode = useRef('');
   /** The run in flight, which its code cards name. */
@@ -517,15 +515,15 @@ export function AssistantTab({
       item.kind === 'proposal' && item.status === 'pending' && !item.held
   );
 
-  /** The last question from elsewhere that was sent. */
-  const asked = useRef<number>(undefined);
   useEffect(() => {
     // A question asked during a run waits for the run to end. One asked in
     // another conversation is about another project: it is dropped.
-    if (!ask || busy || asked.current === ask.at) return;
-    asked.current = ask.at;
-    if (ask.thread === useAssistantStore.getState().threadId) send(ask.text);
-  }, [ask?.at, busy]);
+    if (!question || busy) return;
+    const taken = takeQuestion();
+    if (taken?.thread === useAssistantStore.getState().threadId) {
+      send(taken.text);
+    }
+  }, [question?.at, busy]);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'end' });

@@ -21,6 +21,8 @@ import { LuCodeXml, LuDownload, LuMap, LuWorkflow } from 'react-icons/lu';
 
 import type { ServiceInfo } from '$types';
 import type { ProcessGraph } from '$types/openeo-process';
+import { appConfig } from '$config/runtime';
+import { useAssistantStore } from '$stores/assistant-store';
 import { useEditorStore } from '$stores/editor-store';
 import { MapViewer } from '$components/map/map-viewer';
 import { TileStatusAlert } from '$components/map/tile-status-alert';
@@ -46,7 +48,8 @@ function ResultsPanelComponent() {
       services: state.services
     }))
   );
-  const { toggleServiceVisibility, setBoundingBox } = useEditorStore();
+  const { toggleServiceVisibility, setBoundingBox, setTileError } =
+    useEditorStore();
 
   const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
     pending: 0,
@@ -61,6 +64,19 @@ function ResultsPanelComponent() {
       setTileStatus({ pending: 0, status: 'idle' });
     }
   }, [services.length, tileStatus.status]);
+
+  // The assistant reads the tile error of the view from the store. A new view
+  // or a new run sets the status again, so an old error goes with it.
+  const tileError =
+    tileStatus.status === 'error' ? tileStatus.error : undefined;
+  const failed = tileStatus.failed ?? 1;
+  useEffect(() => {
+    setTileError(
+      tileError
+        ? { code: tileError.code, message: tileError.message, failed }
+        : null
+    );
+  }, [tileError?.code, tileError?.message, failed, setTileError]);
 
   return (
     <Stack gap={0} flexGrow={1} h='100%' position='relative' asChild>
@@ -121,7 +137,21 @@ function ResultsPanelComponent() {
                 onServicePublish={(v) => setShareService(v)}
               />
             </Flex>
-            {services.length > 0 && <TileStatusAlert status={tileStatus} />}
+            {services.length > 0 && (
+              <TileStatusAlert
+                status={tileStatus}
+                onAsk={
+                  appConfig.agentUrl && tileError
+                    ? () =>
+                        useAssistantStore
+                          .getState()
+                          .ask(
+                            `My map shows tile errors. Why, and how do I fix it?\n\n${failed} tile(s) failed: ${tileError.code}: ${tileError.message}`
+                          )
+                    : undefined
+                }
+              />
+            )}
 
             {shareService && (
               <ShareDialog
