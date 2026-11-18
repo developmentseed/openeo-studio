@@ -19,6 +19,7 @@ import { ProjectsCataloguePage } from '$pages/projects/catalogue';
 import { ServicesPage } from '$pages/services';
 import UhOh404 from '$pages/uhoh/404';
 import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
+import { PropertyFiltersSandboxPage } from '$pages/sandbox/property-filters';
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -96,6 +97,12 @@ export default function App() {
           <Route
             path='/sandbox/visual-graph'
             element={<VisualGraphSandboxPage />}
+          />
+        )}
+        {import.meta.env.DEV && (
+          <Route
+            path='/sandbox/property-filters'
+            element={<PropertyFiltersSandboxPage />}
           />
         )}
         <Route element={<RequireAuth />}>
