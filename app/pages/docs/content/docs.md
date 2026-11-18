@@ -56,7 +56,7 @@ Related processes: [`linear_scale_range`](https://processes.openeo.org/#linear_s
 Pan and zoom to inspect local detail. This is a very very simple workflow that loads the first time step of the datacube (`reduced`), applies a linear scaling for visualization enhancement, and outputs the result as PNG tiles.
 
 
-# Python environment (code contract)
+## Python environment (code contract)
 
 Your code in the `Code` tab is not a standalone script. openEO Studio runs it in the browser after other code that prepares the environment. It runs these parts in this order, in one Python namespace:
 
