@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright does not support chromium on ubuntu-26.04 yet
 
     steps:
       - name: Checkout
