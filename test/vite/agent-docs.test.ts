@@ -96,6 +96,17 @@ describe('agent docs', () => {
     );
   });
 
+  it('gives the description of each sample in the manifest', () => {
+    const manifest = JSON.parse(docs['.well-known/openeo-studio.json']);
+    expect(
+      manifest.samples.map((s: { description: string }) => s.description)
+    ).toEqual(SAMPLE_SCENES_META.map((s) => s.description));
+    for (const sample of manifest.samples) {
+      expect(sample.description).toEqual(expect.any(String));
+      expect(sample.description.trim()).not.toBe('');
+    }
+  });
+
   it('has a sample file for every script on disk that a sample uses', () => {
     for (const sample of SAMPLE_SCENES_META) {
       expect(() => read(`app/algorithms/${sample.algorithm}`)).not.toThrow();
