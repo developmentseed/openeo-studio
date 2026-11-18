@@ -1,10 +1,8 @@
 import { CompletionContext } from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
 
-import {
-  OP_MEMBER_NAMES,
-  openeoCompletionSource
-} from '../../app/utils/openeo-completion';
+import { OP_MEMBER_NAMES } from '../../app/algorithms/base/environment';
+import { openeoCompletionSource } from '../../app/utils/openeo-completion';
 
 function complete(doc: string, explicit = false) {
   const state = EditorState.create({ doc });

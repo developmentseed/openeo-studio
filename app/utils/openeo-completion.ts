@@ -8,20 +8,9 @@ import { pythonLanguage } from '@codemirror/lang-python';
 
 import {
   LOADER_GLOBALS,
-  OPENEO_PROCESS_NAMES,
+  OP_MEMBER_NAMES,
   PUBLIC_GLOBALS
 } from '../algorithms/base/environment';
-
-const PYTHON_KEYWORDS = new Set(['and', 'or', 'not', 'if', 'in', 'is']);
-
-// The OPENEO_PROCESS_NAMES contains the openEO processes as if they were used
-// as bare: example max_, round_, if_. When using as part of the op. module,
-// only names that are Python keywords (op.if_, op.and_) keep the
-// underscore, therefore we must remove it from the others. max_ => op.max
-export const OP_MEMBER_NAMES = OPENEO_PROCESS_NAMES.map((name) => {
-  const base = name.replace(/_$/, '');
-  return PYTHON_KEYWORDS.has(base) ? name : base;
-});
 
 const publicByName = new Map(
   PUBLIC_GLOBALS.map((global) => [global.name, global])
