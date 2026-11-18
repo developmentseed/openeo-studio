@@ -114,6 +114,18 @@
       "additionalProperties": false,
       "description": "The backend that Studio is connected to.\n\nThe document holds the address only. The agent reads the collections and the processes from the backend itself, so Studio does not copy them here."
     },
+    "StudioDocs": {
+      "type": "object",
+      "properties": {
+        "manifestUrl": {
+          "type": "string",
+          "description": "The absolute URL of the deployment's `.well-known/openeo-studio.json`. An agent reads the script contract, the rules for code and the backend from the documents that it links to, and does not keep its own copy."
+        }
+      },
+      "required": ["manifestUrl"],
+      "additionalProperties": false,
+      "description": "Where the deployment describes itself to agents. Since contract 1.1."
+    },
     "ApplyMode": {
       "type": "string",
       "enum": ["ask", "auto-low", "auto"],
@@ -147,6 +159,10 @@
           "description": "Present for the error triggers only. A traceback is large, and a normal question does not need it. There is no tool to read it: the trigger controls the decision."
         },
         "backend": { "$ref": "#/definitions/StudioBackend" },
+        "docs": {
+          "$ref": "#/definitions/StudioDocs",
+          "description": "Where the deployment describes itself to agents. Since contract 1.1."
+        },
         "sources": {
           "type": "array",
           "items": { "type": "string" },
