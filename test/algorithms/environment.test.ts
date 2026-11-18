@@ -68,9 +68,7 @@ describe('code contract', () => {
   it('documents only names that exist', () => {
     const defined = new Set(LOADER_GLOBALS);
     for (const { name } of PUBLIC_GLOBALS) {
-      for (const part of name.replace(/\(.*\)/, '').split(',')) {
-        expect(defined.has(part.trim())).toBe(true);
-      }
+      expect(defined.has(name)).toBe(true);
     }
   });
 

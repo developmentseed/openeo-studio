@@ -72,8 +72,8 @@ export const PUBLIC_GLOBALS: readonly PublicGlobal[] = [
     description: 'The collection loaded with the Configuration values.'
   },
   {
-    name: 'add_graph_to_map(graph, name)',
-    type: 'function',
+    name: 'add_graph_to_map',
+    type: 'function(graph, name)',
     description: 'Adds a result to the map as a layer. Call it at least once.'
   },
   {
@@ -82,9 +82,27 @@ export const PUBLIC_GLOBALS: readonly PublicGlobal[] = [
     description: `All ${OPENEO_PROCESS_NAMES.length} openEO processes (openeo.processes). Write op.<name>, for example op.if_, op.clip, op.max.`
   },
   {
-    name: 'bounding_box, time, bands, cloud_cover_max',
+    name: 'bounding_box',
     type: 'Parameter',
     description:
-      'The parameters of the project. Their defaults are the Configuration values.'
+      'The area to load. Default: the Configuration area, a dict {west, south, east, north} in degrees.'
+  },
+  {
+    name: 'time',
+    type: 'Parameter',
+    description:
+      'The time range. Default: the Configuration dates, a list [start, end] of ISO dates.'
+  },
+  {
+    name: 'bands',
+    type: 'Parameter',
+    description:
+      'The bands to load. Default: the Configuration bands, a list of band names.'
+  },
+  {
+    name: 'cloud_cover_max',
+    type: 'Parameter',
+    description:
+      'The maximum cloud cover of a scene. Default: the Configuration value, a number in percent.'
   }
 ];
