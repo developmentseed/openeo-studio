@@ -89,14 +89,19 @@ Pan and zoom to inspect local detail. This is a very very simple workflow that l
 
 ### Empty map
 
-- Verify the temporal range has data availability
-- Confirm that the area of interest overlaps the collection footprint
-- Check band names against the collection metadata
-- Read the error on the map. For each tile, the backend searches the images that touch the tile, are in the dates, and pass the cloud filter:
-  - `NoDataAvailable`: no image. Use a longer date range or a higher cloud cover limit.
-  - `ItemsLimitExceeded`: too many images (the limit is 20 by default). Use a shorter date range or a lower cloud cover limit, or zoom in.
-- Start with 1 to 2 weeks and a cloud cover limit of 20 % or less. Do not use more than 1 month.
-- The map shows no result below zoom level 6. Zoom in on a large area.
+For each map tile, the backend searches the catalogue for the images (STAC items) that touch the tile, are in the dates, and pass the cloud filter. Studio shows the error of a tile on the map, with advice:
+
+- **No image:** the tile fails with `NoDataAvailable`. The dates are too short, the area has no data, or the cloud filter is too strict. Use a longer date range or a higher cloud cover limit.
+- **More images than the limit of the backend** (20 by default in titiler-openeo): the tile fails with `ItemsLimitExceeded`. The dates are too long, the area is too large, or the cloud filter is too weak. Use a shorter date range or a lower cloud cover limit, or zoom in.
+
+Follow these rules:
+
+- **Dates.** Sentinel-2 sees a place every 2 to 5 days, and a place can be on 2 to 4 overlapping products. Start with 1 to 2 weeks, with a cloud filter. Do not use more than 1 month. Do not use one day, unless you know that an image exists on that day. For an event, start at the event date and stop 1 to 2 weeks later. `reduced` takes the first valid pixel, so the map shows the first clear image.
+- **How fast the count grows:** with no cloud filter, the London cloud sample (0.8° × 0.4°) finds 28 items in 6 days.
+- **Area.** A city is 0.1° to 0.5°, a region up to approximately 1°. Studio zooms the map to the bounding box. The map requests no tile below zoom level 6 (approximately 5.6° for each tile), so a larger area shows nothing until you zoom in. A larger area also puts more products in each tile.
+- **Cloud filter.** 10 % to 30 % for optical images. Use 100 only when you want the clouds (cloud detection).
+- **Data range.** The dates must be in the temporal extent of the collection (`extent.temporal.interval`), and the area must overlap its footprint. The catalogue can have gaps.
+- **Band names.** The band names must be the names of the collection (its metadata). They are different on each backend.
 
 ### Processing fails
 
@@ -123,11 +128,11 @@ Full reference: [Sentinel-2 MSI technical guide](https://sentinels.copernicus.eu
 
 ### Data values
 
-The backend gives physical values, not raw digital numbers. Sentinel-2 L2A reflectance is from 0 to 1 (a value can be a little below 0 or above 1). The backend already applied the scale and the offset of each product ([titiler-openeo ADR 0009](https://github.com/sentinel-hub/titiler-openeo/blob/main/docs/adr/0009-scale-offset-sources.md)).
+The backend (titiler-openeo) gives physical values, not raw digital numbers. Sentinel-2 L2A reflectance is from 0 to 1. A value can be a little below 0 or above 1. The backend already applied the scale and the offset of each product, also when the catalogue does not publish them ([titiler-openeo ADR 0009](https://github.com/sentinel-hub/titiler-openeo/blob/main/docs/adr/0009-scale-offset-sources.md)).
 
-- Do not multiply by `0.0001`, and do not subtract an offset.
+- Do not multiply by `0.0001`, and do not subtract an offset. The values would be wrong.
 - For true color, scale the reflectance from 0 to 0.3 (or 0.4) to 0 to 255.
-- An index such as NDVI is a ratio, from -1 to 1.
+- An index such as NDVI or NDWI is a ratio of reflectances. Its range is -1 to 1.
 
 ### Datacubes
 

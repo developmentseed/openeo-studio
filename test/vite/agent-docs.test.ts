@@ -7,7 +7,8 @@ import { join } from 'node:path';
 import {
   buildAgentDocs,
   isAgentDocPath,
-  resolveAgentDocsValues
+  resolveAgentDocsValues,
+  section
 } from '../../vite/plugins/agent-docs';
 import { SAMPLE_SCENES_META } from '$config/sample-scenes-meta';
 import { validateSamplePrefill } from '$utils/sample-prefill';
@@ -123,5 +124,32 @@ describe('agent docs', () => {
     expect(prefill).toContain('NoDataAvailable');
     expect(prefill).toContain('ItemsLimitExceeded');
     expect(docs['llms.txt']).toContain('prefill.md#area-and-dates');
+  });
+
+  it('takes the text it shares with the user guide from the user guide', () => {
+    const guide = sources().userGuide;
+    expect(docs['agents/script-contract.md']).toContain(
+      section(guide, 'Data values')
+    );
+    expect(docs['agents/prefill.md']).toContain(section(guide, 'Empty map'));
+  });
+
+  it('describes the loader as it is', () => {
+    const contract = docs['agents/script-contract.md'];
+    expect(contract).toContain('datacube.band("<name>")');
+    expect(contract).not.toContain('algorithm(');
+  });
+});
+
+describe('section', () => {
+  const markdown = '# Top\n\n### One\n\nFirst.\n\n### Two\n\nSecond.\n';
+
+  it('returns the body of a section, up to the next heading', () => {
+    expect(section(markdown, 'One')).toBe('First.');
+    expect(section(markdown, 'Two')).toBe('Second.');
+  });
+
+  it('throws when the section is missing', () => {
+    expect(() => section(markdown, 'Three')).toThrow('### Three');
   });
 });

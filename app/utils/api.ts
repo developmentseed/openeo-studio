@@ -19,7 +19,7 @@ export class APIError extends Error {
 }
 
 // openEO bearer token: `oidc/<provider id>/<access token>`.
-function authHeader(token: string): string {
+export function authHeader(token: string): string {
   return `Bearer oidc/${getOidcProviderId()}/${token}`;
 }
 
@@ -58,6 +58,10 @@ async function request(
     } catch (err) {
       e.detail = await clone.text();
     }
+    // HTTP/2 has no status text, so without this the message is "Error 400:".
+    // openEO errors say why in `message`.
+    const reason = typeof e.detail === 'string' ? e.detail : e.detail?.message;
+    if (reason) e.message = `Error ${status}: ${reason}`;
     throw e;
   }
 

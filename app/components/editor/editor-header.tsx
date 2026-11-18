@@ -5,6 +5,7 @@ import { useAuth } from 'react-oidc-context';
 import { EditorExecute } from '$components/editor/editor-execute';
 import { EditorOptionsMenu } from '$components/editor/editor-options-menu';
 import { Tip } from '$components/tooltip';
+import { appConfig } from '$config/runtime';
 import { useEditorStore } from '$stores/editor-store';
 
 export interface EditorHeaderProps {
@@ -59,11 +60,17 @@ export function EditorHeader({
         </Tabs.Trigger>
         <Separator orientation='vertical' h={4} />
 
-        <Tip content='Coming soon'>
-          <Tabs.Trigger value='assistant' disabled>
+        {appConfig.agentUrl ? (
+          <Tabs.Trigger value='assistant'>
             <LuSparkle /> Assistant
           </Tabs.Trigger>
-        </Tip>
+        ) : (
+          <Tip content='Coming soon'>
+            <Tabs.Trigger value='assistant' disabled>
+              <LuSparkle /> Assistant
+            </Tabs.Trigger>
+          </Tip>
+        )}
         <EditorOptionsMenu
           onDeleteClick={onDeleteClick}
           isDeleteDisabled={isDeleteDisabled}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Flex, Spinner, Splitter } from '@chakra-ui/react';
 import { useCollection } from '@developmentseed/stac-react';
 import { useParams } from 'react-router';
@@ -35,10 +35,19 @@ export function EditorPage() {
   const { setSceneId, resetToDefaults, hydrateFromScene, setTemporalRange } =
     useEditorStore();
 
+  // The store's id also changes while this route stays blank: a save writes
+  // the new id just before navigating to it. That is not a return to the
+  // blank project, so only an id already there when the route is reached
+  // resets the editor.
+  const lastStoredSceneId = useRef<string | null | undefined>(undefined);
+
   // Sync store with route changes (scene switches)
   useEffect(() => {
+    const previous = lastStoredSceneId.current;
+    lastStoredSceneId.current = storedSceneId;
     if (isBlankScene) {
-      if (storedSceneId !== null) {
+      const justSaved = previous === null && storedSceneId !== null;
+      if (storedSceneId !== null && !justSaved) {
         resetToDefaults(DEFAULT_EDITOR_CONFIG);
         setSceneId(null);
       }

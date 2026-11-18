@@ -25,8 +25,6 @@ import {
 
 const REPO_URL = 'https://github.com/developmentseed/openeo-studio';
 const UDP_REPO_URL = 'https://github.com/developmentseed/openeo-udp';
-const SCALE_OFFSET_ADR_URL =
-  'https://github.com/sentinel-hub/titiler-openeo/blob/main/docs/adr/0009-scale-offset-sources.md';
 const DEFAULT_OPENEO_API_URL = 'https://api.explorer.eopf.copernicus.eu/openeo';
 
 export interface AgentDocsValues {
@@ -89,6 +87,25 @@ function readSources(rootDir: string): AgentDocsSources {
   };
 }
 
+/**
+ * The body of the `### <heading>` section of `markdown`, up to the next
+ * heading: a text that the user guide and an agent document share is written
+ * once, in the user guide. Throws when the heading is missing, so that a
+ * renamed section fails the build and is not dropped from the documents.
+ */
+export function section(markdown: string, heading: string): string {
+  const lines = markdown.split('\n');
+  const start = lines.indexOf(`### ${heading}`);
+  if (start === -1) {
+    throw new Error(`docs-content.md has no "### ${heading}" section`);
+  }
+  const end = lines.findIndex((line, i) => i > start && line.startsWith('#'));
+  return lines
+    .slice(start + 1, end === -1 ? undefined : end)
+    .join('\n')
+    .trim();
+}
+
 function samplePrefill(sample: SampleSceneMeta, code: string) {
   return {
     $schema: '../sample.schema.json',
@@ -137,7 +154,11 @@ Choose the area and the dates with care. Too narrow gives no image (\`NoDataAvai
 `;
 }
 
-function scriptContractMd(v: AgentDocsValues, loaderScript: string): string {
+function scriptContractMd(
+  v: AgentDocsValues,
+  loaderScript: string,
+  userGuide: string
+): string {
   return `# Script contract
 
 Studio does not run your script alone. It runs this program in the browser (Pyodide, openEO Python client \`openeo<0.50\`):
@@ -163,16 +184,13 @@ Studio does not run your script alone. It runs this program in the browser (Pyod
 - Give 3 bands (RGB) with values from 0 to 255, as the samples do. In a band function, return \`array_create([r, g, b])\`. Each item must come from the data: a constant such as \`0\` fails with "all input arrays must have the same shape". Use \`value * 0\` for an empty channel. Then use \`linear_scale_range(..., output_min=0, output_max=255)\`.
 - **Band names and the band dimension name come from the collection. They are different on each backend.** Read [backend.md](backend.md) before you write \`bands\` or \`dimension=\`. Studio removes each configured band that the collection does not have.
 - The bands are in the order of the \`bands\` configuration. Apply a band function with \`apply_dimension(dimension="<band dimension>", process=f)\`. In \`f\`, \`data[0]\` is the first configured band.
+- \`datacube.band("<name>")\` and \`filter_bands\` know the configured bands and the band dimension of the backend. In a band function, \`data\` is an array of the bands: use \`data[0]\`, never \`data.band()\`.
 - Studio computes the result tile by tile, for the map. Keep the processing small: no batch jobs, no long time series.
 - The backend can have processes that are not in the openEO standard (for example \`color_formula\` and \`apply_pixel_selection\`). Read \`${v.openeoApiUrl}/processes\`.
 
 ## Data values
 
-The backend (titiler-openeo) gives physical values, not raw digital numbers. Sentinel-2 L2A reflectance is from 0 to 1. A value can be a little below 0 or above 1. The backend already applied the scale and the offset of each product, also when the catalogue does not publish them ([titiler-openeo ADR 0009](${SCALE_OFFSET_ADR_URL})).
-
-- Do not multiply by \`0.0001\`, and do not subtract an offset. The values would be wrong.
-- True color: scale the reflectance from 0 to 0.3 (or 0.4) to 0 to 255.
-- An index (NDVI, NDWI, …) is a ratio of reflectances. Its range is -1 to 1.
+${section(userGuide, 'Data values')}
 
 ## Minimal script
 
@@ -287,7 +305,7 @@ Studio removes each configured band that the collection does not have, and the c
 `;
 }
 
-function prefillMd(v: AgentDocsValues): string {
+function prefillMd(v: AgentDocsValues, userGuide: string): string {
   const u = v.rootUrl;
   return `# Prefill link
 
@@ -321,18 +339,7 @@ The sample is a JSON document. The schema is [sample.schema.json](sample.schema.
 
 ## Area and dates
 
-For each map tile, the backend searches the catalogue for the images (STAC items) that touch the tile, are in the dates, and pass the cloud filter. Then:
-
-- **No image:** the tile fails with \`NoDataAvailable\`. The dates are too short, the area has no data, or the cloud filter is too strict.
-- **More images than the limit of the backend** (20 by default in titiler-openeo): the tile fails with \`ItemsLimitExceeded\`. The dates are too long, the area is too large, or the cloud filter is too weak.
-
-Studio shows the error on the map, with advice. Follow these rules:
-
-- **Dates.** Sentinel-2 sees a place every 2 to 5 days, and a place can be on 2 to 4 overlapping products. Start with 1 to 2 weeks, with a cloud filter. Do not use more than 1 month. Do not use one day, unless you know that an image exists on that day. For an event, start at the event date and stop 1 to 2 weeks later. \`reduced\` takes the first valid pixel, so the map shows the first clear image.
-- **How fast the count grows:** with no cloud filter, the London cloud sample (0.8° × 0.4°) finds 28 items in 6 days.
-- **Area.** Use the area of the request: a city is 0.1° to 0.5°, a region up to approximately 1°. Studio zooms the map to the bounding box. The map requests no tile below zoom level 6 (approximately 5.6° for each tile), so a larger area shows nothing until the user zooms in. A larger area also puts more products in each tile.
-- **Cloud filter.** 10 % to 30 % for optical images. Use 100 only when you want the clouds (cloud detection).
-- **Data range.** The dates must be in the temporal extent of the collection (\`extent.temporal.interval\`). The catalogue can have gaps.
+${section(userGuide, 'Empty map')}
 
 ## 2. Make the link
 
@@ -411,10 +418,14 @@ export function buildAgentDocs(
 ): Record<string, string> {
   const docs: Record<string, string> = {
     'llms.txt': llmsTxt(v),
-    'agents/script-contract.md': scriptContractMd(v, sources.loaderScript),
+    'agents/script-contract.md': scriptContractMd(
+      v,
+      sources.loaderScript,
+      sources.userGuide
+    ),
     'agents/samples.md': samplesMd(v, sources.algorithms),
     'agents/backend.md': backendMd(v),
-    'agents/prefill.md': prefillMd(v),
+    'agents/prefill.md': prefillMd(v, sources.userGuide),
     'agents/user-guide.md': sources.userGuide,
     'agents/sample.schema.json': sources.sampleSchema,
     '.well-known/openeo-studio.json': manifestJson(v)

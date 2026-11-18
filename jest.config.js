@@ -95,7 +95,7 @@ module.exports = {
         : acc;
     }, {}),
     '.+\\.(css|styl|less|sass|scss)$':
-      '<rootDir>/node_modules/jest-css-modules-transform'
+      '<rootDir>/test/style-stub.js'
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

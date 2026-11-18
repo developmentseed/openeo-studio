@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/shallow';
 import { useNavigate } from 'react-router';
 
 import { useEditorStore } from '$stores/editor-store';
+import { useAssistantStore } from '$stores/assistant-store';
 import { useAlertDialog } from '$components/common/use-alert-dialog';
 import { useConfirmDialog } from '$components/common/use-confirm-dialog';
 import { isSampleScene, shouldNavigateAfterSave } from '$config/sample-scenes';
@@ -11,7 +12,8 @@ import { useCodeEditor } from './code-editor';
 import { useCodeExecution } from './use-code-execution';
 import { ConfigurationTab } from './configuration-tab';
 import { CodeTab } from './code-tab';
-import { AssistantTab } from './assistant-tab';
+import { AssistantTab, type AskAssistant } from './assistant-tab';
+import { appConfig } from '$config/runtime';
 import { ExecutionErrorAlert } from './execution-error-alert';
 import { EditorHeader } from './editor-header';
 import { useDeleteProject } from './use-delete-project';
@@ -62,6 +64,10 @@ export function EditorWorkspace({
 
   const [activeTab, setActiveTab] = useState<EditorTabId>(defaultTab);
   const [isErrorDismissed, setIsErrorDismissed] = useState(false);
+  const [ask, setAsk] = useState<AskAssistant>();
+  // Set when the assistant's change is accepted; the save waits for the render that carries the
+  // accepted configuration, which the execution hook reads from props.
+  const [saveAfterAccept, setSaveAfterAccept] = useState(false);
   const {
     createServices,
     saveProjectAndServices,
@@ -100,8 +106,11 @@ export function EditorWorkspace({
 
   const navigateAfterSaveIfNeeded = (id: string) => {
     if (!shouldNavigateAfterSave(sceneId)) return;
-    setSceneId(id);
+    // The route first. The blank page resets the store when it sees an id
+    // there, so an id arriving before the route moves would be taken as a
+    // return to the blank project.
     navigate(`/editor/${id}`, { replace: true });
+    setSceneId(id);
   };
 
   const handleSaveClick = async () => {
@@ -140,6 +149,14 @@ export function EditorWorkspace({
       navigateAfterSaveIfNeeded(result.id);
     }
   };
+
+  useEffect(() => {
+    // Saving runs the code first: wait until it can run, with the
+    // queryables of a collection the change selected.
+    if (!saveAfterAccept || !isExecutionReady || isExecuting) return;
+    setSaveAfterAccept(false);
+    handleSaveClick();
+  }, [saveAfterAccept, isExecutionReady, isExecuting]);
 
   return (
     <Stack
@@ -202,7 +219,10 @@ export function EditorWorkspace({
             p={4}
             bg='bg'
           >
-            <AssistantTab />
+            <AssistantTab
+              ask={ask}
+              onAccepted={() => setSaveAfterAccept(true)}
+            />
           </Tabs.Content>
         </Stack>
 
@@ -210,6 +230,19 @@ export function EditorWorkspace({
           <ExecutionErrorAlert
             message={errorMessage}
             onDismiss={() => setIsErrorDismissed(true)}
+            onAsk={
+              appConfig.agentUrl
+                ? () => {
+                    setAsk({
+                      text: `My code failed to run. Why, and how do I fix it?\n\n${useEditorStore.getState().lastRun?.error ?? errorMessage}`,
+                      at: Date.now(),
+                      thread: useAssistantStore.getState().threadId
+                    });
+                    setActiveTab('assistant');
+                    setIsErrorDismissed(true);
+                  }
+                : undefined
+            }
           />
         )}
 

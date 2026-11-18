@@ -21,7 +21,7 @@ import {
 } from '$utils/openeo/queryables';
 import type { PropertyFilter, PropertyFilterOperator } from '$types';
 
-const OPERATOR_LABELS: Record<PropertyFilterOperator, string> = {
+export const OPERATOR_LABELS: Record<PropertyFilterOperator, string> = {
   lt: '<',
   lte: '≤',
   gt: '>',

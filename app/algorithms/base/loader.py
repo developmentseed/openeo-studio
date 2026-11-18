@@ -13,6 +13,7 @@ from openeo.rest.datacube import DataCube
 from openeo.rest.result import SaveResult
 from openeo.processes import array_create, absolute, and_, clip, if_, linear_scale_range, process, sqrt
 from openeo.api.process import Parameter
+from openeo.metadata import CollectionMetadata
 
 # Initialize parameters with run configuration
 # These will be populated from ExecutionConfig at runtime
@@ -91,7 +92,26 @@ if properties:
 # Load collection with parameterized configuration
 graph = PGNode("load_collection", **load_collection_args)
 
-datacube = DataCube(graph=graph)
+class _BandsOnlyMetadata(CollectionMetadata):
+    """Metadata that names the bands, and leaves every other dimension name in
+    the user's code to the backend, as it did without metadata: code written
+    for one backend's names (`"bands"`, `"t"`) still builds on another."""
+
+    def assert_valid_dimension(self, dimension: str) -> str:
+        return dimension
+
+
+# What load_collection loads, so the client's band helpers (`.band()`,
+# `filter_bands`) name the backend's own bands dimension and know the bands.
+# Studio narrows the bands dimension to the configured bands, in order.
+cube_dimensions = RUN_CONFIG.get("cubeDimensions")
+metadata = (
+    _BandsOnlyMetadata({"id": default_collection_id, "cube:dimensions": cube_dimensions})
+    if cube_dimensions
+    else None
+)
+
+datacube = DataCube(graph=graph, metadata=metadata)
 
 # Collection for multiple graph outputs
 map_graphs = []

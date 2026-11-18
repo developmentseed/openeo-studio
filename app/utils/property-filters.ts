@@ -29,3 +29,26 @@ export function resolvePropertyFilters(config: {
   }
   return [cloudCoverFilter(config.cloudCover), ...filters];
 }
+
+/** The `eo:cloud_cover < max` filter's max, if `filters` has one. */
+export function cloudCoverOf(filters: PropertyFilter[]): number | undefined {
+  const filter = filters.find(
+    (filter) =>
+      filter.property === CLOUD_COVER_PROPERTY && filter.operator === 'lt'
+  );
+  return typeof filter?.value === 'number' ? filter.value : undefined;
+}
+
+/**
+ * Returns `filters` with the cloud cover filter set to `eo:cloud_cover < max`,
+ * in place of any other cloud cover filter. The other filters do not change.
+ */
+export function withCloudCover(
+  filters: PropertyFilter[],
+  max: number
+): PropertyFilter[] {
+  const others = filters.filter(
+    (filter) => filter.property !== CLOUD_COVER_PROPERTY
+  );
+  return [cloudCoverFilter(max), ...others];
+}
