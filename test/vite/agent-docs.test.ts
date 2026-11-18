@@ -147,6 +147,13 @@ describe('agent docs', () => {
     expect(contract).toContain('reduce_dimension(dimension=..., reducer=f)');
     expect(docs['agents/samples.md']).toContain('sentinel-2-dnbr');
   });
+
+  it('explains how to fuse a second collection', () => {
+    const contract = docs['agents/script-contract.md'];
+    expect(contract).toContain('## Two collections');
+    expect(contract).toContain('s1_args.pop("properties", None)');
+    expect(docs['agents/samples.md']).toContain('s1-s2-lava-fusion');
+  });
 });
 
 describe('section', () => {
