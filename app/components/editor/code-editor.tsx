@@ -16,6 +16,7 @@ import { useColorModeValue } from '$contexts/color-mode';
 import { useEditorStore } from '$stores/editor-store';
 import { ruffLinter } from '$utils/ruff-linter';
 import { openeoCompletion } from '$utils/openeo-completion';
+import { openeoDocs } from '$utils/openeo-docs';
 
 // Create a CodeEditor context.
 const CodeEditorContext = createContext<{
@@ -108,6 +109,7 @@ function Root({ children, initialCode = EXAMPLE_CODE }: RootProps) {
         themeCompartment.of(themeColorMode),
         python(),
         openeoCompletion,
+        openeoDocs,
         closeBrackets(),
         autocompletion(),
         lintGutter(),

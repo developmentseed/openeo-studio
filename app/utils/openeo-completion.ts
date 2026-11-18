@@ -11,6 +11,7 @@ import {
   OP_MEMBER_NAMES,
   PUBLIC_GLOBALS
 } from '../algorithms/base/environment';
+import { processDocInfo } from './openeo-docs';
 
 const publicByName = new Map(
   PUBLIC_GLOBALS.map((global) => [global.name, global])
@@ -31,7 +32,8 @@ const globalOptions: Completion[] = LOADER_GLOBALS.map((label) => {
 const opOptions: Completion[] = OP_MEMBER_NAMES.map((label) => ({
   label,
   type: 'function',
-  detail: 'openEO process'
+  detail: 'openEO process',
+  info: () => processDocInfo(label)
 }));
 
 export function openeoCompletionSource(
