@@ -34,7 +34,10 @@ The user code can use these names without an import:
 | `datacube` | The collection loaded with the `Configuration` values. |
 | `add_graph_to_map(graph, name)` | Adds a result to the map. The user code must call it at least once. |
 | `op` | The module `openeo.processes`. Write processes as `op.<name>`. |
-| `bounding_box`, `time`, `bands`, `cloud_cover_max` | The `Parameter` objects of the project. |
+| `bounding_box` | `Parameter`, default `dict` `{west, south, east, north}`. |
+| `time` | `Parameter`, default `list[str]` `[start, end]`. |
+| `bands` | `Parameter`, default `list[str]` of band names. |
+| `cloud_cover_max` | `Parameter`, default `number` (percent). |
 
 The user documentation is in `app/pages/docs/docs-content.md`, section "Python environment (code contract)".
 

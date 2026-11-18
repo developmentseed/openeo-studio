@@ -77,7 +77,12 @@ You can use these names without an import:
 | `datacube` | `DataCube` | The collection loaded with the `Configuration` values. |
 | `add_graph_to_map(graph, name)` | function | Adds a result to the map as a layer. |
 | `op` | module | All the openEO processes (`openeo.processes`). |
-| `bounding_box`, `time`, `bands`, `cloud_cover_max` | `Parameter` | The parameters of the project. Their defaults are the `Configuration` values. |
+| `bounding_box` | `Parameter` | The area to load. Default: the `Configuration` area, a `dict` `{west, south, east, north}` in degrees. |
+| `time` | `Parameter` | The time range. Default: the `Configuration` dates, a `list` `[start, end]` of ISO dates. |
+| `bands` | `Parameter` | The bands to load. Default: the `Configuration` bands, a `list` of band names. |
+| `cloud_cover_max` | `Parameter` | The maximum cloud cover of a scene. Default: the `Configuration` value, a `number` in percent. |
+
+The four parameters are openEO `Parameter` objects, not plain Python values. Pass them to processes as arguments.
 
 ### openEO processes
 
