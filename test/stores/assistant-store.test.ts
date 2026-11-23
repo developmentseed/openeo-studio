@@ -47,6 +47,54 @@ describe('the assistant conversation follows the project', () => {
   });
 });
 
+describe('the assistant conversation follows the signed-in user', () => {
+  beforeEach(() => {
+    useAssistantStore.getState().forProject(null);
+    useAssistantStore.setState({ user: undefined });
+  });
+
+  it('starts afresh for another user and keeps going for the same one', () => {
+    useAssistantStore.getState().forProject('a');
+    useAssistantStore.getState().forUser('alice');
+    talk();
+    const thread = useAssistantStore.getState().threadId;
+
+    useAssistantStore.getState().forUser('alice');
+    expect(useAssistantStore.getState().threadId).toBe(thread);
+
+    useAssistantStore.getState().forUser('bob');
+    expect(useAssistantStore.getState().items).toHaveLength(0);
+    expect(useAssistantStore.getState().threadId).not.toBe(thread);
+    expect(useAssistantStore.getState().project).toBe('a');
+  });
+
+  it('keeps the conversation while signed out, for the same user to come back to', () => {
+    useAssistantStore.getState().forUser('alice');
+    talk();
+    const thread = useAssistantStore.getState().threadId;
+
+    useAssistantStore.getState().forUser(undefined);
+    useAssistantStore.getState().forUser('alice');
+    expect(useAssistantStore.getState().threadId).toBe(thread);
+    expect(useAssistantStore.getState().items).toHaveLength(1);
+  });
+
+  it('gives a conversation that names no user to whoever is signed in', () => {
+    talk();
+    const thread = useAssistantStore.getState().threadId;
+
+    useAssistantStore.getState().forUser('alice');
+    expect(useAssistantStore.getState().threadId).toBe(thread);
+    expect(useAssistantStore.getState().user).toBe('alice');
+  });
+
+  it('saves the user, so a reload still knows whose conversation it is', () => {
+    useAssistantStore.getState().forUser('alice');
+    const saved = JSON.parse(sessionStorage.getItem('openeo-assistant-storage')!);
+    expect(saved.state.user).toBe('alice');
+  });
+});
+
 it('saves a held proposal released, so a reload mid-run still shows it', () => {
   useAssistantStore.getState().setItems(() => [
     {

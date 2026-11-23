@@ -87,6 +87,8 @@ type AssistantState = {
   unsaved: boolean;
   /** The saved project the conversation is about; null for an unsaved one. */
   project: string | null;
+  /** The signed-in user (`sub`) whose conversation it is, once known. */
+  user?: string;
   /** The last question asked from elsewhere in the editor. Not persisted. */
   question: AskAssistant | null;
 };
@@ -105,6 +107,11 @@ type AssistantActions = {
   forProject: (project: string | null) => void;
   /** The project was saved: the conversation is now about it. */
   adopt: (project: string) => void;
+  /**
+   * The signed-in user changed: a new conversation, unless it is theirs.
+   * Signing out keeps it for the same user to come back to.
+   */
+  forUser: (user: string | undefined) => void;
 };
 
 // A run of an earlier conversation does not hold up this one.
@@ -138,7 +145,12 @@ export const useAssistantStore = create<AssistantState & AssistantActions>()(
         if (project !== null && get().project === project) return;
         set({ ...fresh(), project });
       },
-      adopt: (project) => set({ project })
+      adopt: (project) => set({ project }),
+      forUser: (user) => {
+        const started = get().user;
+        if (user === undefined || user === started) return;
+        set(started === undefined ? { user } : { ...fresh(), user });
+      }
     }),
     {
       name: 'openeo-assistant-storage',
@@ -160,7 +172,8 @@ export const useAssistantStore = create<AssistantState & AssistantActions>()(
             : item
         ),
         unsaved: state.unsaved,
-        project: state.project
+        project: state.project,
+        user: state.user
       })
     }
   )

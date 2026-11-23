@@ -9,6 +9,7 @@ import { AuthLoading } from '$components/auth/auth-loading';
 import { useAuthErrorToast } from '$components/auth/use-auth-error-toast';
 import { RequireAuth } from '$components/auth/require-auth';
 import { MobileWarn } from '$components/common/mobile-warn';
+import { useAssistantStore } from '$stores/assistant-store';
 
 import { LandingPage } from '$pages/landing';
 import { EditorPage } from '$pages/editor';
@@ -21,8 +22,15 @@ import UhOh404 from '$pages/uhoh/404';
 import { VisualGraphSandboxPage } from '$pages/sandbox/visual-graph';
 
 export default function App() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const signedIn = user?.profile.sub;
+
+  // The Assistant's conversation is the user's who started it: another user
+  // signing in to this tab gets a new one.
+  useEffect(() => {
+    useAssistantStore.getState().forUser(signedIn);
+  }, [signedIn]);
   const hasNavigated = useRef(false);
 
   const location = useLocation();
