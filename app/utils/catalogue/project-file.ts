@@ -3,6 +3,7 @@
  * and the JSON in a `?prefill=` link.
  */
 import type { EditorSeed } from '$types';
+import { fetchPublic } from '$utils/api';
 import { NotFound } from '$utils/errors';
 import {
   isPropertyFilter,
@@ -37,9 +38,9 @@ const REQUIRED: Record<string, (v: unknown) => boolean> = {
 
 /**
  * Builds a seed, without its code, from an untrusted project document.
- * A missing or malformed required field makes the document unusable and
- * throws `NotFound`. A malformed optional value is left out and named in
- * `incompatibilities`.
+ * A missing or malformed required field, or neither an inline `code` nor an
+ * `algorithm` path, makes the document unusable and throws `NotFound`. A
+ * malformed optional value is left out and named in `incompatibilities`.
  *
  * @param json The parsed document
  * @param label What the document is, for error messages
@@ -53,6 +54,9 @@ export function parseProjectFile(
     if (!valid(json?.[field])) {
       throw new NotFound(`Invalid ${label}: missing \`${field}\``);
     }
+  }
+  if (!isString(json.code) && !isString(json.algorithm)) {
+    throw new NotFound(`Invalid ${label}: missing \`code\` or \`algorithm\``);
   }
 
   const invalidFilters = [json.propertyFilters ?? []]
@@ -79,4 +83,22 @@ export function parseProjectFile(
     },
     incompatibilities
   };
+}
+
+/**
+ * The code of a project document checked by `parseProjectFile`: its inline
+ * `code`, or the file at its `algorithm` path, relative to the document.
+ *
+ * @param json The parsed document
+ * @param url Where the document is, to resolve `algorithm` against
+ */
+export async function getCode(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  json: any,
+  url: string,
+  signal?: AbortSignal
+): Promise<string> {
+  if (isString(json.code)) return json.code;
+  const codeUrl = new URL(json.algorithm, url).href;
+  return (await fetchPublic(codeUrl, signal)).text();
 }

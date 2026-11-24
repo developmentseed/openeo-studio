@@ -5,7 +5,7 @@
  */
 import { fetchPublic } from '$utils/api';
 import { NotFound } from '$utils/errors';
-import { parseProjectFile } from '../project-file';
+import { getCode, parseProjectFile } from '../project-file';
 import type { ProjectLoader } from '../types';
 
 export const projectUrlLoader: ProjectLoader = {
@@ -20,20 +20,13 @@ export const projectUrlLoader: ProjectLoader = {
       // e.g. an SPA host answering an unknown path with its index.html
       throw new NotFound(`Invalid project file at ${url}: not JSON`);
     }
-    const label = `project file at ${url}`;
-    const { seed, incompatibilities } = parseProjectFile(json, label);
-
-    let code = json.code;
-    if (typeof code !== 'string') {
-      if (typeof json.algorithm !== 'string') {
-        throw new NotFound(`Invalid ${label}: missing \`algorithm\``);
-      }
-      const codeUrl = new URL(json.algorithm, url).href;
-      code = await (await fetchPublic(codeUrl, signal)).text();
-    }
+    const { seed, incompatibilities } = parseProjectFile(
+      json,
+      `project file at ${url}`
+    );
 
     return {
-      seed: { ...seed, suggestedAlgorithm: code },
+      seed: { ...seed, suggestedAlgorithm: await getCode(json, url, signal) },
       autoRun: false,
       incompatibilities
     };

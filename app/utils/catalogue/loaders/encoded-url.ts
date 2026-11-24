@@ -23,13 +23,14 @@ export const encodedUrlLoader: ProjectLoader = {
   id: 'encoded-url',
   async load(ref) {
     const json = decode(ref);
+    // Checked first: a link has no `algorithm` path to fall back to.
+    if (typeof json.code !== 'string' || !json.code.trim()) {
+      throw new NotFound(`Invalid ${LABEL}: missing \`code\``);
+    }
     const { seed, incompatibilities } = parseProjectFile(
       { name: 'Project from a link', ...json },
       LABEL
     );
-    if (typeof json.code !== 'string' || !json.code.trim()) {
-      throw new NotFound(`Invalid ${LABEL}: missing \`code\``);
-    }
     return {
       seed: { ...seed, suggestedAlgorithm: json.code },
       autoRun: false,

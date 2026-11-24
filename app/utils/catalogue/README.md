@@ -25,7 +25,7 @@ loader.
 | `compatibility.ts` | Checks a collection and its bands against the connected openEO backend                                         |
 | `links.ts`         | Maps query params (`?sample_id=`, `?project_url=`, `?prefill=`) to loaders, in both directions                 |
 | `paginate.ts`      | `paginate` and `matchesQuery` for sources that hold their whole list in memory                                 |
-| `project-file.ts`  | `parseProjectFile`: validates a project document and builds its seed                                           |
+| `project-file.ts`  | `parseProjectFile`: validates a project document and builds its seed; `getCode`: loads its code                |
 | `sources/`         | `samples` (also exports its loader) and `apex`                                                                 |
 | `loaders/`         | `project-url` (any URL to a `project.json`), `encoded-url` (`?prefill=`) and `saved-project` (the user's UDPs) |
 

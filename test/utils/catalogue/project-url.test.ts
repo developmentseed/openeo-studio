@@ -128,7 +128,7 @@ describe('projectUrlLoader', () => {
     expect(fetchMock).toHaveBeenLastCalledWith(other, expect.anything());
   });
 
-  it.each(['name', 'collectionId', 'temporalRange', 'bands', 'algorithm'])(
+  it.each(['name', 'collectionId', 'temporalRange', 'bands'])(
     'rejects a project file missing %s',
     async (field) => {
       const broken: Record<string, unknown> = { ...project };
@@ -141,6 +141,17 @@ describe('projectUrlLoader', () => {
       );
     }
   );
+
+  it('rejects a project file with neither code nor algorithm', async () => {
+    const broken: Record<string, unknown> = { ...project };
+    delete broken.algorithm;
+    serve({ [URL_]: broken });
+    const error = await projectUrlLoader.load(URL_, {}).catch((e) => e);
+    expect(error).toBeInstanceOf(NotFound);
+    expect(error.message).toBe(
+      `Invalid project file at ${URL_}: missing \`code\` or \`algorithm\``
+    );
+  });
 
   it('rejects a malformed temporal range', async () => {
     serve({ [URL_]: { ...project, temporalRange: ['2025-05-10'] } });
