@@ -24,7 +24,7 @@ export function sampleToSeed(scene: SampleScene): EditorSeed {
     name: scene.name,
     collectionId: scene.collectionId,
     temporalRange: scene.temporalRange,
-    cloudCover: scene.cloudCover ?? 100,
+    propertyFilters: scene.propertyFilters ?? [],
     bands: scene.bands ?? [],
     boundingBox: scene.boundingBox,
     suggestedAlgorithm: scene.suggestedAlgorithm

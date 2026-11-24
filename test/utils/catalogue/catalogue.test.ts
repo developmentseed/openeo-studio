@@ -37,7 +37,7 @@ const result: LoadResult = {
     name: 'x',
     collectionId: 'col',
     temporalRange: ['2025-01-01', '2025-01-02'],
-    cloudCover: 100,
+    propertyFilters: [],
     bands: ['B04']
   },
   autoRun: false
