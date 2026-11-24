@@ -38,7 +38,9 @@ The user code can use these names without an import:
 | `bounding_box` | `Parameter`, default `dict` `{west, south, east, north}`. |
 | `time` | `Parameter`, default `list[str]` `[start, end]`. |
 | `bands` | `Parameter`, default `list[str]` of band names. |
-| `cloud_cover_max` | `Parameter`, default `number` (percent). |
+
+Each property filter of the `Configuration` adds an openEO parameter to `load_collection`, named
+`filter_<property>` (for example `filter_eo_cloud_cover`). It is not a Python name.
 
 The user documentation is in `app/pages/docs/content/docs.md`, section "Python environment (code contract)".
 

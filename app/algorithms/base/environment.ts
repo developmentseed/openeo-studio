@@ -40,6 +40,7 @@ export const LOADER_GLOBALS: readonly string[] = [
   'process',
   // loader.py
   'json',
+  're',
   'PGNode',
   'DataCube',
   'SaveResult',
@@ -48,12 +49,16 @@ export const LOADER_GLOBALS: readonly string[] = [
   'default_bounding_box',
   'default_time',
   'default_bands',
-  'default_cloud_cover_max',
+  'default_property_filters',
   'bounding_box',
   'time',
   'bands',
-  'cloud_cover_max',
   'parameters',
+  'load_collection_args',
+  'property_condition',
+  'property_parameter_name',
+  'properties',
+  'ALLOWED_OPERATORS',
   'graph',
   'datacube',
   'map_graphs',
@@ -109,11 +114,5 @@ export const PUBLIC_GLOBALS: readonly PublicGlobal[] = [
     type: 'Parameter',
     description:
       'The bands to load. Default: the Configuration bands, a list of band names.'
-  },
-  {
-    name: 'cloud_cover_max',
-    type: 'Parameter',
-    description:
-      'The maximum cloud cover of a scene. Default: the Configuration value, a number in percent.'
   }
 ];
