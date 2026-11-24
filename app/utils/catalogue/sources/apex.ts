@@ -6,6 +6,7 @@
  */
 import { fetchPublic } from '$utils/api';
 import { matchesQuery, paginate } from '../paginate';
+import { parseProjectFile } from '../project-file';
 import type { CatalogueEntry, CatalogueSource } from '../types';
 
 interface ApexConfig {
@@ -81,15 +82,26 @@ export function createApexSource(config: ApexConfig): CatalogueSource {
     );
 
     const settled = await Promise.allSettled(
-      projects.map(async (p): Promise<CatalogueEntry> => {
+      projects.map(async (p): Promise<CatalogueEntry | undefined> => {
         const url = `${raw}/${p.path}`;
         const file = await (await fetchPublic(url)).json();
+        // A file the project-url loader would reject is left out of the list.
+        // It is not a fetch failure, so it doesn't stop the list being cached.
+        let seed;
+        try {
+          ({ seed } = parseProjectFile(file, `project file ${p.path}`));
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('[catalogue] apex: skipped', error);
+          return undefined;
+        }
         return {
           id: `${p.provider}/${p.algo}`,
-          name: file.name,
-          description: file.description ?? '',
-          collectionId: file.collectionId,
-          bands: file.bands,
+          name: seed.name,
+          description:
+            typeof file.description === 'string' ? file.description : '',
+          collectionId: seed.collectionId,
+          bands: seed.bands,
           thumbnail: p.thumbnailPath && `${raw}/${p.thumbnailPath}`,
           tags: [p.provider],
           open: { loader: 'project-url', ref: url }
@@ -97,21 +109,24 @@ export function createApexSource(config: ApexConfig): CatalogueSource {
       })
     );
 
-    const entries = settled.flatMap((result, i) => {
-      if (result.status === 'fulfilled') return [result.value];
+    const failed = settled.filter((result, i) => {
+      if (result.status === 'fulfilled') return false;
       // eslint-disable-next-line no-console
       console.warn(
         `[catalogue] apex: skipped ${projects[i].path}`,
         result.reason
       );
-      return [];
+      return true;
     });
-    if (projects.length > 0 && entries.length === 0) {
+    if (projects.length > 0 && failed.length === projects.length) {
       throw new Error('No APEx project file could be loaded');
     }
+    const entries = settled.flatMap((result) =>
+      result.status === 'fulfilled' && result.value ? [result.value] : []
+    );
     // A partial list (some files failed) is shown but not cached, so the
     // next listing tries the missing files again.
-    if (entries.length === projects.length) writeCache(cacheKey, entries);
+    if (failed.length === 0) writeCache(cacheKey, entries);
     return entries;
   }
 

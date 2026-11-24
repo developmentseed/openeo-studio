@@ -140,6 +140,18 @@ describe('createApexSource', () => {
     expect(console.warn).toHaveBeenCalled();
   });
 
+  it('drops an invalid project file but still caches the list', async () => {
+    const { algorithm: _, ...noCode } = projectFile('VITO FAPAR');
+    serve({
+      ...defaultFiles,
+      [`${RAW}/algorithm_catalog/vito/fapar/openeo_studio/project.json`]: noCode
+    });
+    const { items } = await createApexSource(CONFIG).listEntries({}, {});
+    expect(items.map((e) => e.id)).toEqual(['ds/fapar']);
+    expect(console.warn).toHaveBeenCalled();
+    expect(storage.has(CACHE_KEY)).toBe(true);
+  });
+
   it('does not cache a partial list', async () => {
     serve({
       [`${RAW}/algorithm_catalog/ds/fapar/openeo_studio/project.json`]:
