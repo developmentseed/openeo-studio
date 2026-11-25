@@ -80,9 +80,10 @@ You can use these names without an import:
 | `bounding_box` | `Parameter` | The area to load. Default: the `Configuration` area, a `dict` `{west, south, east, north}` in degrees. |
 | `time` | `Parameter` | The time range. Default: the `Configuration` dates, a `list` `[start, end]` of ISO dates. |
 | `bands` | `Parameter` | The bands to load. Default: the `Configuration` bands, a `list` of band names. |
-| `cloud_cover_max` | `Parameter` | The maximum cloud cover of a scene. Default: the `Configuration` value, a `number` in percent. |
 
-The four parameters are openEO `Parameter` objects, not plain Python values. Pass them to processes as arguments.
+The three parameters are openEO `Parameter` objects, not plain Python values. Pass them to processes as arguments.
+
+Each property filter of the `Configuration` adds one more openEO parameter, named `filter_<property>` (for example `filter_eo_cloud_cover`). The collection is loaded with it already applied, so the code doesn't use it by name.
 
 ### openEO processes
 

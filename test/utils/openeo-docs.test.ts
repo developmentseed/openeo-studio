@@ -33,7 +33,7 @@ describe('openEO process docs', () => {
   it('finds the documented globals', () => {
     expect(symbol('x = reduced', 5)).toBe('global:reduced');
     expect(symbol('x = op.max(a)', 4)).toBe('global:op');
-    expect(symbol('f(cloud_cover_max)', 3)).toBe('global:cloud_cover_max');
+    expect(symbol('f(bands)', 3)).toBe('global:bands');
     expect(symbol('x = data.time', 10)).toBeNull();
   });
 

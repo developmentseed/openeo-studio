@@ -42,6 +42,7 @@ describe('projectUrlLoader', () => {
 
     await expect(projectUrlLoader.load(URL_, {})).resolves.toEqual({
       autoRun: false,
+      incompatibilities: [],
       seed: {
         name: 'FAPAR',
         collectionId: 'sentinel-2-l2a',
@@ -92,13 +93,22 @@ describe('projectUrlLoader', () => {
     ]);
   });
 
-  it('drops a malformed bounding box', async () => {
+  it('uses inline code without fetching a code file', async () => {
+    const { algorithm: _, ...inline } = project;
+    serve({ [URL_]: { ...inline, code: 'print("inline")' } });
+    const { seed } = await projectUrlLoader.load(URL_, {});
+    expect(seed.suggestedAlgorithm).toBe('print("inline")');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves out and names a malformed bounding box', async () => {
     serve({
       [URL_]: { ...project, boundingBox: [1, 'x'] },
       [`${BASE}/fapar.py`]: ''
     });
-    const { seed } = await projectUrlLoader.load(URL_, {});
+    const { seed, incompatibilities } = await projectUrlLoader.load(URL_, {});
     expect(seed.boundingBox).toBeUndefined();
+    expect(incompatibilities).toEqual(['Bounding box [1,"x"] is not valid.']);
   });
 
   it('resolves a parent-relative code path', async () => {
@@ -118,7 +128,7 @@ describe('projectUrlLoader', () => {
     expect(fetchMock).toHaveBeenLastCalledWith(other, expect.anything());
   });
 
-  it.each(['name', 'collectionId', 'temporalRange', 'bands', 'algorithm'])(
+  it.each(['name', 'collectionId', 'temporalRange', 'bands'])(
     'rejects a project file missing %s',
     async (field) => {
       const broken: Record<string, unknown> = { ...project };
@@ -131,6 +141,17 @@ describe('projectUrlLoader', () => {
       );
     }
   );
+
+  it('rejects a project file with neither code nor algorithm', async () => {
+    const broken: Record<string, unknown> = { ...project };
+    delete broken.algorithm;
+    serve({ [URL_]: broken });
+    const error = await projectUrlLoader.load(URL_, {}).catch((e) => e);
+    expect(error).toBeInstanceOf(NotFound);
+    expect(error.message).toBe(
+      `Invalid project file at ${URL_}: missing \`code\` or \`algorithm\``
+    );
+  });
 
   it('rejects a malformed temporal range', async () => {
     serve({ [URL_]: { ...project, temporalRange: ['2025-05-10'] } });
