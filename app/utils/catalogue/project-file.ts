@@ -13,6 +13,16 @@ import {
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const isString = (v: unknown): v is string => typeof v === 'string';
+
+// The round trip rejects dates that don't exist, such as 2025-02-30.
+const isDate = (v: string) => {
+  const time = Date.parse(v);
+  return (
+    DATE_PATTERN.test(v) &&
+    !Number.isNaN(time) &&
+    new Date(time).toISOString().startsWith(v)
+  );
+};
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every(isString);
 
@@ -31,8 +41,7 @@ function isBoundingBox(v: unknown): v is EditorSeed['boundingBox'] {
 const REQUIRED: Record<string, (v: unknown) => boolean> = {
   name: isString,
   collectionId: isString,
-  temporalRange: (v) =>
-    isStringArray(v) && v.length === 2 && v.every((d) => DATE_PATTERN.test(d)),
+  temporalRange: (v) => isStringArray(v) && v.length === 2 && v.every(isDate),
   bands: isStringArray
 };
 

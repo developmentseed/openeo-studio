@@ -92,4 +92,10 @@ describe('encodedUrlLoader', () => {
       load({ ...project, temporalRange: ['July', '2025-07-15'] })
     ).rejects.toThrow('missing `temporalRange`');
   });
+
+  it('rejects a date that does not exist', async () => {
+    await expect(
+      load({ ...project, temporalRange: ['2025-02-30', '2025-13-45'] })
+    ).rejects.toThrow('missing `temporalRange`');
+  });
 });
