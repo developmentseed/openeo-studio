@@ -68,9 +68,11 @@ export function parseProjectFile(
     throw new NotFound(`Invalid ${label}: missing \`code\` or \`algorithm\``);
   }
 
-  const invalidFilters = [json.propertyFilters ?? []]
-    .flat()
-    .filter((filter) => !isPropertyFilter(filter));
+  // `resolvePropertyFilters` only reads an array, so anything else is invalid.
+  const filters = json.propertyFilters ?? [];
+  const invalidFilters = Array.isArray(filters)
+    ? filters.filter((filter) => !isPropertyFilter(filter))
+    : [filters];
   const hasBoundingBox = isBoundingBox(json.boundingBox);
   const incompatibilities = invalidFilters.map(
     (filter) => `Property filter ${JSON.stringify(filter)} is not valid.`

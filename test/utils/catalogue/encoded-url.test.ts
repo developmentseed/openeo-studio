@@ -104,4 +104,13 @@ describe('encodedUrlLoader', () => {
     expect(error).toBeInstanceOf(NotFound);
     expect(error.message).toBe('Invalid project in the link: missing `code`');
   });
+
+  it('names a property filter that is not in an array', async () => {
+    const filter = project.propertyFilters[0];
+    const result = await load({ ...project, propertyFilters: filter });
+    expect(result.seed.propertyFilters).toEqual([]);
+    expect(result.incompatibilities).toEqual([
+      `Property filter ${JSON.stringify(filter)} is not valid.`
+    ]);
+  });
 });
