@@ -98,4 +98,10 @@ describe('encodedUrlLoader', () => {
       load({ ...project, temporalRange: ['2025-02-30', '2025-13-45'] })
     ).rejects.toThrow('missing `temporalRange`');
   });
+
+  it.each([null, 5, 'text'])('rejects a %p payload', async (value) => {
+    const error = await load(value).catch((e) => e);
+    expect(error).toBeInstanceOf(NotFound);
+    expect(error.message).toBe('Invalid project in the link: missing `code`');
+  });
 });
