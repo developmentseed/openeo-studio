@@ -120,6 +120,12 @@ export async function reconcileSeed(
         ? `Band ${names} is not available in "${collectionId}".`
         : `Bands ${names} are not available in "${collectionId}".`
     );
+    // The code reads bands by position, so a gap moves later bands up.
+    if (bands.some((band, i) => seed.bands.indexOf(band) !== i)) {
+      incompatibilities.push(
+        `The remaining bands moved up, so \`data\` indices now point to different bands: ${bands.map((band, i) => `data[${i}] is "${band}"`).join(', ')}.`
+      );
+    }
   }
 
   const queryables = await getCollectionQueryables(collectionId);

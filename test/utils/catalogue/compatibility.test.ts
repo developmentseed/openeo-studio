@@ -212,6 +212,16 @@ describe('reconcileSeed', () => {
     );
   });
 
+  it('says when a missing band moves the later bands up', async () => {
+    const { incompatibilities } = await reconcileSeed({
+      ...seed,
+      bands: ['B99', 'B02', 'B04']
+    });
+    expect(incompatibilities[1]).toBe(
+      'The remaining bands moved up, so `data` indices now point to different bands: data[0] is "B02", data[1] is "B04".'
+    );
+  });
+
   it('falls back to the default collection and keeps the code', async () => {
     const result = await reconcileSeed({
       ...seed,
