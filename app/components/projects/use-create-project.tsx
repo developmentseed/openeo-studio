@@ -54,36 +54,23 @@ export function useCreateProject() {
           afterClose.current = null;
         }}
         placement='center'
+        variant='framed'
       >
         <Portal>
           <Dialog.Backdrop />
           <Dialog.Positioner>
-            <Dialog.Content
-              maxW='5xl'
-              bg='bg.muted'
-              boxShadow='inset 0 0 0 1px {colors.border}'
-            >
-              <Dialog.Header p={4} display='flex' alignItems='center'>
+            <Dialog.Content maxW='5xl'>
+              <Dialog.Header>
                 <Dialog.Title asChild unstyled>
                   <Heading size='md'>Create new project</Heading>
                 </Dialog.Title>
-                <Dialog.CloseTrigger asChild unstyled>
-                  <IconButton
-                    variant='ghost'
-                    size='xs'
-                    colorPalette='basi'
-                    ml='auto'
-                  >
+                <Dialog.CloseTrigger asChild>
+                  <IconButton variant='ghost' size='xs' colorPalette='basi'>
                     <LuX />
                   </IconButton>
                 </Dialog.CloseTrigger>
               </Dialog.Header>
-              <Dialog.Body
-                p={4}
-                bg='bg'
-                boxShadow='inset 0 0 0 1px {colors.border}'
-                rounded='uni'
-              >
+              <Dialog.Body>
                 <Heading size='lg' mb={4}>
                   From scratch or grab a sample
                 </Heading>

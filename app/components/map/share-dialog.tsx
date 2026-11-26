@@ -119,6 +119,7 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   return (
     <Dialog.Root
       open
+      variant='framed'
       onOpenChange={(details) => {
         if (!details.open) onClose();
       }}
@@ -130,17 +131,17 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
             maxW={created ? 'full' : 'md'}
             w={created ? '90vw' : undefined}
             h={created ? '85vh' : undefined}
-            p={created ? 4 : 6}
+            p={created ? 4 : undefined}
             display='flex'
             flexDirection='column'
             minH={0}
           >
             {!created ? (
               <>
-                <Dialog.Header p={0} mb={4}>
+                <Dialog.Header>
                   <Heading size='md'>Export as Permanent Service</Heading>
                 </Dialog.Header>
-                <Dialog.Body p={0}>
+                <Dialog.Body>
                   <VStack align='stretch' gap={4}>
                     <Text fontSize='sm' color='fg.muted'>
                       Create a permanent XYZ service for{' '}
@@ -212,7 +213,7 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
               </>
             ) : (
               <Dialog.Body
-                p={0}
+                unstyled
                 flex={1}
                 display='flex'
                 flexDirection='column'
