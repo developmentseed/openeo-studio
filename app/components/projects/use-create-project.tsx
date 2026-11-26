@@ -14,7 +14,6 @@ import {
 } from '$components/catalogue/use-open-entry';
 import { entryHref } from '$utils/catalogue/links';
 import { sampleToEntry } from '$utils/catalogue/sources/samples';
-import { seededPick } from '$utils/seeded-pick';
 import { BlankCard } from './blank-card';
 import { SceneCard } from './scene-card';
 import { LuX } from 'react-icons/lu';
@@ -22,12 +21,22 @@ import { LuX } from 'react-icons/lu';
 const SAMPLE_COUNT = 2;
 const HOUR_MS = 60 * 60 * 1000;
 
+const pickSamples = () => {
+  const hour = Math.floor(Date.now() / HOUR_MS);
+  return Array.from(
+    { length: Math.min(SAMPLE_COUNT, SAMPLE_SCENES.length) },
+    (_, i) => SAMPLE_SCENES[(hour * SAMPLE_COUNT + i) % SAMPLE_SCENES.length]
+  ).map(sampleToEntry);
+};
+
 /**
  * The "Create new project" dialog: start blank or from a sample. The samples
- * shown are seeded by the current hour, so they change hourly, not per open.
+ * shown rotate by the hour, not per open.
  */
 export function useCreateProject() {
   const [open, setOpen] = useState(false);
+  // Picked on open, so the samples never swap while the dialog is showing.
+  const [samples, setSamples] = useState(pickSamples);
   // Runs once the dialog has closed: a discard prompt opened while it is
   // still closing gets dismissed along with it.
   const afterClose = useRef<(() => void) | null>(null);
@@ -37,12 +46,6 @@ export function useCreateProject() {
   };
   const { newProject, dialog: newProjectDialog } = useNewProject();
   const { openEntry, dialog: openEntryDialog } = useOpenEntry();
-
-  const samples = seededPick(
-    SAMPLE_SCENES,
-    SAMPLE_COUNT,
-    Math.floor(Date.now() / HOUR_MS)
-  ).map(sampleToEntry);
 
   const dialog = (
     <>
@@ -65,7 +68,12 @@ export function useCreateProject() {
                   <Heading size='md'>Create new project</Heading>
                 </Dialog.Title>
                 <Dialog.CloseTrigger asChild>
-                  <IconButton variant='ghost' size='xs' colorPalette='basi'>
+                  <IconButton
+                    aria-label='Close'
+                    variant='ghost'
+                    size='xs'
+                    colorPalette='basi'
+                  >
                     <LuX />
                   </IconButton>
                 </Dialog.CloseTrigger>
@@ -98,5 +106,10 @@ export function useCreateProject() {
     </>
   );
 
-  return { createProject: () => setOpen(true), dialog };
+  const createProject = () => {
+    setSamples(pickSamples());
+    setOpen(true);
+  };
+
+  return { createProject, dialog };
 }
