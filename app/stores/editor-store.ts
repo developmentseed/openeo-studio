@@ -43,6 +43,7 @@ type EditorActions = {
   setBoundingBox: (bbox: BoundingBox | undefined) => void;
   setServices: (services: ServiceInfo[]) => void;
   toggleServiceVisibility: (serviceId: string) => void;
+  setServiceOpacity: (serviceId: string, opacity: number) => void;
   setSceneId: (id: string | null) => void;
   setSceneName: (name: string) => void;
   markClean: () => void;
@@ -111,6 +112,12 @@ export const useEditorStore = create<EditorStore>()(
             service.id === serviceId
               ? { ...service, visible: !service.visible }
               : service
+          )
+        })),
+      setServiceOpacity: (serviceId, opacity) =>
+        set((state) => ({
+          services: state.services.map((service) =>
+            service.id === serviceId ? { ...service, opacity } : service
           )
         })),
       setSceneId: (sceneId) => set({ sceneId }),

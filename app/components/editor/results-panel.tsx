@@ -1,6 +1,9 @@
 import {
   Button,
   Flex,
+  Heading,
+  Popover,
+  Portal,
   Separator,
   Spinner,
   Stack,
@@ -13,6 +16,7 @@ import {
   memo,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode
 } from 'react';
@@ -27,7 +31,6 @@ import { TileStatusAlert } from '$components/map/tile-status-alert';
 import type { TileLoadStatus } from '$components/map/use-map-tile-status';
 import { ShareDialog } from '$components/map/share-dialog';
 import { ReadOnlyCodeEditor } from '$components/editor/readonly-code-editor';
-import { Tip } from '$components/tooltip';
 
 import { useMergedProcessGraph } from './use-merged-process-graph';
 
@@ -46,13 +49,18 @@ function ResultsPanelComponent() {
       services: state.services
     }))
   );
-  const { toggleServiceVisibility, setBoundingBox } = useEditorStore();
+  const { toggleServiceVisibility, setServiceOpacity, setBoundingBox } =
+    useEditorStore();
 
   const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
     pending: 0,
     status: 'idle'
   });
   const [shareService, setShareService] = useState<ServiceInfo | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  // Opened once the popover has closed: its focus return would dismiss a
+  // dialog opened earlier.
+  const pendingExport = useRef<ServiceInfo | null>(null);
 
   const mergedGraph = useMergedProcessGraph(services);
 
@@ -86,11 +94,64 @@ function ResultsPanelComponent() {
             </Tabs.Trigger>
           </Tabs.List>
           <Separator orientation='vertical' h={4} ml='auto' />
-          <Tip content='Coming soon'>
-            <Button size='sm' variant='outline' disabled>
-              Export <LuDownload />
-            </Button>
-          </Tip>
+          <Popover.Root
+            positioning={{ placement: 'bottom-end' }}
+            open={exportOpen}
+            lazyMount
+            unmountOnExit
+            onOpenChange={(details) => setExportOpen(details.open)}
+            onExitComplete={() => {
+              if (pendingExport.current) setShareService(pendingExport.current);
+              pendingExport.current = null;
+            }}
+          >
+            <Popover.Trigger asChild>
+              <Button size='sm' variant='outline'>
+                Export <LuDownload />
+              </Button>
+            </Popover.Trigger>
+            <Portal>
+              <Popover.Positioner>
+                <Popover.Content w='xs' overflow='hidden' bg='bg.subtle'>
+                  {/* Same height as the Layers header, which has a close button */}
+                  <Flex align='center' py={2} px={4} minH={10}>
+                    <Popover.Title fontWeight='bold'>Export</Popover.Title>
+                  </Flex>
+                  <Popover.Body
+                    p={4}
+                    bg='bg'
+                    borderTopRadius='uni'
+                    borderTop='1px solid'
+                    borderColor='border'
+                  >
+                    <Stack gap={2}>
+                      <Heading size='xs'>Services</Heading>
+                      {services.length === 0 ? (
+                        <Text fontSize='sm' color='fg.muted'>
+                          Run your script to get layers to export.
+                        </Text>
+                      ) : (
+                        services.map((service) => (
+                          <Button
+                            key={service.id}
+                            size='sm'
+                            variant='ghost'
+                            justifyContent='start'
+                            onClick={() => {
+                              pendingExport.current = service;
+                              setExportOpen(false);
+                            }}
+                          >
+                            <Text truncate>{service.graphResult.name}</Text>
+                          </Button>
+                        ))
+                      )}
+                    </Stack>
+                  </Popover.Body>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Portal>
+          </Popover.Root>
         </Flex>
         <Stack
           flexGrow={1}
@@ -116,20 +177,12 @@ function ResultsPanelComponent() {
                 sceneId={sceneId}
                 services={services}
                 onToggleLayer={toggleServiceVisibility}
+                onOpacityChange={setServiceOpacity}
                 onBoundingBoxChange={setBoundingBox}
                 onTileStatusChange={setTileStatus}
-                onServicePublish={(v) => setShareService(v)}
               />
             </Flex>
             {services.length > 0 && <TileStatusAlert status={tileStatus} />}
-
-            {shareService && (
-              <ShareDialog
-                service={shareService}
-                bounds={bounds}
-                onClose={() => setShareService(null)}
-              />
-            )}
           </Tabs.Content>
           <Tabs.Content value='visual' display='flex' h='100%' p={0}>
             <OutputVisual graph={mergedGraph} />
@@ -138,6 +191,13 @@ function ResultsPanelComponent() {
             <OutputJson graph={mergedGraph} />
           </Tabs.Content>
         </Stack>
+        {shareService && (
+          <ShareDialog
+            service={shareService}
+            bounds={bounds}
+            onClose={() => setShareService(null)}
+          />
+        )}
       </Tabs.Root>
     </Stack>
   );

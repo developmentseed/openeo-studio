@@ -14,9 +14,9 @@ interface MapViewerProps {
   sceneId: string | null;
   services: ServiceInfo[];
   onToggleLayer: (serviceId: string) => void;
+  onOpacityChange: (serviceId: string, opacity: number) => void;
   onBoundingBoxChange?: (boundingBox: [number, number, number, number]) => void;
   onTileStatusChange?: (status: TileLoadStatus) => void;
-  onServicePublish?: (service: ServiceInfo) => void;
 }
 
 export function MapViewer({
@@ -24,9 +24,9 @@ export function MapViewer({
   sceneId,
   services,
   onToggleLayer,
+  onOpacityChange,
   onBoundingBoxChange,
-  onTileStatusChange,
-  onServicePublish
+  onTileStatusChange
 }: MapViewerProps) {
   const mapRef = useRef<MapRef>(null);
   const [baseLayerId, setBaseLayerId] = useState(BASE_LAYERS[0]?.id ?? '');
@@ -95,7 +95,7 @@ export function MapViewer({
       <MapLayerSelector
         services={services}
         onToggleLayer={onToggleLayer}
-        onServicePublish={onServicePublish}
+        onOpacityChange={onOpacityChange}
         baseOptions={BASE_LAYERS}
         baseValue={baseLayerId}
         onBaseChange={setBaseLayerId}

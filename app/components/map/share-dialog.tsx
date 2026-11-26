@@ -49,6 +49,7 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<BackendService | null>(null);
   const [layerVisible, setLayerVisible] = useState(true);
+  const [layerOpacity, setLayerOpacity] = useState(100);
   const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
     pending: 0,
     status: 'idle'
@@ -85,13 +86,16 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
   const mapServices = useMemo(() => {
     if (!created) return [];
     return [
-      backendServiceToServiceInfo(
-        created,
-        layerVisible,
-        service.graphResult.name
-      )
+      {
+        ...backendServiceToServiceInfo(
+          created,
+          layerVisible,
+          service.graphResult.name
+        ),
+        opacity: layerOpacity
+      }
     ];
-  }, [created, layerVisible, service.graphResult.name]);
+  }, [created, layerVisible, layerOpacity, service.graphResult.name]);
 
   const previewBounds = created ? getServiceExtent(created, bounds) : bounds;
   const previewTitle = created
@@ -267,6 +271,7 @@ export function ShareDialog({ service, bounds, onClose }: ShareDialogProps) {
                     bounds={previewBounds}
                     services={mapServices}
                     onToggleLayer={handleToggleLayer}
+                    onOpacityChange={(_, opacity) => setLayerOpacity(opacity)}
                     onTileStatusChange={setTileStatus}
                   />
                   {mapServices.length > 0 && (

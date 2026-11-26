@@ -15,7 +15,7 @@ export function MapLayers({ services }: MapLayersProps) {
     <>
       {services
         .filter((service) => service.visible)
-        .map((service, index) => (
+        .map((service) => (
           <Source
             key={service.id}
             id={`service-${service.id}`}
@@ -31,7 +31,7 @@ export function MapLayers({ services }: MapLayersProps) {
               id={`layer-${service.id}`}
               type='raster'
               paint={{
-                'raster-opacity': 0.8 - index * 0.1 // Slight transparency for overlays
+                'raster-opacity': (service.opacity ?? 100) / 100
               }}
             />
           </Source>
