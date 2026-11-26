@@ -28,7 +28,7 @@ import { useEmailHash } from '$components/auth/user-info';
 import { useIsAuthDisabled } from '$components/auth/disabled-auth-provider';
 import { LogoComposition, NameComposition } from '$components/layout/brand';
 import { returnPath } from '$utils/return-path';
-import { useNewProject } from '$components/catalogue/use-open-entry';
+import { useCreateProject } from '$components/projects/use-create-project';
 import { Tip } from '$components/tooltip';
 import { useColorMode } from '$contexts/color-mode';
 
@@ -51,7 +51,7 @@ export function AppHeader() {
   const [barOpen, setBarOpen] = useState(false);
 
   const BtnCmp = barOpen ? Button : IconButton;
-  const { newProject, dialog: newProjectDialog } = useNewProject();
+  const { createProject, dialog: newProjectDialog } = useCreateProject();
 
   const noop: ButtonProps = isAuthenticated
     ? {}
@@ -209,7 +209,7 @@ export function AppHeader() {
               variant='ghost'
               size='sm'
               aria-label='New project'
-              onClick={newProject}
+              onClick={createProject}
               {...noop}
             >
               <LuPlus />

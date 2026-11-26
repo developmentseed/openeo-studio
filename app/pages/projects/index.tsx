@@ -7,13 +7,13 @@ import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton'
 import { ProjectCard } from '$components/projects/project-card';
 import SmartLink from '$components/common/smart-link';
 import { EmptyState } from '$components/common/empty-state';
-import { useNewProject } from '$components/catalogue/use-open-entry';
+import { useCreateProject } from '$components/projects/use-create-project';
 
 const SKELETON_COUNT = 6;
 
 export function ProjectsPage() {
   const { projects, isLoading, error } = useProjects();
-  const { newProject, dialog } = useNewProject();
+  const { createProject, dialog } = useCreateProject();
 
   return (
     <Box flex={1}>
@@ -48,7 +48,7 @@ export function ProjectsPage() {
                 description='Create a new project or browse the catalogue'
                 actions={
                   <>
-                    <Button size='sm' variant='subtle' onClick={newProject}>
+                    <Button size='sm' variant='subtle' onClick={createProject}>
                       <LuPlus /> Create
                     </Button>
                     <Button size='sm' variant='subtle' asChild>

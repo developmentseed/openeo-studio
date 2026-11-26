@@ -3,12 +3,15 @@ import { Alert, Box, Button, Flex, SimpleGrid, Stack } from '@chakra-ui/react';
 
 import { catalogue } from '$config/catalogue';
 import { useCatalogue } from '$components/catalogue/use-catalogue';
-import { useOpenEntry } from '$components/catalogue/use-open-entry';
+import {
+  useNewProject,
+  useOpenEntry
+} from '$components/catalogue/use-open-entry';
 import { entryHref } from '$utils/catalogue/links';
 import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton';
 import { ProjectsHeader } from './header';
-import { SceneCard } from './scene-card';
-import { BlankCard } from './blank-card';
+import { SceneCard } from '$components/projects/scene-card';
+import { BlankCard } from '$components/projects/blank-card';
 import { CatalogueSearch } from './catalogue-search';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -31,6 +34,7 @@ export function ProjectsCataloguePage() {
     { text, sourceIds: sourceId ? [sourceId] : undefined }
   );
   const { openEntry, pendingRef, dialog } = useOpenEntry();
+  const { newProject, dialog: newProjectDialog } = useNewProject();
 
   return (
     <Box flex={1}>
@@ -86,7 +90,7 @@ export function ProjectsCataloguePage() {
                 { length: entries.length ? 3 : SKELETON_COUNT },
                 (_, index) => <ProjectCardSkeleton key={`skeleton-${index}`} />
               )}
-            <BlankCard />
+            <BlankCard onCreate={newProject} />
           </SimpleGrid>
 
           {hasMore && !isLoading && (
@@ -99,6 +103,7 @@ export function ProjectsCataloguePage() {
         </Stack>
       </Stack>
       {dialog}
+      {newProjectDialog}
     </Box>
   );
 }

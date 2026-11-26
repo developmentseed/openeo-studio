@@ -1,4 +1,4 @@
-import { Dialog, Flex, Heading } from '@chakra-ui/react';
+import { Dialog, Flex, Heading, Portal } from '@chakra-ui/react';
 
 interface ActionDialogProps extends Dialog.RootProps {
   open: boolean;
@@ -29,21 +29,23 @@ export function ActionDialog({
       placement='center'
       {...rest}
     >
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content maxW='md' p={8}>
-          <Dialog.CloseTrigger />
-          <Dialog.Header p={0} mb={4}>
-            <Heading size='md'>{title}</Heading>
-          </Dialog.Header>
-          <Dialog.Body p={0}>
-            {children}
-            <Flex justify='flex-end' mt={4} gap={2}>
-              {actions}
-            </Flex>
-          </Dialog.Body>
-        </Dialog.Content>
-      </Dialog.Positioner>
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content maxW='md' p={8}>
+            <Dialog.CloseTrigger />
+            <Dialog.Header p={0} mb={4}>
+              <Heading size='md'>{title}</Heading>
+            </Dialog.Header>
+            <Dialog.Body p={0}>
+              {children}
+              <Flex justify='flex-end' mt={4} gap={2}>
+                {actions}
+              </Flex>
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
     </Dialog.Root>
   );
 }

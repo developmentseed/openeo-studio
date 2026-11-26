@@ -5,7 +5,7 @@ import {
   defineGlobalStyles,
   defineSlotRecipe
 } from '@chakra-ui/react';
-import { tabsAnatomy, toastAnatomy } from '@ark-ui/react';
+import { dialogAnatomy, tabsAnatomy, toastAnatomy } from '@ark-ui/react';
 
 import { colors, semanticColors } from './colors';
 
@@ -98,6 +98,39 @@ export const config = defineConfig({
       }
     },
     slotRecipes: {
+      dialog: defineSlotRecipe({
+        slots: dialogAnatomy.keys(),
+        variants: {
+          variant: {
+            // A muted frame with the title bar, around a bordered body.
+            framed: {
+              content: {
+                bg: 'bg.muted',
+                boxShadow: 'inset 0 0 0 1px {colors.border}'
+              },
+              header: {
+                alignItems: 'center',
+                px: 4,
+                pt: 4,
+                pb: 4
+              },
+              body: {
+                px: 4,
+                pt: 4,
+                pb: 4,
+                bg: 'bg',
+                boxShadow: 'inset 0 0 0 1px {colors.border}',
+                rounded: 'uni'
+              },
+              // Sits at the end of the header instead of over the corner.
+              closeTrigger: {
+                position: 'static',
+                ml: 'auto'
+              }
+            }
+          }
+        }
+      }),
       tabs: defineSlotRecipe({
         slots: tabsAnatomy.keys(),
         base: {

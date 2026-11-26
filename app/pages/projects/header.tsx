@@ -4,10 +4,10 @@ import { LuPlus, LuLibrary, LuUser } from 'react-icons/lu';
 import { NavLink } from 'react-router';
 
 import { InfoPopoverButton } from '$components/common/info-popover-button';
-import { useNewProject } from '$components/catalogue/use-open-entry';
+import { useCreateProject } from '$components/projects/use-create-project';
 
 export function ProjectsHeader({ children }: { children?: ReactNode }) {
-  const { newProject, dialog } = useNewProject();
+  const { createProject, dialog } = useCreateProject();
 
   return (
     <Flex
@@ -40,7 +40,7 @@ export function ProjectsHeader({ children }: { children?: ReactNode }) {
       <Flex gap={2} wrap='wrap' alignItems='center'>
         {children}
         {children && <Separator orientation='vertical' h='4' mr={2} />}
-        <Button size='sm' variant='outline' onClick={newProject}>
+        <Button size='sm' variant='outline' onClick={createProject}>
           <LuPlus /> <Text hideBelow='sm'>Create</Text>
         </Button>
       </Flex>
