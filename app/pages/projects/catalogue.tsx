@@ -7,8 +7,8 @@ import { useOpenEntry } from '$components/catalogue/use-open-entry';
 import { entryHref } from '$utils/catalogue/links';
 import { ProjectCardSkeleton } from '$components/projects/project-card-skeleton';
 import { ProjectsHeader } from './header';
-import { SceneCard } from './scene-card';
-import { BlankCard } from './blank-card';
+import { SceneCard } from '$components/projects/scene-card';
+import { BlankCard } from '$components/projects/blank-card';
 import { CatalogueSearch } from './catalogue-search';
 
 const SEARCH_DEBOUNCE_MS = 300;

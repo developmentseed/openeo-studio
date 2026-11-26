@@ -11,7 +11,7 @@ import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { MemoryRouter, Route, Routes } = require('react-router');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { SceneCard } = require('$pages/projects/scene-card');
+const { SceneCard } = require('$components/projects/scene-card');
 
 function renderCard(props: { href?: string; onOpen: () => void }) {
   render(

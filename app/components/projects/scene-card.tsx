@@ -54,6 +54,9 @@ export function SceneCard(props: SceneCardProps) {
       asChild
       transition='all 0.2s'
       rounded='uni'
+      border='none'
+      boxShadow='inset 0 0 0 1px {colors.border}'
+      shadow='md'
       _hover={{
         transform: 'translateY(-4px)',
         shadow: 'lg'
@@ -62,11 +65,11 @@ export function SceneCard(props: SceneCardProps) {
       {...rest}
     >
       <LinkBox>
-        <Card.Body gap={4} p={8}>
+        <Card.Body gap={0} p={0} rounded='uni'>
           {/* Thumbnail */}
           {!ownThumbnail && isLoading ? (
             <Box
-              height='200px'
+              aspectRatio={2 / 1}
               width='100%'
               rounded='uni'
               display='flex'
@@ -76,12 +79,12 @@ export function SceneCard(props: SceneCardProps) {
               <Spinner size='lg' />
             </Box>
           ) : thumbnail ? (
-            <Box m={-8} mb={0}>
+            <Box mb={-4}>
               <Image
                 src={thumbnail}
                 alt={name}
-                height='200px'
                 width='100%'
+                aspectRatio={2 / 1}
                 objectFit='cover'
                 roundedTop='uni'
                 onError={(e) => {
@@ -92,7 +95,14 @@ export function SceneCard(props: SceneCardProps) {
           ) : null}
 
           {/* Entry info */}
-          <Stack gap={2}>
+          <Stack
+            gap={2}
+            p={8}
+            bg='bg'
+            rounded='uni'
+            boxShadow='inset 0 0 0 1px {colors.border}'
+            h='100%'
+          >
             <Heading size='md'>
               {/* Stretches over the whole card, so the card is one button */}
               <LinkOverlay asChild>
