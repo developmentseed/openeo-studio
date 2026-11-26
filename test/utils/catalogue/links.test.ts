@@ -35,6 +35,9 @@ describe('linkFromParams', () => {
       loader: 'encoded-url',
       ref: 'abc'
     });
+    expect(
+      linkFromParams(new URLSearchParams({ apex_udp: 'vito/max_ndvi' }))
+    ).toEqual({ loader: 'apex-udp', ref: 'vito/max_ndvi' });
   });
 
   it('round-trips with entryHref', () => {

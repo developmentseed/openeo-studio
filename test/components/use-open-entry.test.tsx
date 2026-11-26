@@ -165,6 +165,21 @@ describe('useOpenEntry', () => {
     });
   });
 
+  it('keeps the notice of generated code', async () => {
+    mockLoad.mockResolvedValue({ seed, autoRun: false, generated: true });
+    renderHost();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+
+    await waitFor(() =>
+      expect(store().loadNotice).toEqual({
+        external: false,
+        generated: true,
+        incompatibilities: []
+      })
+    );
+  });
+
   it('cancels an earlier load when another entry opens', async () => {
     let firstSignal: AbortSignal | undefined;
     mockLoad.mockImplementation(({ ref }, { signal }) => {

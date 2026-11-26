@@ -7,7 +7,8 @@ import type { LoadRef } from './types';
 const LINK_PARAMS: Record<string, string> = {
   project_url: 'project-url',
   sample_id: 'samples',
-  prefill: 'encoded-url'
+  prefill: 'encoded-url',
+  apex_udp: 'apex-udp'
 };
 
 /**

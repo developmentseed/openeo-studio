@@ -47,6 +47,19 @@ async function initRuff() {
   return initPromise;
 }
 
+/**
+ * Formats Python code with Ruff. Returns the code as it is when Ruff can't
+ * load or can't parse it.
+ */
+export async function formatPython(code: string): Promise<string> {
+  try {
+    await initRuff();
+    return ruffWorkspace!.format(code);
+  } catch {
+    return code;
+  }
+}
+
 export function ruffLinter(options?: { ignoreCodes?: string[] }) {
   // Initialize Ruff asynchronously
   initRuff();
