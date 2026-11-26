@@ -28,6 +28,7 @@ export function SharePage() {
   const navigate = useNavigate();
   const [service, setService] = useState<BackendService | null>(null);
   const [layerVisible, setLayerVisible] = useState(true);
+  const [layerOpacity, setLayerOpacity] = useState(100);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [tileStatus, setTileStatus] = useState<TileLoadStatus>({
@@ -71,8 +72,13 @@ export function SharePage() {
 
   const services = useMemo(() => {
     if (!service) return [];
-    return [backendServiceToServiceInfo(service, layerVisible)];
-  }, [service, layerVisible]);
+    return [
+      {
+        ...backendServiceToServiceInfo(service, layerVisible),
+        opacity: layerOpacity
+      }
+    ];
+  }, [service, layerVisible, layerOpacity]);
 
   const bounds = service ? getServiceExtent(service) : undefined;
   const title = service ? getServiceDisplayName(service) : 'Shared service';
@@ -149,6 +155,7 @@ export function SharePage() {
                 bounds={bounds}
                 services={services}
                 onToggleLayer={handleToggleLayer}
+                onOpacityChange={(_, opacity) => setLayerOpacity(opacity)}
                 onTileStatusChange={setTileStatus}
               />
               {services.length > 0 && <TileStatusAlert status={tileStatus} />}

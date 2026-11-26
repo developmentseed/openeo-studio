@@ -114,6 +114,7 @@ export interface ServiceInfo {
   maxZoom?: number;
   graphResult: GraphResult;
   visible: boolean;
+  opacity?: number; // percent, 0-100; unset means 100
 }
 
 /**
